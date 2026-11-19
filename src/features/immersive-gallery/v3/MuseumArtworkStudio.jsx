@@ -15,7 +15,7 @@ const applyAssetChange=(assets,oldId,newAsset)=>[
  ...(assets||[]).filter(a=>a.id!==oldId&&a.id!==newAsset?.id),
  ...(newAsset?[newAsset]:[])
 ];
-export default function MuseumArtworkStudio({studio,update,saveArtwork=update,csrf,disabled=false,uploadEnabled=false,language='vi',onAssets,onBusy,lessonTemplate,frameEditor,compactCredits=false}){
+export default function MuseumArtworkStudio({studio,update,saveArtwork=update,csrf,disabled=false,uploadEnabled=false,language='vi',onAssets,onBusy,lessonTemplate,frameEditor,compactCredits=false,viewAssets}){
  const asean=isAsean(lessonTemplate);
  const labels=asean?ASEAN_FRAMES.map(f=>[f.key,f.label]):LABELS;
  const [assets,setAssets]=useState(null),[busySlot,setBusySlot]=useState(null),[error,setError]=useState(''),[notice,setNotice]=useState('');
@@ -24,6 +24,7 @@ export default function MuseumArtworkStudio({studio,update,saveArtwork=update,cs
  const changesDuringRefresh=useRef(null);
  const busyRef=useRef(false);
  const previewUrl=pending?.url;
+ const publicView=Array.isArray(viewAssets);
  const t=(vi,en)=>language==='en'?en:vi;
  useEffect(()=>{if(assets)onAssets?.(assets);},[assets,onAssets]);
  useEffect(()=>()=>{if(previewUrl)URL.revokeObjectURL(previewUrl);},[previewUrl]);
@@ -40,10 +41,12 @@ export default function MuseumArtworkStudio({studio,update,saveArtwork=update,cs
   finally{if(id===refreshId.current)changesDuringRefresh.current=null;}
  },[]);
  useEffect(()=>{
+  if(publicView)return;
   refresh();
   return()=>{refreshId.current++;};
- },[refresh]);
- const lookup=useMemo(()=>new Map((assets||[]).map(a=>[a.id,a])),[assets]);
+ },[refresh,publicView]);
+ const displayedAssets=viewAssets??assets;
+ const lookup=useMemo(()=>new Map((displayedAssets||[]).map(a=>[a.id,a])),[displayedAssets]);
  const updateAssets=(oldId,newAsset)=>{
   changesDuringRefresh.current?.push([oldId,newAsset]);
   setAssets(previous=>applyAssetChange(previous,oldId,newAsset));
@@ -99,9 +102,9 @@ export default function MuseumArtworkStudio({studio,update,saveArtwork=update,cs
  return <section className="bml-surface bml-artwork-studio" data-testid="museum-artwork-studio">
   <div className="bml-section-head"><div>{!asean&&<div className="bml-overline">ARTWORK STUDIO · 3D MUSEUM</div>}
    <h2>{asean?'Travel photographs':t('Chuẩn bị và tải poster','Prepare and upload your posters')}</h2>
-   <p>{t('Ảnh JPG/PNG/WebP sẽ được xử lý thành PNG an toàn rồi tự treo trong bảo tàng 3D.','JPG, PNG and WebP images are sanitized to PNG and automatically framed on the museum walls.')}</p></div>
-   <button type="button" className="bml-icon-btn" disabled={!!busySlot} onClick={refresh} title={t('Cập nhật ảnh','Refresh art')}><RefreshCcw size={20}/></button></div>
-  {!uploadEnabled?<div className="bml-banner bml-warning-banner"><Lock size={20}/>
+   {!publicView&&<p>{t('Ảnh JPG/PNG/WebP sẽ được xử lý thành PNG an toàn rồi tự treo trong bảo tàng 3D.','JPG, PNG and WebP images are sanitized to PNG and automatically framed on the museum walls.')}</p>}</div>
+   {!publicView&&<button type="button" className="bml-icon-btn" disabled={!!busySlot} onClick={refresh} title={t('Cập nhật ảnh','Refresh art')}><RefreshCcw size={20}/></button>}</div>
+  {!publicView&&!uploadEnabled?<div className="bml-banner bml-warning-banner"><Lock size={20}/>
    {t('Chức năng tải ảnh đang được giữ khóa tới khi hoàn tất kiểm thử và Admin bật quyền tải ảnh.','Image upload remains locked until media QA and Admin approval.')}</div>:null}
   {!asean?<button type="button" className="bml-primary" disabled={disabled||!uploadEnabled||!!busySlot} onClick={pinSurvey}>{t('Gắn biểu đồ khảo sát đã chốt vào Evidence','Attach frozen survey chart to Evidence')}</button>:null}
   <div className="bml-student-artwork-grid">{labels.map(([key,label])=>{
@@ -116,13 +119,13 @@ export default function MuseumArtworkStudio({studio,update,saveArtwork=update,cs
      ['alt',t('Mô tả ảnh / Alt text','Alt text'),500],
      ['source',t('Nguồn ảnh / Source','Image source'),600],
      ['rights',t('Quyền sử dụng / Permission','Usage permission'),300]
-    ].map(([field,fieldLabel,max])=><label key={field}>
+    ].map(([field,fieldLabel,max])=>publicView?<p key={field}><strong>{fieldLabel}</strong><br/>{meta?.[field]||'—'}</p>:<label key={field}>
      {fieldLabel}{field==='source'?' · Required for submission':''}
      <input maxLength={max} disabled={disabled} value={meta?.[field]||''}
       placeholder={field==='source'?'Actual creator, class group, teacher or source URL':undefined}
       onChange={e=>{const value=e.target.value;update(d=>({...d,artMeta:{...normalizeArtMeta(d.artMeta),[key]:{...normalizeArtMeta(d.artMeta)[key],[field]:value}}}));}}/>
     </label>)}
-    {!String(meta?.source||'').trim()&&<p className="bml-artwork-source-required" role="status">Image source is missing. Name the actual creator of this image. For work made by the group, say so; for teacher-provided or third-party art, credit its real origin. Do not invent a source.</p>}
+    {!publicView&&!String(meta?.source||'').trim()&&<p className="bml-artwork-source-required" role="status">Image source is missing. Name the actual creator of this image. For work made by the group, say so; for teacher-provided or third-party art, credit its real origin. Do not invent a source.</p>}
    </div>;
    return <div className="bml-artwork-slot" key={key} data-artwork-frame={compactCredits?key:undefined} tabIndex={compactCredits?-1:undefined}>
     <strong>{label}</strong>
@@ -138,26 +141,26 @@ export default function MuseumArtworkStudio({studio,update,saveArtwork=update,cs
        onChange={e=>{const value=e.target.value;update(d=>({...d,artMeta:{...d.artMeta,[key]:{...d.artMeta?.[key],[field]:value}}}));}}/>
      </label>)}
     </details>:null}
-    {imageUrl?<img src={imageUrl} alt={label+' — '+filename} referrerPolicy="no-referrer" loading={preview?'eager':'lazy'}/>:
+    {imageUrl?<img src={imageUrl} alt={publicView?(meta?.alt||label):label+' — '+filename} referrerPolicy="no-referrer" loading={preview?'eager':'lazy'}/>:
       <div className="bml-artwork-missing"><ImageIcon size={29}/>{t('Chưa tải tranh','No image yet')}</div>}
-    <span className="bml-artwork-caption">{filename||t('Tranh do nhóm tự tạo hoặc được phép sử dụng','Your own art or licensed material')}</span>
-    <label aria-disabled={disabled||!uploadEnabled||!!busySlot}><UploadCloud size={17}/> {loading?uploadStatus:asean?(asset?'Replace photo':'Upload photo'):asset?t('Thay tranh','Replace art'):t('Tải tranh lên','Upload art')}
+    {!publicView&&<span className="bml-artwork-caption">{filename||t('Tranh do nhóm tự tạo hoặc được phép sử dụng','Your own art or licensed material')}</span>}
+    {!publicView&&<label aria-disabled={disabled||!uploadEnabled||!!busySlot}><UploadCloud size={17}/> {loading?uploadStatus:asean?(asset?'Replace photo':'Upload photo'):asset?t('Thay tranh','Replace art'):t('Tải tranh lên','Upload art')}
       <input type="file" accept="image/jpeg,image/png,image/webp" aria-label={asean?'Upload photo for '+label:undefined} disabled={disabled||!uploadEnabled||!!busySlot}
        onChange={e=>{const file=e.currentTarget.files?.[0];e.currentTarget.value='';if(file)upload(key,file);}}/>
-    </label>
+    </label>}
     {preview?<span className="bml-artwork-caption" role="status">{t('Xem trước trên thiết bị. Ảnh đang được lưu vào kho riêng tư.','Local preview. Saving to private storage.')}</span>:null}
     {frameEditor?.(key)}
     {id&&compactCredits?<details className="asean-build-credits">
-     <summary>{creditMissing?'Add photo credit and usage details':'Photo credit and usage details'}</summary>
+     <summary>{creditMissing&&!publicView?'Add photo credit and usage details':'Photo credit and usage details'}</summary>
      {creditFields}
     </details>:creditFields}
-    {id&&asset?<button type="button" className="bml-outline" disabled={disabled||!!busySlot} onClick={()=>remove(key)}>
+    {!publicView&&id&&asset?<button type="button" className="bml-outline" disabled={disabled||!!busySlot} onClick={()=>remove(key)}>
       <Trash2 size={16}/>{t('Xóa ảnh','Remove image')}</button>:null}
    </div>;})}</div>
-  <div className="bml-banner bml-info-banner"><Info size={17}/>{t(
+  {!publicView&&<div className="bml-banner bml-info-banner"><Info size={17}/>{t(
     'Ảnh tối đa 5 MB trước xử lý; mỗi nhóm tối đa 6 ảnh. Không tải chân dung/giấy tờ học sinh; ghi rõ nguồn trong phần thuyết minh tiếng Anh.',
     'Up to 5 MB original per image, 6 images per group. Avoid student identities and credit the image source in your English captions.'
-  )}</div>
+  )}</div>}
   {error?<div className="bml-banner bml-danger-banner" role="alert">{error}</div>:null}
   {notice?<div className="bml-banner bml-success-banner" role="status"><CheckCircle2 size={17}/>{notice}</div>:null}
  </section>;

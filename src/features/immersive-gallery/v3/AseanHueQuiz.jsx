@@ -47,7 +47,7 @@ export default function AseanHueQuiz({language,sessionId,csrf,open,readOnly,reco
      <strong>{result.answers[i]===result.expected[i]?'Correct.':'Review this answer.'}</strong> {result.feedback[i]}
     </p>}
    </fieldset>)}
-   {!result&&<div className="asean-hue-quiz-submit">
+   {!result&&!readOnly&&<div className="asean-hue-quiz-submit">
     <span>{choices.filter(choice=>choice!==null).length}/{ASEAN_HUE_QUESTIONS.length} {t(language,'câu đã chọn','answered')}</span>
     <button type="submit" className="bml-primary" disabled={!open||!ready||busy}>
      {busy?t(language,'Đang gửi…','Submitting…'):t(language,'Nộp trắc nghiệm','Submit quiz')}

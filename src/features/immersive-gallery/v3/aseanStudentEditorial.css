@@ -24,7 +24,7 @@
     box-shadow: 0 3px 12px #33281c0a;
   }
   @media (min-width: 900px) {
-    & .bml-student-workbench {
+    &:not([data-public-workshop]) .bml-student-workbench {
       grid-template-columns: minmax(0, var(--asean-lesson-width, 1fr)) minmax(0, var(--asean-project-width, 1fr));
     }
   }

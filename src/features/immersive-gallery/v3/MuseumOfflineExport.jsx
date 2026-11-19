@@ -4,7 +4,7 @@ import {saveBlob} from './museumDocx.js';
 import {isAsean} from './aseanLesson.js';
 import {groupWorkshopRows} from './offline/workshopRows.js';
 import MuseumWorkshopBoard from './MuseumWorkshopBoard.jsx';
-export default function MuseumOfflineExport({language='en',data,transport,renderLayout}){
+export default function MuseumOfflineExport({language='en',data,transport,renderLayout,mobileAction}){
  const [busy,setBusy]=useState(false),[progress,setProgress]=useState(''),[error,setError]=useState(''),[report,setReport]=useState(null),[ready,setReady]=useState(false);
  const abort=useRef(null),pack=useRef(null),tr=(vi,en)=>language==='en'?en:vi;
  const rows=useMemo(()=>groupWorkshopRows({staff:data??undefined}),[data]);
@@ -25,7 +25,7 @@ export default function MuseumOfflineExport({language='en',data,transport,render
   }catch(e){setError(e.name==='AbortError'?tr('Đã hủy xuất.','Export cancelled.'):e.message);}
   finally{setBusy(false);setProgress('');abort.current=null;}
  };
- const board=<MuseumWorkshopBoard rows={rows} language={language} editorial={Boolean(renderLayout)} asean={isAsean(data?.lessonTemplate)}
+ const board=<MuseumWorkshopBoard rows={rows} language={language} editorial={Boolean(renderLayout)} asean={isAsean(data?.lessonTemplate)} mobileAction={mobileAction}
   action={{label:tr('Tệp','File'),render:row=>ready
    ?<button type="button" className="bml-outline" onClick={()=>downloadGroup(row)}>{tr('Tải bài','Download')}</button>
    :tr('Trong gói ZIP','Inside the ZIP')}}/>;

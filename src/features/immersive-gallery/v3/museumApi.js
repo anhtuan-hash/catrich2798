@@ -1,5 +1,6 @@
 import {getMuseumOffline} from './offlineAccess.js';
 import {DEMO_GALLERY} from './museumDemo.js';
+import {PUBLIC_WORKSHOP_OPERATION} from './aseanPublicWorkshop.js';
 const vietnameseDiacritics=/[àáạảãăằắặẳẵâầấậẩẫèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
 export function englishMuseumError(value,fallback='The request could not be completed.'){
  const raw=String(value||'').trim();
@@ -59,6 +60,15 @@ export async function getMuseumInviteInfo(handle){
  if(!value||typeof value.quickAccessEnabled!=='boolean'||!value.groupLabel)
   throw new Error('Invitation not available.');
  return value;
+}
+export async function readPublicWorkshop(groupId, {section,signal}={}){
+ const params=new URLSearchParams({operation:PUBLIC_WORKSHOP_OPERATION,groupId});
+ if(section)params.set('section',section);
+ const response=await fetch('/api/gallery-staff?'+params,{
+  credentials:'omit',cache:'no-store',signal,
+ });
+ if(!response.ok)throw new Error('Published workshop unavailable.');
+ return response.json();
 }
 export function museumInviteHandle(){
  if(typeof window==='undefined')return '';

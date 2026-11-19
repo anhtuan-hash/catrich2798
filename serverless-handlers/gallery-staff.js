@@ -8,6 +8,10 @@ import {
 import {encryptGroupPasscode,decryptGroupPasscode} from './_galleryPasscodes.js';
 import {createQuickAccessVerifier} from './_galleryQuickAccess.js';
 import {canGradeReviewState} from './_museumRubricPolicy.js';
+import {readAseanActivityRecords} from './_museumAsean.js';
+import {checkpointGallery} from './_museumEvidence.js';
+import {mediaTask} from './_museumLiveMedia.js';
+import {isPublicWorkshopGroup,PUBLIC_WORKSHOP_OPERATION} from '../src/features/immersive-gallery/v3/aseanPublicWorkshop.js';
 
 // Copy approved private art into R1's still-private bucket before atomic promotion.
 // The SQL publication RPC verifies each link and the immutable TTCM snapshot hash.
@@ -109,6 +113,63 @@ async function galleryLessonAssignments(ctx,galleryIds){
  }));
 }
 
+async function loadPublicGroupWorkshop(req,res,admin){
+ if(req.method!=='GET')throw fail(403,'The published workshop is view only.');
+ const groupId=String(req.query?.groupId||'');
+ const section=String(req.query?.section||'');
+ if(!uid(groupId)||(section&&section!=='first'))throw fail(404,'Published workshop unavailable.');
+ const unavailable=()=>fail(404,'Published workshop unavailable.');
+ const ctx=await publicMuseumContext(admin);
+ const group=await query(admin.from('gcp_groups').select('id,label,state,assignment_id').eq('id',groupId).maybeSingle());
+ if(!group||group.state!=='published')throw unavailable();
+ const [assignment,publication]=await Promise.all([
+  query(admin.from('gcp_assignments').select('id,title,class_scope,lesson_template,content_frozen_at,archived_at')
+   .eq('id',group.assignment_id).eq('school_scope',ctx.profile.school).maybeSingle()),
+  query(admin.from('gcp_publication_links').select('review_id,exhibition_id').eq('group_id',group.id).maybeSingle()),
+ ]);
+ if(!isPublicWorkshopGroup(assignment,group)||!publication)throw unavailable();
+ const [catalog,review,session]=await Promise.all([
+  publishedSchoolCatalog(ctx),
+  query(admin.from('gcp_reviews').select('snapshot,version').eq('id',publication.review_id)
+   .eq('group_id',group.id).eq('state','published').is('archived_at',null).maybeSingle()),
+  query(admin.from('museum_live_sessions').select('id,status,stage_index,media_board')
+   .eq('assignment_id',assignment.id).maybeSingle()),
+ ]);
+ const collection=catalog.find(gallery=>gallery.assignment_id===assignment.id);
+ if(!review||!collection?.destinations.some(item=>item.id===publication.exhibition_id))throw unavailable();
+
+ if(section==='first'){
+  if(!session)throw unavailable();
+  const checkpoint=await query(admin.from('museum_checkpoints').select('id,group_id,kind,version,doc')
+   .eq('session_id',session.id).eq('group_id',group.id).eq('kind','before').maybeSingle());
+  if(!checkpoint||checkpoint.doc?.checkpointOrigin!=='reconstructed_reference')throw unavailable();
+  const {draft,artworks}=await checkpointGallery(admin,checkpoint,group.label);
+  return send(res,200,{draft,assets:artworks.map(({id,image_url})=>({id,image_url}))});
+ }
+
+ const [records,assetLinks]=await Promise.all([
+  readAseanActivityRecords(admin,{group,assignment},session,{publicView:true}),
+  query(admin.from('museum_publication_asset_links').select('source_asset_id,gallery_asset_id')
+   .eq('review_id',publication.review_id)),
+ ]);
+ const approvedAssets=new Set(Object.values(review.snapshot?.artworks||{}));
+ const links=assetLinks.filter(link=>approvedAssets.has(link.source_asset_id));
+ const files=links.length?await query(admin.from('gallery_assets').select('id,path')
+  .in('id',links.map(link=>link.gallery_asset_id))):[];
+ const paths=new Map(files.map(file=>[file.id,file.path]));
+ const assets=await Promise.all(links.map(async link=>{
+  const path=paths.get(link.gallery_asset_id);
+  if(!path)return null;
+  const result=await admin.storage.from('brian-gallery-private').createSignedUrl(path,600);
+  return result.data?.signedUrl?{id:link.source_asset_id,image_url:result.data.signedUrl}:null;
+ }));
+ return send(res,200,{
+  assignment,groupLabel:group.label,draft:review.snapshot,version:review.version,records,
+  assets:assets.filter(Boolean),
+  live:session?{id:session.id,status:session.status,stageIndex:session.stage_index,media:mediaTask(session)}:null,
+ });
+}
+
 async function loadScopedReview(ctx,reviewId){
  if(!uid(reviewId))throw fail(400,'Mã hồ sơ không hợp lệ.');
  const review=await query(ctx.admin.from('gcp_reviews').select('*').eq('id',reviewId).maybeSingle());
@@ -147,6 +208,7 @@ export default async function galleryStaff(req,res){
  try {
   const operation=String(req.query?.operation||'');
   const admin=db();
+  if(operation===PUBLIC_WORKSHOP_OPERATION)return await loadPublicGroupWorkshop(req,res,admin);
   const bearer=String(req.headers?.authorization||'');
   const hasBearer=/^Bearer\s+\S{40,}$/i.test(bearer);
   const publicGet=new Set(['dashboard','showcase-state']);

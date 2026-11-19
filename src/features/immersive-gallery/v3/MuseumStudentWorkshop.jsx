@@ -11,11 +11,12 @@ export function StudentLangToggle({language,onChange}){
  </div>;
 }
 
-export default function MuseumStudentWorkshop({language,onLanguageChange,onLogout,groupLabel,saveState,
+export default function MuseumStudentWorkshop({language,onLanguageChange,onLogout,dossierHref,groupLabel,saveState,
  bannerExpanded,onBannerChange,lessonTemplate,title='Our Climate Action Museum',testId='museum-student-wizard',
  activity,navigation,children,overlays}){
  return <main className="bml bml-student-shell bml-student-canvas16 bml-student-editorial bml-student-dual-workspace" data-testid={testId}
-  data-workshop-activity={activity} lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
+  data-workshop-activity={activity} data-public-workshop={dossierHref?true:undefined}
+  lang={language} data-ui-locale={language==='en'?'en-US':'vi-VN'}>
   <div className="bml-student-masthead" data-testid="student-masthead" data-banner-expanded={bannerExpanded}>
    <header className="bml-student-bar">
     <div className="bml-workshop-identity">
@@ -26,7 +27,8 @@ export default function MuseumStudentWorkshop({language,onLanguageChange,onLogou
      {saveState&&<span className={'bml-save-indicator bml-save-'+saveState} title={T(language,'Đã lưu bản nháp chưa có nghĩa là đã nộp bảo tàng.','Saved draft does not mean the museum project was submitted.')}>{saveState==='saved'?<><Cloud size={16}/>{T(language,'Đã lưu','Saved')}</>:
       saveState==='saving'?<><CloudUpload size={16}/>{T(language,'Đang lưu…','Saving…')}</>:<><CloudAlert size={16}/>{T(language,'Cần xử lý','Action needed')}</>}</span>}
      <StudentLangToggle language={language} onChange={onLanguageChange}/>
-     <button type="button" className="bml-outline" onClick={onLogout}>{T(language,'Thoát','Exit')}</button>
+     {dossierHref?<a className="bml-outline bml-public-dossier-link" href={dossierHref}>{T(language,'Về hồ sơ dự thi','Back to the dossier')}</a>:
+      <button type="button" className="bml-outline" onClick={onLogout}>{T(language,'Thoát','Exit')}</button>}
     </div>
    </header>
    <div className="bml-workshop-ribbon">

@@ -224,6 +224,33 @@
   border-bottom: 0;
 }
 
+.igv2 .bml .swiss-editorial-dossier .asean-dossier-mobile-table :is(th, td) {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.igv2 .bml .swiss-editorial-dossier .asean-dossier-mobile-table :is(th, td):nth-child(-n+3),
+.igv2 .bml .swiss-editorial-dossier .asean-dossier-mobile-table .asean-dossier-mobile-cell {
+  white-space: nowrap;
+}
+
+.igv2 .bml .swiss-editorial-dossier .asean-dossier-mobile-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 6px 9px;
+  border: 1px solid currentColor;
+  color: var(--dossier-ink);
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.igv2 .bml .swiss-editorial-dossier .asean-dossier-mobile-link:hover,
+.igv2 .bml .swiss-editorial-dossier .asean-dossier-mobile-link:focus-visible {
+  color: var(--dossier-red);
+}
+
 .igv2 .bml .swiss-editorial-dossier .bml-frozen-table tbody td:first-child:not([colspan]) {
   min-width: 2.4em;
   color: var(--dossier-red);
@@ -280,4 +307,15 @@
   .swiss-editorial-dossier .asean-dossier-register { border-inline-start: 1px solid #dedad0; }
   .swiss-editorial-dossier .asean-dossier-download { max-width: 25rem; }
   .swiss-editorial-dossier .bml-frozen-table { min-width: 448px; }
+}
+
+@container (max-width: 560px) {
+  .swiss-editorial-dossier .asean-dossier-mobile-table { min-width: 525px; }
+
+  .igv2 .bml .swiss-editorial-dossier .asean-dossier-mobile-table .asean-dossier-mobile-cell {
+    position: sticky;
+    inset-inline-end: 0;
+    background: var(--dossier-paper);
+    box-shadow: -1px 0 #dedad0;
+  }
 }

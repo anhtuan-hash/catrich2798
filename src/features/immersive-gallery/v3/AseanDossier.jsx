@@ -1,10 +1,11 @@
 import React from 'react';
-import { ArrowRight, ExternalLink, FileText } from 'lucide-react';
+import { ArrowRight, ExternalLink, FileText, Smartphone } from 'lucide-react';
 import MuseumOfflineExport from './MuseumOfflineExport.jsx';
 import MuseumWorkshopBoard from './MuseumWorkshopBoard.jsx';
 import { groupWorkshopRows } from './offline/workshopRows.js';
 import { englishSystemGroupLabel, saveTextFile } from './museumApi.js';
 import { ASEAN_TITLE } from './aseanLesson.js';
+import { isPublicWorkshopGroup, publicWorkshopHref } from './aseanPublicWorkshop.js';
 import { ASEAN_EVIDENCE_PDF, getAseanPaperPlan } from './aseanPaperPlan.js';
 import './aseanDossierEditorial.css';
 
@@ -14,6 +15,22 @@ export function AseanDossier({ data, language, transport, readOnly, onOpenGaller
   const groups = data?.groups || [];
   const assignments = data?.assignments || [];
   const galleries = data?.publishedGalleries || [];
+  const publishedReviewGroups = new Set(data?.reviews?.filter(review => review.state === 'published').map(review => review.group_id));
+  const mobileGroups = new Set(groups.filter(group => {
+    const assignment = assignments.find(item => item.id === group.assignment_id);
+    const gallery = galleries.find(item => item.assignment_id === group.assignment_id);
+    return isPublicWorkshopGroup(assignment, group) && publishedReviewGroups.has(group.id) &&
+      gallery?.destinations?.some(destination => destination.groupLabel === group.label);
+  }).map(group => group.id));
+  const mobileAction = !data?.offlineReadOnly && mobileGroups.size > 0 ? {
+    label: tr('Bản mobile', 'Mobile view'),
+    render: row => mobileGroups.has(row.id)
+      ? <a className="bml-outline asean-dossier-mobile-link" href={publicWorkshopHref(row.id, language)}
+          aria-label={tr('Xem bản mobile · '+row.label, 'View mobile · '+englishSystemGroupLabel(row.label))}>
+          <Smartphone size={17} aria-hidden="true"/>{tr('Mở', 'Open')}
+        </a>
+      : '—',
+  } : undefined;
   const canExport = !data?.publicReadOnly && (!readOnly || data?.offlineReadOnly);
   const classScopes = [...new Set(assignments.map(assignment => assignment.class_scope).filter(Boolean))];
   const publishedCount = assignments.filter(assignment => galleries.some(gallery => gallery.id === 'asean-' + assignment.id)).length;
@@ -119,10 +136,10 @@ export function AseanDossier({ data, language, transport, readOnly, onOpenGaller
   return (
     <section className="swiss-editorial-dossier" data-testid="asean-dossier">
       {data?.profile?.id && !readOnly
-        ? <MuseumOfflineExport data={data} language={language} transport={transport} renderLayout={renderLayout}/>
+        ? <MuseumOfflineExport data={data} language={language} transport={transport} renderLayout={renderLayout} mobileAction={mobileAction}/>
         : <div className="asean-dossier-layout">{renderLayout({
           board: data?.publicReadOnly && groups.length > 0 && (
-            <MuseumWorkshopBoard rows={groupWorkshopRows({ staff: data })} language={language} editorial asean
+            <MuseumWorkshopBoard rows={groupWorkshopRows({ staff: data })} language={language} editorial asean mobileAction={mobileAction}
               action={{
                 label: tr('Bài nộp', 'Submission'),
                 render: row => {
