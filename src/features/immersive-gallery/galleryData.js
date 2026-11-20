@@ -1,10 +1,10 @@
 import {getMuseumOffline} from './v3/offlineAccess.js';
-import { supabase, isSupabaseConfigured } from '../../utils/supabase.js';
+import { gallerySupabase } from './gallerySupabase.js';
 import { normalizeTransform, validateExhibition, validateExhibit, ROOM_KEYS, safeVideoUrl } from './sceneTemplates.js';
 
 const BUCKET='brian-gallery-private';
 const unavailable = () => { throw new Error('Gallery chưa được cấu hình trong Supabase. Admin cần chạy migration sau khi duyệt.'); };
-const client = () => {if(!isSupabaseConfigured||!supabase) unavailable(); return supabase;};
+const client = () => {if(!gallerySupabase) unavailable(); return gallerySupabase;};
 const requireUser = (u) => {if(!u?.id)throw new Error('Vui lòng đăng nhập để sử dụng Gallery.');return u.id;};
 const check = ({data,error}) => { if(error) throw new Error(error.message||'Gallery cloud error'); return data; };
 const allowedKinds=new Set(['image','audio','pdf']);
@@ -14,8 +14,8 @@ export const GALLERY_BUCKET=BUCKET;
 
 export async function getGalleryEnabled(){
   if(getMuseumOffline())return getMuseumOffline().gallery('enabled');
-  if(!isSupabaseConfigured||!supabase)return false;
-  try {const {data,error}=await supabase.from('gallery_settings').select('enabled').eq('id',true).maybeSingle();if(error) return false;return data?.enabled===true;}
+  if(!gallerySupabase)return false;
+  try {const {data,error}=await gallerySupabase.from('gallery_settings').select('enabled').eq('id',true).maybeSingle();if(error) return false;return data?.enabled===true;}
   catch {return false;}
 }
 export async function setGalleryEnabled(enabled,user){

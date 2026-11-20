@@ -3,7 +3,8 @@ import {createHash} from 'node:crypto';
 import {
  db,digest,randomSecret,fail,send,handleError,guardOrigin,guardBody,query,
  settings,staffContext,assertStaff,assertAdmin,reviewer,uid,clean,requireMethod,
- publicMuseumContext,assertActiveMuseumLesson
+ publicMuseumContext,assertActiveMuseumLesson,galleryDatabaseSession,galleryProfileDirectory,
+ syncGalleryProfile
 } from './_galleryCreator.js';
 import {encryptGroupPasscode,decryptGroupPasscode} from './_galleryPasscodes.js';
 import {createQuickAccessVerifier} from './_galleryQuickAccess.js';
@@ -208,6 +209,10 @@ export default async function galleryStaff(req,res){
  try {
   const operation=String(req.query?.operation||'');
   const admin=db();
+  if(operation==='database-session'){
+   requireMethod(req,'POST');guardOrigin(req);
+   return send(res,200,await galleryDatabaseSession(req,admin));
+  }
   if(operation===PUBLIC_WORKSHOP_OPERATION)return await loadPublicGroupWorkshop(req,res,admin);
   const bearer=String(req.headers?.authorization||'');
   const hasBearer=/^Bearer\s+\S{40,}$/i.test(bearer);
@@ -417,9 +422,10 @@ export default async function galleryStaff(req,res){
     const keys=aseanReviewIds.has(row.review_id)?Object.keys(aseanCeilings):Object.keys(rubricCeilings);
     return {...row,scores:Object.fromEntries(keys.map(key=>[key,row.scores?.[key]]))};
    }):rubricRows;
-   const reviewerCandidates=ctx.role==='admin'?await query(admin.from('profiles')
+   const directory=galleryProfileDirectory(admin);
+   const reviewerCandidates=ctx.role==='admin'?await query(directory.from('profiles')
     .select('id,full_name,role').eq('school',ctx.profile.school).eq('approved',true).limit(100)):
-    grants.length?await query(admin.from('profiles').select('id,full_name,role')
+    grants.length?await query(directory.from('profiles').select('id,full_name,role')
      .in('id',grants.map(g=>g.reviewer_id)).eq('approved',true)):[];
    return send(res,200,{profile:{role:ctx.publicReadOnly?'viewer':ctx.profile.role,school:ctx.profile.school,id:ctx.user.id},
     publicReadOnly:ctx.publicReadOnly===true,
@@ -546,10 +552,11 @@ export default async function galleryStaff(req,res){
    const body=guardBody(req,3000);
    const reviewerId=String(body.reviewerId||'');
    if(!uid(reviewerId)||reviewerId===ctx.user.id)throw fail(400,'Tài khoản TTCM cần được chỉ định độc lập.');
-   const person=await query(admin.from('profiles').select('id,role,school,approved')
+   const person=await query(galleryProfileDirectory(admin).from('profiles').select('id,role,school,approved,full_name')
     .eq('id',reviewerId).maybeSingle());
    if(!person||!person.approved||clean(person.school,180)!==ctx.profile.school)
      throw fail(403,'Người duyệt phải là tài khoản Brian đã duyệt cùng trường.');
+   await syncGalleryProfile(admin,person);
    const grant=await query(admin.from('gcp_reviewer_grants').upsert({
     reviewer_id:reviewerId,school_scope:ctx.profile.school,
     can_publish:Boolean(body.canPublish),active:true,granted_by:ctx.user.id
