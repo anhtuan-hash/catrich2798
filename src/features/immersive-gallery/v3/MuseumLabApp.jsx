@@ -126,7 +126,7 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
    </section>:null}
    {loading?<div className="bml-empty bml-surface" role="status"><RefreshCw size={27}/>{tr(uiLanguage,'Đang tải bài học và phân quyền…','Loading lessons and permissions…')}</div>:
    tab==='home'?overview:
-   tab==='live'?<TeacherLiveScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} transport={liveTransport} initialTemplate={lessonTemplate}/>:
+   tab==='live'?<TeacherLiveScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} transport={liveTransport} initialTemplate={lessonTemplate} standalone={standalone}/>:
    tab==='wizard'?<LessonWizard language={uiLanguage} data={staff} onCompleted={refresh} onExit={()=>navigate('lessons')} onSettings={()=>navigate('settings')}/>:
    tab==='lessons'?<LessonsList key={lessonTemplate} language={uiLanguage} data={matchingData} query={query}
      onCreate={()=>create()} onReview={id=>navigate('submissions',id)} onRefresh={refresh}/>:
