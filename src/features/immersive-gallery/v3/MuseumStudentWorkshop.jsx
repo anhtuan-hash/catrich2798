@@ -20,7 +20,7 @@ export default function MuseumStudentWorkshop({language,onLanguageChange,onLogou
   <div className="bml-student-masthead" data-testid="student-masthead" data-banner-expanded={bannerExpanded}>
    <header className="bml-student-bar">
     <div className="bml-workshop-identity">
-     <span className="bml-workshop-school"><img src="/museum/branding/contest-school.png" width="28" height="34" alt=""/>Pétrus Ký School System</span>
+     <span className="bml-workshop-school" lang="en"><img src="/museum/branding/contest-school.png" width="28" height="34" alt=""/>Pétrus Ký School System</span>
      <span className="bml-group-pill"><Users size={18} aria-hidden="true"/>{groupLabel}</span>
     </div>
     <div className="bml-student-right">
@@ -36,7 +36,7 @@ export default function MuseumStudentWorkshop({language,onLanguageChange,onLogou
      <MuseumCompetitionRibbon language={language} lessonTemplate={lessonTemplate}/>
     </div>
     <div className="bml-workshop-ribbon-bar">
-     {!bannerExpanded?<strong><Trophy size={17} aria-hidden="true"/>{title}</strong>:null}
+     {!bannerExpanded?<strong lang="en"><Trophy size={17} aria-hidden="true"/>{title}</strong>:null}
      <button type="button" className="bml-outline" aria-expanded={bannerExpanded} aria-controls="bml-workshop-contest"
       onClick={()=>onBannerChange(!bannerExpanded)}>
       {bannerExpanded?<>{T(language,'Ẩn banner','Hide banner')}<ChevronUp size={17}/></>:

@@ -126,6 +126,7 @@ export default function ImmersiveShell({
     <div
       className="igv2"
       data-testid="immersive-gallery-v2"
+      lang={language}
       data-ui-locale={language === 'en' ? 'en-US' : 'vi-VN'}
     >
       <header className="igv2-topbar" data-testid="igv2-topbar">
@@ -143,7 +144,7 @@ export default function ImmersiveShell({
               height={30}
               className="igv2-topbar-logo"
             />
-            <span className="igv2-topbar-wordmark">Pétrus Ký School System</span>
+            <span className="igv2-topbar-wordmark" lang="en">Pétrus Ký School System</span>
           </button>
 
           <span className="igv2-topbar-sep" aria-hidden="true" />

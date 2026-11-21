@@ -86,7 +86,7 @@ function App() {
   return (
     <>
       <header className="museum-site-bar">
-        <a className="museum-site-title" href={home}>Museum Lab</a>
+        <a className="museum-site-title" href={home} lang="en">Museum Lab</a>
         {session
           ? <button type="button" onClick={signOut}>Đăng xuất</button>
           : <a href={staffLogin}>Đăng nhập giáo viên</a>}
@@ -102,4 +102,13 @@ function App() {
   );
 }
 
-createRoot(document.getElementById('root')).render(<App />);
+const root = document.getElementById('root');
+createRoot(root).render(<App />);
+
+const eurostile = new FontFace('Museum Eurostile', 'local("Eurostile"), local("EurostileRegular")');
+eurostile.load().then(font => {
+  document.fonts.add(font);
+  root.dataset.eurostile = '';
+}, () => {
+  // Keep the existing typography if Eurostile is unavailable on this device.
+});
