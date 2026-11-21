@@ -33,6 +33,7 @@ async function syncBrianIdentity(admin,user,profile){
  else if(separateGalleryDatabase())
   await query(admin.from('profiles').update({approved:false}).eq('id',user.id).eq('approved',true));
 }
+export const creatorPassSecurityReady=()=>env('GCP_HASH_PEPPER').length>=48;
 export const digest=value=>{
  const pepper=env('GCP_HASH_PEPPER');
  if(pepper.length<48)throw fail(503,'Cấu hình bảo mật Creator Pass chưa sẵn sàng.');

@@ -4,7 +4,7 @@ import {
  db,digest,randomSecret,fail,send,handleError,guardOrigin,guardBody,query,
  settings,staffContext,assertStaff,assertAdmin,reviewer,uid,clean,requireMethod,
  publicMuseumContext,assertActiveMuseumLesson,galleryDatabaseSession,galleryProfileDirectory,
- syncGalleryProfile,signGalleryDisplayImage
+ syncGalleryProfile,signGalleryDisplayImage,creatorPassSecurityReady
 } from './_galleryCreator.js';
 import {encryptGroupPasscode,decryptGroupPasscode} from './_galleryPasscodes.js';
 import {createQuickAccessVerifier} from './_galleryQuickAccess.js';
@@ -424,9 +424,13 @@ export default async function galleryStaff(req,res){
     .select('id,full_name,role').eq('school',ctx.profile.school).eq('approved',true).limit(100)):
     grants.length?await query(directory.from('profiles').select('id,full_name,role')
      .in('id',grants.map(g=>g.reviewer_id)).eq('approved',true)):[];
-   return send(res,200,{profile:{role:ctx.publicReadOnly?'viewer':ctx.profile.role,school:ctx.profile.school,id:ctx.user.id},
+   const profile={role:ctx.publicReadOnly?'viewer':ctx.profile.role,school:ctx.profile.school,id:ctx.user.id};
+   if(!ctx.publicReadOnly)profile.full_name=ctx.profile.full_name;
+   const creatorSettings=await settings(admin);
+   if(ctx.role==='admin')creatorSettings.group_codes_ready=creatorPassSecurityReady();
+   return send(res,200,{profile,
     publicReadOnly:ctx.publicReadOnly===true,
-    creatorSettings:await settings(admin),reviewerCandidates,
+    creatorSettings,reviewerCandidates,
     reviewers:grants,rubrics,
     assignments:visibleAssignments,groups:visibleGroups,reviews,exitTickets,aseanResponses,aseanWritingScores,
     publishedGalleries});
@@ -576,7 +580,12 @@ export default async function galleryStaff(req,res){
    const title=clean(body.title,140),classScope=clean(body.classScope,120);
    if(title.length<3||classScope.length<2)throw fail(400,'Cần nhập chủ đề và lớp.');
    const enabled=await settings(admin);
-   if(!enabled.enabled)throw fail(423,'Creator Pass chưa được bật.');
+   if(!enabled.enabled)return send(res,423,{
+    code:'creator_pass_disabled',error:'Student Creator Pass is turned off.'
+   });
+   if(!creatorPassSecurityReady())return send(res,503,{
+    code:'creator_pass_not_configured',error:'The server has not been configured to generate group codes.'
+   });
    const tokens=Array.from({length:count},()=>{
     const handle=randomSecret(15),groupSecret=randomSecret(24);
     return {handle,groupSecret,secret_hash:digest('invite:'+groupSecret),

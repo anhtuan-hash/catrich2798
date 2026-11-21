@@ -117,7 +117,11 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
      <div><strong>{tr(uiLanguage,'Không thể đồng bộ dữ liệu quản lý','Could not load staff data')}</strong><p>{error}</p>
       <button type="button" className="bml-outline" onClick={()=>{setLoading(true);refresh();}}><RefreshCw size={17}/>{tr(uiLanguage,'Thử lại','Retry')}</button></div></div>:null}
    {tab==='home'&&verifiedStaff&&!error?<section className="museum-staff-workspace" aria-labelledby="museum-staff-workspace-title">
-    <h2 id="museum-staff-workspace-title">{verifiedAdmin?tr(uiLanguage,'Khu quản trị','Administrator workspace'):tr(uiLanguage,'Khu vực giáo viên','Teacher workspace')}</h2>
+    <div className="museum-staff-identity">
+     <h2 id="museum-staff-workspace-title">{verifiedAdmin?tr(uiLanguage,'Khu quản trị','Administrator workspace'):tr(uiLanguage,'Khu vực giáo viên','Teacher workspace')}</h2>
+     <strong>{staff.profile.full_name||currentUser.email}</strong>
+     {staff.profile.school?<span>{staff.profile.school}</span>:null}
+    </div>
     <div className="museum-staff-workspace-actions">
      {verifiedAdmin?<button type="button" className="bml-primary" onClick={create}><Plus size={17} aria-hidden="true"/>{tr(uiLanguage,'Tạo bài học mới','New lesson')}</button>:null}
      <button type="button" className="bml-outline" onClick={()=>navigate('lessons')}>{verifiedAdmin?tr(uiLanguage,'Quản lý bài học','Manage lessons'):tr(uiLanguage,'Bài học của tôi','My lessons')}</button>
@@ -128,7 +132,7 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
    tab==='home'?overview:
    tab==='live'?<TeacherLiveScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} transport={liveTransport} initialTemplate={lessonTemplate} standalone={standalone}/>:
    tab==='wizard'?<LessonWizard language={uiLanguage} data={staff} onCompleted={refresh} onExit={()=>navigate('lessons')} onSettings={()=>navigate('settings')}/>:
-   tab==='lessons'?<LessonsList key={lessonTemplate} language={uiLanguage} data={matchingData} query={query}
+   tab==='lessons'?<LessonsList key={lessonTemplate} language={uiLanguage} data={matchingData} query={query} standalone={standalone}
      onCreate={()=>create()} onReview={id=>navigate('submissions',id)} onRefresh={refresh}/>:
    tab==='submissions'?<SubmissionsScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate} query={query} catalogue={standalone}/>:
    tab==='gallery'?<ExhibitionsScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate} query={query}/>:
