@@ -3,6 +3,9 @@ on:
   pull_request:
     paths:
       - 'src/features/halloween-home/halloween.v10-art-direction.css'
+      - 'src/features/halloween-home/halloween.v11-weekly-footer-polish.css'
+      - 'src/components/Footer.jsx'
+      - 'public/assets/home/official/**'
       - 'src/pages/Home.jsx'
       - 'src/components/HomeHeroExperience2026.jsx'
       - 'src/components/HomePublishedSlideshow.jsx'

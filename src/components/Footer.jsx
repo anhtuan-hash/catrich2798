@@ -291,9 +291,9 @@ export default function Footer({ language, route = '', assessmentScrapbookActive
               </div>
             ) : null}
             <div className="signature-footer-v50-affiliations">
-              <img src="/footer-pek-logo.png" alt="Pétrus Ký School" />
+              <img src="/assets/home/official/footer-pek-transparent.svg" alt="Pétrus Ký School" />
               <span className="signature-footer-v50-logo-divider" aria-hidden="true" />
-              <img src="/footer-cambridge-logo.png" alt="Cambridge Assessment English" />
+              <img src="/assets/home/official/footer-cambridge-transparent.svg" alt="Cambridge Assessment English" />
             </div>
             {november.enabled && resolvedRoute === 'home' ? <p className="november-footer-motto">Better Learners · Brighter Futures</p> : null}
             {scrapbookActive ? <p className="dashboard-scrapbook-footer-motto">Better Learners · Brighter Futures</p> : null}

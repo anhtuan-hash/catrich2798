@@ -2,7 +2,7 @@
 // This exercises density and controls; it is not a test of production data.
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
-import {mkdirSync} from 'node:fs';
+import {mkdirSync,writeFileSync} from 'node:fs';
 import {chromium,devices} from '@playwright/test';
 
 const port=5233, base=`http://127.0.0.1:${port}`;
@@ -49,13 +49,14 @@ async function prepare(page){
 }
 async function safeScreenshot(page,path){
   await page.evaluate(()=>{
-    document.querySelectorAll('.signature-footer-v50-profile h2').forEach(n=>n.textContent='HỒ SƠ GIÁO VIÊN');
-    document.querySelectorAll('.signature-footer-v50-detail,.signature-footer-v50-credentials li').forEach(n=>{const s=n.querySelector('span:last-child');if(s)s.textContent='Thông tin giáo viên đã được ẩn';});
-    document.querySelectorAll('.bes-portfolio-footer-trigger strong').forEach(n=>n.textContent='Người phát triển');
-    const label=document.createElement('span');label.textContent='DỮ LIỆU KIỂM THỬ';label.style.cssText='position:fixed;bottom:6px;left:6px;z-index:999999;padding:5px 9px;background:#fff;color:#222;font:700 12px sans-serif;border:1px solid #222;border-radius:4px';document.body.appendChild(label);
+    const label=document.createElement('span');label.id='qa-label';label.textContent='DỮ LIỆU KIỂM THỬ · thông tin cá nhân đã ẩn';label.style.cssText='position:fixed;bottom:6px;left:6px;z-index:999999;padding:5px 9px;background:#fff;color:#222;font:700 10px sans-serif;border:1px solid #222;border-radius:4px';document.body.appendChild(label);
   });
-  await page.screenshot({path,fullPage:true,animations:'disabled'});
+  const masks=[page.locator('.signature-footer-v50-profile h2'),page.locator('.signature-footer-v50-detail > span:last-child'),page.locator('.signature-footer-v50-credentials li > span:last-child'),page.locator('.bes-portfolio-footer-trigger strong')];
+  await page.screenshot({path,fullPage:true,animations:'disabled',mask:masks,maskColor:'#47294d'});
+  if(page.viewportSize().width===998)await page.screenshot({path:path.replace('.png','-viewport.png'),animations:'disabled',mask:masks,maskColor:'#47294d'});
+  await page.evaluate(()=>document.getElementById('qa-label')?.remove());
 }
+
 let browser,stderr='';server.stderr.on('data',chunk=>stderr+=String(chunk));
 try {
   let ready=false;
@@ -63,8 +64,8 @@ try {
   assert.ok(ready,'fixture server starts');
   browser=await chromium.launch({headless:true,args:['--no-sandbox'],...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH}:{})});
   mkdirSync('artifacts/halloween-v13',{recursive:true});
-  for(const width of [1024,1174,1440,768]){
-    const page=await browser.newPage({viewport:{width,height:900},serviceWorkers:'block'}),errors=[];
+  for(const width of [998,1024,1174,1440,768]){
+    const page=await browser.newPage({viewport:{width,height:width===998?1576:900},serviceWorkers:'block'}),errors=[];
     page.on('pageerror',error=>errors.push(error.message));
     await prepare(page);
     await page.waitForFunction(()=>document.querySelectorAll('.bha-schedule-row').length===65&&document.querySelectorAll('.bha-practice-header-actions button').length===2);
@@ -87,11 +88,44 @@ try {
     assert.equal(geometry.overflow,false,`${width}: no horizontal overflow`);
     assert.equal(geometry.footerClipped,false,`${width}: real footer text and logos fit their cards`);
     for(let i=0;i<3;i++){
-      assert.ok(Math.abs(geometry.grades[i].left-geometry.footer[i].left)<1&&Math.abs(geometry.grades[i].right-geometry.footer[i].right)<1,`${width}: column ${i+1} aligns (${JSON.stringify({grade:geometry.grades[i],footer:geometry.footer[i]})})`);
+      assert.ok(geometry.grades[i].left>=geometry.footer[0].left-1&&geometry.grades[i].right<=geometry.footer.at(-1).right+1,`${width}: grade stays within shared scene`);
+      if(width<=900)assert.ok(Math.abs(geometry.grades[i].left-geometry.footer[i].left)<1&&Math.abs(geometry.grades[i].right-geometry.footer[i].right)<1,`${width}: stacked edges align`);
       const list=geometry.lists[i];assert.ok(list.scrollHeight>list.clientHeight,`${width}: list is scrollable`);
       assert.equal(list.rows.filter(r=>r.top>=list.box.top-1&&r.bottom<=list.box.bottom+1).length,5,`${width}: five complete rows`);
     }
     assert.ok(geometry.actions.every(a=>a.left>=geometry.h.left-1&&a.right<=geometry.h.right+1&&a.top>=geometry.h.top-1&&a.bottom<=geometry.h.bottom+1),`${width}: TTCM actions fit the header`);
+    if(width>900){
+      assert.ok(Math.abs(geometry.grades[0].left-geometry.footer[0].left-32)<1,`${width}: approved 32px desktop inset`);
+      assert.ok(Math.abs(geometry.footer.at(-1).right-geometry.grades.at(-1).right-32)<1,`${width}: symmetric inset`);
+    }
+    if(width===998){
+      const reference=await page.evaluate(()=>{
+        const box=s=>{const r=document.querySelector(s).getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}};
+        return {viewport:{width:innerWidth,height:innerHeight},navigation:box('.bes-top-chrome'),gallery:box('.bhs-home'),weekly:box('.bha-grades--folio'),footer:box('.signature-footer-v50-main'),pageHeight:document.documentElement.scrollHeight};
+      });
+      assert.ok(Math.abs(reference.gallery.y-392)<8,'official mockup gallery starts at y=392');
+      assert.ok(Math.abs(reference.weekly.y-947)<15,'official mockup weekly starts at y=947');
+      assert.ok(Math.abs(reference.footer.y-1330)<20,'official mockup footer starts at y=1330');
+      writeFileSync('artifacts/halloween-v13/official-reference-geometry.json',JSON.stringify(reference,null,2));
+      const logoChecks=await page.evaluate(async()=>{
+        const load=async(src,w,h)=>{const img=new Image();img.src=src;await img.decode();const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d');ctx.drawImage(img,0,0,w,h);return ctx.getImageData(0,0,w,h).data};
+        const results=[];
+        for(const [name,w,h] of [['pek',210,260],['cambridge',185,260]]){
+          const a=await load(`/footer-${name}-logo.png`,w,h),b=await load(`/assets/home/official/footer-${name}-transparent.svg`,w,h);
+          let opaqueArtwork=0,changedArtwork=0,transparent=0;
+          for(let p=0;p<a.length;p+=4){
+            if(b[p+3]===0)transparent++;
+            if(a[p+3]===255&&a[p]+a[p+1]+a[p+2]<600){opaqueArtwork++;if(b[p+3]<250||Math.max(Math.abs(a[p]-b[p]),Math.abs(a[p+1]-b[p+1]),Math.abs(a[p+2]-b[p+2]))>2)changedArtwork++;}
+          }
+          results.push({name,opaqueArtwork,changedArtwork,transparentRatio:transparent/(w*h),cornerAlpha:b[3]});
+        }
+        return results;
+      });
+      for(const logo of logoChecks){assert.equal(logo.cornerAlpha,0,`${logo.name}: corner is transparent`);assert.ok(logo.transparentRatio>.3,`${logo.name}: background removed`);assert.equal(logo.changedArtwork,0,`${logo.name}: original colored and dark artwork unchanged`);}
+      writeFileSync('artifacts/halloween-v13/official-logo-alpha.json',JSON.stringify(logoChecks,null,2));
+    }
+    const actionRows=await page.locator('.bha-folio-grade').evaluateAll(cards=>cards.map(card=>{const a=card.querySelector('.bha-grade-copy > button').getBoundingClientRect(),b=card.querySelector('.bha-grade-sort-button').getBoundingClientRect();return Math.abs((a.top+a.bottom-b.top-b.bottom)/2)}));
+    assert.ok(actionRows.every(d=>d<5),`${width}: sort aligns with latest lesson action: ${actionRows}`);
     const sort=page.locator('.bha-grade-sort-button').first(),label=await sort.getAttribute('aria-label');
     await sort.click();assert.notEqual(await sort.getAttribute('aria-label'),label,`${width}: sorting switches mode`);
     for(const list of await page.locator('.bha-grade-schedule-scroll').all()){
@@ -99,17 +133,17 @@ try {
       const last=await list.evaluate(el=>{const a=el.getBoundingClientRect(),b=el.lastElementChild.getBoundingClientRect();return b.top>=a.top-1&&b.bottom<=a.bottom+1;});
       assert.ok(last,`${width}: the last lesson is fully reachable`);
     }
-    if(width===1174){
+    if(width===1174||width===998){
       await page.locator('.bha-grade-sort-button').first().click();
       await page.locator('.bha-grade-schedule-scroll').evaluateAll(nodes=>nodes.forEach(n=>n.scrollTop=0));
       await page.evaluate(()=>window.scrollTo(0,0));await sleep(250);
-      await safeScreenshot(page,'artifacts/halloween-v13/ttcm-fixture-1174.png');
+      await safeScreenshot(page,`artifacts/halloween-v13/ttcm-fixture-${width}.png`);
       await page.evaluate(()=>window.addEventListener('bes-open-weekly-statistics',()=>{window.__fixtureStatsOpened=true;},{once:true}));
       await page.locator('.bha-statistics-practice').click();
       assert.equal(await page.evaluate(()=>window.__fixtureStatsOpened),true,'statistics action dispatches its real event');
     }
     assert.deepEqual(errors,[],`${width}: no unhandled browser errors`);
-    console.log(`PASS ${width}: TTCM controls, 65 lessons, five full rows, sorting, scroll, aligned footer`);
+    console.log(`PASS ${width}: TTCM controls, 65 lessons, five full rows, sorting, scroll, approved scene geometry`);
     await page.close();
   }
   const page=await browser.newPage({...devices['iPhone 13'],deviceScaleFactor:1,serviceWorkers:'block'}),errors=[];
