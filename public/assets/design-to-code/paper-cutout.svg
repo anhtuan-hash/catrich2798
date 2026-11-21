@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="106" viewBox="0 0 680 106" preserveAspectRatio="none">
+<defs><filter id="grain"><feTurbulence baseFrequency=".03" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="3"/></filter></defs>
+<path d="M0 33 19 21 42 30 67 10 101 25 130 8 155 24 197 9 220 21 254 11 276 25 313 9 344 22 372 8 406 21 436 10 465 24 501 7 534 21 562 9 596 22 619 7 650 20 680 12V106H0Z" fill="#bdd8e4" filter="url(#grain)"/>
+<path d="M0 46 17 34 51 45 91 28 123 38 157 22 194 36 223 25 260 37 298 26 322 40 354 25 395 40 424 24 456 39 487 26 516 42 548 23 590 38 629 26 660 39 680 34" fill="none" stroke="#fff" stroke-width="6" opacity=".72"/>
+</svg>

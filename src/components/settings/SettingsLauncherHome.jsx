@@ -19,7 +19,7 @@ const read=(key,fallback)=>{try{return localStorage.getItem(key)??fallback;}catc
 const save=(key,value)=>{try{localStorage.setItem(key,value);}catch{/* optional device setting */}};
 export const SETTINGS_LAUNCHER_TILES=TILES;
 
-export default function SettingsLauncherHome({language='vi',currentUser,onOpen,dataSyncEnabled,liveSyncEnabled}){
+export default function SettingsLauncherHome({language='vi',currentUser,onOpen,dataSyncEnabled,liveSyncEnabled,paperMode=false}){
   const vi=language!=='en', manager=isDepartmentLeaderRole(currentUser?.role);
   const admin=['admin','administrator'].includes(String(currentUser?.role||'').toLowerCase());
   const searchRef=useRef(null);
@@ -37,8 +37,9 @@ export default function SettingsLauncherHome({language='vi',currentUser,onOpen,d
   const initials=name.split(/\s+/).filter(Boolean).slice(-2).map(s=>s[0]).join('').toUpperCase();
   const visibleRecent=recent.map(id=>TILES.find(t=>t.id===id)).filter(t=>t&&(!t.manager||manager)&&(!t.admin||admin)).slice(0,4);
   const visiblePins=pins.map(id=>TILES.find(t=>t.id===id)).filter(t=>t&&(!t.manager||manager)&&(!t.admin||admin)).slice(0,5);
-  return <div className="sl2">
+  return <div className={paperMode ? "sl2 brian-paper-settings" : "sl2"} data-design-to-code={paperMode ? "settings-paper-v1" : undefined}>
     <header className="sl2-heading"><div><span className="sl2-eyebrow"><Sparkles size={15}/> BRIAN ENGLISH · SETTINGS</span><h1>{vi?'Cài đặt hệ thống':'System settings'}</h1><p>{vi?'Mọi tùy chỉnh trong một không gian gọn gàng.':'All your settings in one place.'}</p></div>
+      {paperMode ? <aside className="brian-paper-header-art" aria-hidden="true"><small>BRIAN ENGLISH · PAPER STUDIO</small><span>Creative learning, beautifully arranged.</span><small>✦ EDITORIAL SCRAPBOOK</small></aside> : null}
       <label className="sl2-search"><Search size={19}/><input ref={searchRef} value={search} onChange={e=>setSearch(e.target.value)} placeholder={vi?'Tìm ứng dụng hoặc cài đặt…':'Search apps and settings…'} aria-label={vi?'Tìm kiếm cài đặt':'Search settings'}/><kbd>⌘ K</kbd></label>
     </header>
     <section className="sl2-widgets">

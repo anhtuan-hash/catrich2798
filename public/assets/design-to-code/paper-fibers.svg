@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220">
+<filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="19" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope=".18"/></feComponentTransfer></filter>
+<rect width="220" height="220" fill="#fff6e8"/><rect width="220" height="220" filter="url(#grain)" opacity=".36"/>
+<path d="M0 84h220M0 181h220" stroke="#b18b66" stroke-width=".4" opacity=".15"/>
+</svg>

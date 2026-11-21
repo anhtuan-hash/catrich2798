@@ -1,0 +1,28 @@
+/* BRIAN DESIGN-TO-CODE v1: reusable paper primitives. Opt-in only. */
+.brian-paper-settings {
+  --paper-ink: #19375b;
+  --paper-muted: #677c95;
+  --paper-cream: #fff9ed;
+  --paper-white: #fffcf5;
+  --paper-edge: #d6bea4;
+  --paper-shadow: 0 4px 0 rgba(123,84,54,.09), 0 12px 28px rgba(75,56,48,.13);
+  --paper-radius: 16px;
+  --paper-focus: #215dba;
+  --paper-grid: rgba(71,107,150,.072);
+  --paper-washi-green: #b1c7aa;
+  --paper-washi-pink: #edb5bd;
+  --paper-washi-lavender: #c8b4db;
+  --paper-washi-blue: #adc8df;
+  --paper-washi-peach: #eac39a;
+  font-family: "Georgia", "Times New Roman", serif;
+  color: var(--paper-ink);
+}
+.brian-paper-settings button:focus-visible,
+.brian-paper-settings input:focus-visible { outline: 3px solid var(--paper-focus) !important; outline-offset: 3px; }
+.brian-paper-settings :is(h1,h2,h3) { text-wrap: balance; }
+@media (prefers-reduced-motion:reduce) {
+  .brian-paper-settings *, .brian-paper-settings *::before,.brian-paper-settings *::after {
+    animation-duration:.01ms !important;
+    transition-duration:.01ms !important;
+  }
+}
