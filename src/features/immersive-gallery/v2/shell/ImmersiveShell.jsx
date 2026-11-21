@@ -79,6 +79,7 @@ export default function ImmersiveShell({
   pendingCount = 0,
   lessonTemplate,
   submissionsCatalogue = false,
+  standalone = false,
 }) {
   const payload = data || staff || {};
   const profile = payload?.profile || {};
@@ -368,7 +369,7 @@ export default function ImmersiveShell({
         {children}
       </main>
 
-      <Footer staff={payload} language={language} />
+      <Footer language={language} standalone={standalone} />
     </div>
   );
 }

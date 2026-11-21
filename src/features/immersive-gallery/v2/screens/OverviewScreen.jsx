@@ -10,10 +10,15 @@ import {
   Users,
 } from 'lucide-react';
 import AseanActivityArt from '../../v3/AseanActivityArt.jsx';
-import {ASEAN_SUBTITLE, ASEAN_TITLE, isAsean} from '../../v3/aseanLesson.js';
+import {ASEAN_FRAMES, ASEAN_SUBTITLE, ASEAN_TITLE, isAsean} from '../../v3/aseanLesson.js';
 import './OverviewScreen.css';
 
 const SUBMITTED_STATES = ['submitted', 'ttcm_review', 'approved_locked', 'published'];
+const ASEAN_COVER_PHOTOS = [
+  '/museum/asean/presenter/hue-meridian-gate.webp',
+  '/museum/asean/presenter/hoi-an-river.webp',
+  '/museum/asean/presenter/hoi-an-alley.webp',
+];
 
 const tr = (lang, vi, en) => (lang === 'en' ? en : vi);
 
@@ -24,6 +29,7 @@ export default function OverviewScreen({
   onNavigate,
   lessonTemplate,
   publicReadOnly = false,
+  standalone = false,
 }) {
   const payload = data || staff || {};
   const groups = payload.groups || [];
@@ -125,9 +131,8 @@ export default function OverviewScreen({
   ];
 
   return (
-    <div className="igv2-screen ov-root" data-testid="igv2-overview-screen">
-      {/* Band 1: Swiss Editorial Hero + Slanted School Architectural Visual */}
-      <section className="ov-hero" aria-label={tr(language, 'Giới thiệu Pétrus Ký School System', 'Pétrus Ký School System')}>
+    <div className={standalone ? 'igv2-screen ov-root ov-root--competition' : 'igv2-screen ov-root'} data-testid="igv2-overview-screen">
+      {!standalone && <section className="ov-hero" aria-label={tr(language, 'Giới thiệu Pétrus Ký School System', 'Pétrus Ký School System')}>
         <div className="ov-hero-copy">
           <div className="ov-hero-kicker">PÉTRUS KÝ SCHOOL SYSTEM</div>
           <div className="ov-hero-lockup">
@@ -171,9 +176,8 @@ export default function OverviewScreen({
             decoding="async"
           />
         </div>
-      </section>
+      </section>}
 
-      {/* Band 2: 4 Numbered Diagonal-Chamfered Destination Tiles */}
       <nav
         className="ov-nav-strip"
         aria-label={tr(language, 'Các phân khu chức năng chính', 'Primary workspace destinations')}
@@ -184,26 +188,26 @@ export default function OverviewScreen({
             <button
               key={tile.id}
               type="button"
-              className={`ov-tile ov-tile--${tile.tone}`}
+              className={standalone ? 'ov-tile' : `ov-tile ov-tile--${tile.tone}`}
               data-testid={`ov-tile-${tile.id}`}
               onClick={() => onNavigate?.(tile.target)}
             >
-              <span className="ov-tile-bg" aria-hidden="true" />
-              <div className="ov-tile-content">
-                <div className="ov-tile-left">
-                  <span className="ov-tile-num">{tile.num}</span>
+              {!standalone && <span className="ov-tile-bg" aria-hidden="true" />}
+              <span className="ov-tile-content">
+                <span className="ov-tile-left">
+                  {!standalone && <span className="ov-tile-num">{tile.num}</span>}
                   <span className="ov-tile-icon" aria-hidden="true">
-                    <Icon size={38} strokeWidth={1.95} />
+                    <Icon size={standalone ? 29 : 38} strokeWidth={1.95} />
                   </span>
-                </div>
-                <div className="ov-tile-text">
+                </span>
+                <span className="ov-tile-text">
                   <strong>{tile.title}</strong>
                   <span>{tile.desc}</span>
-                </div>
-                <span className="ov-tile-arrow" aria-hidden="true">
-                  <ArrowRight size={13} strokeWidth={2.4} />
                 </span>
-              </div>
+                <span className="ov-tile-arrow" aria-hidden="true">
+                  <ArrowRight size={standalone ? 18 : 13} strokeWidth={2.1} />
+                </span>
+              </span>
             </button>
           );
         })}
@@ -216,7 +220,7 @@ export default function OverviewScreen({
           <header className="ov-card-head">
             <h2 className="ov-card-title">
               <span>{tr(language, 'Bài học gần đây', 'Recent Lesson')}</span>
-              <span className="ov-red-slash" aria-hidden="true">/</span>
+              {!standalone && <span className="ov-red-slash" aria-hidden="true">/</span>}
             </h2>
             <button
               type="button"
@@ -231,7 +235,16 @@ export default function OverviewScreen({
           <div className="ov-recent-inner">
             <div className="ov-recent-body">
               <div className="ov-recent-art">
-                {asean ? (
+                {asean && standalone ? (
+                  <ul className="ov-lesson-cover" lang="en">
+                    {ASEAN_FRAMES.map((frame, index) => (
+                      <li key={frame.key}>
+                        <img src={ASEAN_COVER_PHOTOS[index]} alt="" decoding="async" />
+                        <strong>{frame.label}</strong>
+                      </li>
+                    ))}
+                  </ul>
+                ) : asean ? (
                   <AseanActivityArt activity="build" language={language} />
                 ) : (
                   <img
@@ -282,16 +295,16 @@ export default function OverviewScreen({
             <header className="ov-card-head">
               <h2 className="ov-card-title">
                 <span>{tr(language, 'Tiến độ học tập', 'Learning Progress')}</span>
-                <span className="ov-red-slash" aria-hidden="true">/</span>
+                {!standalone && <span className="ov-red-slash" aria-hidden="true">/</span>}
               </h2>
             </header>
 
             <div className="ov-stat-stack">
               {progress.map(({id, icon: Icon, count, detail}) => (
                 <div className="ov-stat-item" key={id}>
-                  <span className="ov-stat-icon" aria-hidden="true">
+                  {!standalone && <span className="ov-stat-icon" aria-hidden="true">
                     <Icon size={22} strokeWidth={1.8} />
-                  </span>
+                  </span>}
                   <div className="ov-stat-copy">
                     <strong className="ov-stat-number">{count}/{total}</strong>
                     <span className="ov-stat-label">{detail}</span>
@@ -303,11 +316,13 @@ export default function OverviewScreen({
 
           <div className="ov-progress-media" aria-hidden="true">
             <img
-              src="/museum/swiss-editorial/learning-progress-gallery.png"
+              src={standalone && asean
+                ? '/museum/swiss-editorial/asean-gallery-illustration.webp'
+                : '/museum/swiss-editorial/learning-progress-gallery.png'}
               alt=""
               className="ov-progress-img"
-              width={246}
-              height={201}
+              width={standalone && asean ? 218 : 246}
+              height={standalone && asean ? 253 : 201}
               loading="lazy"
               decoding="async"
             />

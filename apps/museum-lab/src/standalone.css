@@ -27,3 +27,12 @@ body { margin: 0; background: #fff; }
 }
 .museum-sign-in button { background: #172023; color: white; cursor: pointer; }
 .museum-sign-in [role="alert"] { margin: 0; color: #9b1e18; }
+
+.igv2 .igv2-footer-wrap--competition .footer-col--logos {
+  display: grid;
+  align-content: center;
+}
+
+.igv2 .igv2-footer-wrap--competition .footer-logos-row {
+  align-items: center;
+}

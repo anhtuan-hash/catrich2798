@@ -67,12 +67,12 @@ const QUALIFICATION_LINES = [
   { vi: 'Đang theo học Thạc sĩ Ngôn ngữ Anh', en: 'Currently pursuing a master’s degree in English Language Studies' },
 ];
 
-export default function Footer({ language = 'vi' }) {
+export default function Footer({ language = 'vi', standalone = false }) {
   const locale = language === 'en' ? 'en' : 'vi';
   const copy = COPY[locale];
 
   return (
-    <footer className="igv2-footer-wrap" data-testid="igv2-footer-root" lang={locale}>
+    <footer className={standalone ? 'igv2-footer-wrap igv2-footer-wrap--competition' : 'igv2-footer-wrap'} data-testid="igv2-footer-root" lang={locale}>
       <section
         className="profile-footer"
         data-testid="igv2-footer"
@@ -99,7 +99,7 @@ export default function Footer({ language = 'vi' }) {
                 decoding="async"
               />
             </div>
-            <p className="footer-logos-motto">{copy.motto}</p>
+            {!standalone && <p className="footer-logos-motto">{copy.motto}</p>}
           </article>
 
           <article className="footer-col footer-col--teacher">
