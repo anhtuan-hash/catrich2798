@@ -60,9 +60,11 @@ async function aseanVisitTarget(admin,assignmentId,groupId,stage,reverse=false){
 export async function readAseanActivityRecords(admin,ctx,session,{publicView=false}={}){
   const id=ctx.group.id;
   // The group one place before the author supplied V1 feedback.
-  const source=session?await query(admin.from('museum_peer_pairs').select('from_group')
-   .eq('session_id',session.id).eq('to_group',id).maybeSingle()):null;
-  const groups=session&&session.stage_index>=4?await query(admin.from('gcp_groups').select('id,label').eq('assignment_id',ctx.assignment.id)):[];
+  const [source,groups]=await Promise.all([
+   session?query(admin.from('museum_peer_pairs').select('from_group')
+    .eq('session_id',session.id).eq('to_group',id).maybeSingle()):null,
+   session&&session.stage_index>=4?query(admin.from('gcp_groups').select('id,label').eq('assignment_id',ctx.assignment.id)):[],
+  ]);
   const authorRetest=aseanPeerGroup(groups,id,4,{reverse:true});
   const assigned=aseanPeerGroup(groups,id,4);
   const [rows,feedback,ownCheckpoints,retest,assignedCheckpoint,staffChecks,hueQuiz]=await Promise.all([

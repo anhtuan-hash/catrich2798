@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react';
-import {Copy,QrCode} from 'lucide-react';
+import {Copy,ExternalLink,QrCode} from 'lucide-react';
 import {joinUrl} from './museumApi.js';
 import {publicWorkshopHref} from './aseanPublicWorkshop.js';
 
@@ -27,6 +27,7 @@ export default function MuseumGroupQr({handle,publicGroupId,exhibitionId,showInv
  const expired=Boolean(expiresAt&&Number.isFinite(Date.parse(expiresAt))&&Date.parse(expiresAt)<=Date.now());
  const unavailable=revoked||expired;
  const en=language==='en';
+ const openWorkshop=Boolean(publicGroupId||showInviteLink);
  const linkLabel=publicGroupId
   ?(en?'Open student workshop · View only':'Mở bài thực hành · Chỉ xem')
   :exhibitionId?(en?'Open published exhibit':'Mở triển lãm đã công bố')
@@ -40,10 +41,15 @@ export default function MuseumGroupQr({handle,publicGroupId,exhibitionId,showInv
    {image?<img src={image} width="128" height="128" alt={(en?'Scan to open ':'Quét để mở ')+groupLabel} loading="lazy"/>:
     <span className="bml-lesson-qr-fallback"><QrCode size={43}/><small>{failed?(en?'QR unavailable':'Không tạo được QR'):(target?(en?'Preparing QR':'Đang tạo QR'):(en?'No invitation':'Chưa có mã mời'))}</small></span>}
   </div>
-  {target&&!unavailable&&(publicPath||showInviteLink)?<a className="bml-lesson-qr-handle" href={target} target="_blank" rel="noopener">{linkLabel}</a>:null}
+  {target&&!unavailable&&publicPath&&!openWorkshop?<a className="bml-lesson-qr-handle" href={target} target="_blank" rel="noopener">{linkLabel}</a>:null}
+  {publicGroupId?<span className="bml-lesson-qr-handle">{en?'View only':'Chỉ xem'}</span>:null}
   {!publicPath&&
    <span className="bml-lesson-qr-handle" title={handle||''}>{handle?(en?'Invite: ':'Mã mời: ')+handle:(en?'No invitation':'Chưa có mã mời')}</span>}
   {unavailable?<span className="bml-lesson-qr-expired">{revoked?(en?'Revoked':'Đã thu hồi'):(en?'Expired':'Đã hết hạn')}</span>:null}
-  {target&&!unavailable?<button type="button" className="bml-lesson-qr-copy-link" onClick={copy}><Copy size={13}/>{en?'Copy link':'Sao chép'}</button>:null}
+  {target&&!unavailable&&(openWorkshop
+   ?<a className="bml-lesson-qr-open-link" href={target} target="_blank" rel="noopener">
+     {en?'Open online lesson':'Truy cập bài trực tuyến'}<ExternalLink size={15} aria-hidden="true"/>
+    </a>
+   :<button type="button" className="bml-lesson-qr-copy-link" onClick={copy}><Copy size={13}/>{en?'Copy link':'Sao chép'}</button>)}
  </div>;
 }
