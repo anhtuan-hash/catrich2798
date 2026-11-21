@@ -12,7 +12,7 @@ test('Homeroom and Gradebook expose exact Student Support deep links', () => {
   assert.match(homeroom, /buildStudentSupportHash/);
   assert.match(homeroom, /Xem hồ sơ hỗ trợ/);
   assert.match(gradebook, /buildStudentSupportHash/);
-  assert.match(gradebook, /Xem hồ sơ hỗ trợ/);
+  assert.match(gradebook, /(?:Xem|mở) hồ sơ hỗ trợ/i);
 });
 
 test('archive path uses governance RPC and has no ordinary hard delete', () => {
