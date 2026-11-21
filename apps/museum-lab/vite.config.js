@@ -15,6 +15,7 @@ const museumAssets = [
 export default defineConfig({
   root,
   publicDir: false,
+  define: { 'import.meta.env.MUSEUM_LAB_STANDALONE': 'true' },
   plugins: [{
     name: 'museum-public-assets',
     async closeBundle() {

@@ -49,6 +49,23 @@ body { margin: 0; background: #fff; }
 .museum-site-bar a, .museum-site-bar button { color: inherit; font: inherit; }
 .museum-site-bar .museum-site-title { font-weight: 700; }
 .museum-site-bar button { cursor: pointer; background: transparent; border: 0; padding: .25rem; }
+.museum-staff-session { display: flex; align-items: center; flex-wrap: wrap; gap: .25rem .9rem; }
+.museum-staff-session span { font-size: .875rem; font-weight: 650; }
+.museum-staff-session button { text-decoration: underline; text-underline-offset: .15em; }
+.museum-staff-workspace {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .65rem 1rem;
+  margin-bottom: 1rem;
+  padding: .85rem 1rem;
+  border: 1px solid var(--igv2-border, #d6d1c5);
+  border-left: 3px solid #c90828;
+  background: #fff;
+}
+.museum-staff-workspace h2 { margin: 0; font-size: 1.125rem; }
+.museum-staff-workspace-actions { display: flex; flex-wrap: wrap; gap: .55rem; }
 .museum-sign-in, .museum-site-loading { margin: 2rem auto; width: min(28rem, calc(100% - 2rem)); }
 .museum-sign-in form, .museum-sign-in label { display: grid; gap: .5rem; }
 .museum-sign-in form { gap: 1rem; }

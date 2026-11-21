@@ -18,7 +18,7 @@ function useHash() {
   return hash;
 }
 
-function StaffLogin() {
+function StaffLogin({ onSignedIn }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   async function signIn(event) {
@@ -31,15 +31,15 @@ function StaffLogin() {
     setBusy(true);
     setError('');
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: String(form.get('email')).trim(),
         password: String(form.get('password')),
       });
-      if (error) {
+      if (error || !data?.session) {
         setError('Không đăng nhập được. Hãy kiểm tra email và mật khẩu Museum Lab.');
         return;
       }
-      window.location.hash = home;
+      onSignedIn(data.session);
     } catch {
       setError('Không kết nối được với hệ thống đăng nhập.');
     } finally {
@@ -61,16 +61,20 @@ function StaffLogin() {
 
 function App() {
   const hash = useHash();
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState(() => supabase ? undefined : null);
   const [signOutError, setSignOutError] = useState('');
   useEffect(() => {
     if (!supabase) return;
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, next) => setSession(next),
+      (event, next) => setSession(current => event === 'INITIAL_SESSION' && current !== undefined ? current : next),
     );
     return () => subscription.unsubscribe();
   }, []);
   const route = hash.split('?')[0];
+  const signedIn = (next) => {
+    setSession(next);
+    window.location.hash = home;
+  };
   const signOut = async () => {
     setSignOutError('');
     const { error } = await supabase.auth.signOut({ scope: 'local' });
@@ -78,6 +82,7 @@ function App() {
       setSignOutError('Không đăng xuất được. Vui lòng thử lại.');
       return;
     }
+    setSession(null);
     window.location.hash = home;
   };
   if (route === '#/gallery-create') {
@@ -87,14 +92,19 @@ function App() {
     <>
       <header className="museum-site-bar">
         <a className="museum-site-title" href={home}>Museum Lab</a>
-        {session
-          ? <button type="button" onClick={signOut}>Đăng xuất</button>
-          : <a href={staffLogin}>Đăng nhập giáo viên</a>}
+        {session === undefined ? <span role="status">Đang kiểm tra phiên đăng nhập…</span> : session ? (
+          <div className="museum-staff-session">
+            <span>Đã đăng nhập</span>
+            <button type="button" onClick={signOut}>Đăng xuất</button>
+          </div>
+        ) : <a href={staffLogin}>Đăng nhập giáo viên</a>}
       </header>
       {signOutError && <p role="alert">{signOutError}</p>}
-      {route === staffLogin ? <StaffLogin /> : (
+      {session === undefined ? <p className="museum-site-loading">Đang mở Museum Lab…</p> : route === staffLogin && !session ? (
+        <StaffLogin onSignedIn={signedIn} />
+      ) : (
         <Suspense fallback={<p className="museum-site-loading" role="status">Đang tải Museum Lab…</p>}>
-          <MuseumLab key={session ? 'staff' : 'guest'} currentUser={session?.user}
+          <MuseumLab key={session?.user.id ?? 'guest'} currentUser={session?.user}
             publicReadOnly={!session} language="vi" standalone />
         </Suspense>
       )}

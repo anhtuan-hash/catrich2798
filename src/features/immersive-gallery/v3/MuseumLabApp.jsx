@@ -92,6 +92,8 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
  const shellNavigate=(navId)=>{ navigate(NAV_TO_TAB[navId]||'home'); };
  const visitor=publicReadOnly||!!staff?.publicReadOnly;
  const readOnly=visitor||!!staff?.offlineReadOnly;
+ const verifiedStaff=standalone&&!readOnly&&currentUser?.id&&staff?.profile?.id===currentUser.id;
+ const verifiedAdmin=verifiedStaff&&staff.profile.role==='admin';
  const create=()=>{if(!readOnly)navigate('wizard');};
  const activeNav=TAB_TO_NAV[tab]||'overview';
  const matchingAssignments=(staff?.assignments||[]).filter(a=>isAsean(a)===isAsean(lessonTemplate));
@@ -114,6 +116,14 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
    {error?<div className="bml-banner bml-danger-banner" role="alert" style={{marginBottom:18}}><ShieldAlert size={19}/>
      <div><strong>{tr(uiLanguage,'Không thể đồng bộ dữ liệu quản lý','Could not load staff data')}</strong><p>{error}</p>
       <button type="button" className="bml-outline" onClick={()=>{setLoading(true);refresh();}}><RefreshCw size={17}/>{tr(uiLanguage,'Thử lại','Retry')}</button></div></div>:null}
+   {tab==='home'&&verifiedStaff&&!error?<section className="museum-staff-workspace" aria-labelledby="museum-staff-workspace-title">
+    <h2 id="museum-staff-workspace-title">{verifiedAdmin?tr(uiLanguage,'Khu quản trị','Administrator workspace'):tr(uiLanguage,'Khu vực giáo viên','Teacher workspace')}</h2>
+    <div className="museum-staff-workspace-actions">
+     {verifiedAdmin?<button type="button" className="bml-primary" onClick={create}><Plus size={17} aria-hidden="true"/>{tr(uiLanguage,'Tạo bài học mới','New lesson')}</button>:null}
+     <button type="button" className="bml-outline" onClick={()=>navigate('lessons')}>{verifiedAdmin?tr(uiLanguage,'Quản lý bài học','Manage lessons'):tr(uiLanguage,'Bài học của tôi','My lessons')}</button>
+     <button type="button" className="bml-outline" onClick={()=>navigate('submissions')}>{tr(uiLanguage,'Xem bài nộp','View submissions')}</button>
+    </div>
+   </section>:null}
    {loading?<div className="bml-empty bml-surface" role="status"><RefreshCw size={27}/>{tr(uiLanguage,'Đang tải bài học và phân quyền…','Loading lessons and permissions…')}</div>:
    tab==='home'?overview:
    tab==='live'?<TeacherLiveScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} transport={liveTransport} initialTemplate={lessonTemplate}/>:
