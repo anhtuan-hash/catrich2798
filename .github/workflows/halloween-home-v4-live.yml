@@ -1,0 +1,32 @@
+name: Halloween V4 — REAL production screenshot fidelity
+on:
+  pull_request:
+    paths:
+      - 'scripts/test-halloween-home-v4-live.mjs'
+      - '.github/workflows/halloween-home-v4-live.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install deps
+        run: npm ci --ignore-scripts
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Capture real public BRIAN Home, verify every zone
+        run: node scripts/test-halloween-home-v4-live.mjs
+      - name: Upload screenshots, measurements and error log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: halloween-v4-REAL-production-desktop-mobile
+          path: artifacts/halloween-v4-live/
+          if-no-files-found: warn
