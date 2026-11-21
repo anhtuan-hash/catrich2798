@@ -382,6 +382,26 @@
   border-color: var(--lessons-red);
 }
 
+.bml .swiss-editorial-group-detail .bml-lesson-qr-open-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  padding: 7px 10px;
+  background: var(--lessons-red);
+  color: white;
+  font-size: .82rem;
+  font-weight: 750;
+  text-align: center;
+  text-decoration: none;
+}
+
+.bml .swiss-editorial-group-detail .bml-lesson-qr-open-link:hover {
+  background: var(--lessons-ink);
+}
+
 .bml .swiss-editorial-no-groups {
   margin: 12px 0;
 }

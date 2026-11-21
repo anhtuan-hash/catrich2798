@@ -67,18 +67,25 @@ async function stageApprovedArt(ctx,scoped){
 
 // Keep the catalogue independent of browser-side Supabase queries. Both the
 // already loaded staff dashboard and the exhibition view share this scope.
-async function publishedSchoolCatalog(ctx){
- const admin=ctx.admin;
+async function publicGalleryEnabled(admin){
  const enabled=await query(admin.from('gallery_settings').select('enabled')
   .eq('id',true).maybeSingle());
- if(enabled?.enabled!==true)return [];
+ return enabled?.enabled===true;
+}
+
+const withinExhibitionWindow=(gallery,now)=>
+ (!gallery.starts_at||Date.parse(gallery.starts_at)<=now)&&
+ (!gallery.ends_at||Date.parse(gallery.ends_at)>=now);
+
+async function publishedSchoolCatalog(ctx){
+ const admin=ctx.admin;
+ if(!await publicGalleryEnabled(admin))return [];
  const rows=await query(admin.from('gallery_exhibitions')
   .select('id,slug,title,summary,visibility,status,owner_id,accept_submissions,created_at,updated_at,starts_at,ends_at')
   .eq('school_scope',ctx.profile.school).eq('status','published')
   .in('visibility',['school','public']).order('updated_at',{ascending:false}).limit(100));
  const now=Date.now();
- const visible=rows.filter(g=>(!g.starts_at||Date.parse(g.starts_at)<=now)&&
-  (!g.ends_at||Date.parse(g.ends_at)>=now))
+ const visible=rows.filter(g=>withinExhibitionWindow(g,now))
   .map(({starts_at,ends_at,...row})=>row);
  if(!visible.length)return [];
  const assignmentByGallery=await galleryLessonAssignments(ctx,visible.map(gallery=>gallery.id));
@@ -120,24 +127,26 @@ async function loadPublicGroupWorkshop(req,res,admin){
  const section=String(req.query?.section||'');
  if(!uid(groupId)||(section&&section!=='first'))throw fail(404,'Published workshop unavailable.');
  const unavailable=()=>fail(404,'Published workshop unavailable.');
- const ctx=await publicMuseumContext(admin);
- const group=await query(admin.from('gcp_groups').select('id,label,state,assignment_id').eq('id',groupId).maybeSingle());
- if(!group||group.state!=='published')throw unavailable();
- const [assignment,publication]=await Promise.all([
-  query(admin.from('gcp_assignments').select('id,title,class_scope,lesson_template,content_frozen_at,archived_at')
-   .eq('id',group.assignment_id).eq('school_scope',ctx.profile.school).maybeSingle()),
-  query(admin.from('gcp_publication_links').select('review_id,exhibition_id').eq('group_id',group.id).maybeSingle()),
+ const [ctx,group,publication]=await Promise.all([
+  publicMuseumContext(admin),
+  query(admin.from('gcp_groups').select('id,label,state,assignment_id').eq('id',groupId).maybeSingle()),
+  query(admin.from('gcp_publication_links').select('review_id,exhibition_id').eq('group_id',groupId).maybeSingle()),
  ]);
- if(!isPublicWorkshopGroup(assignment,group)||!publication)throw unavailable();
- const [catalog,review,session]=await Promise.all([
-  publishedSchoolCatalog(ctx),
+ if(!group||group.state!=='published'||!publication)throw unavailable();
+ const assignment=await query(admin.from('gcp_assignments').select('id,title,class_scope,lesson_template,content_frozen_at,archived_at')
+  .eq('id',group.assignment_id).eq('school_scope',ctx.profile.school).maybeSingle());
+ if(!isPublicWorkshopGroup(assignment,group))throw unavailable();
+ const [galleryEnabled,exhibition,review,session]=await Promise.all([
+  publicGalleryEnabled(admin),
+  query(admin.from('gallery_exhibitions').select('id,starts_at,ends_at')
+   .eq('id',publication.exhibition_id).eq('school_scope',ctx.profile.school).eq('status','published')
+   .in('visibility',['school','public']).maybeSingle()),
   query(admin.from('gcp_reviews').select('snapshot,version').eq('id',publication.review_id)
    .eq('group_id',group.id).eq('state','published').is('archived_at',null).maybeSingle()),
   query(admin.from('museum_live_sessions').select('id,status,stage_index,media_board')
    .eq('assignment_id',assignment.id).maybeSingle()),
  ]);
- const collection=catalog.find(gallery=>gallery.assignment_id===assignment.id);
- if(!review||!collection?.destinations.some(item=>item.id===publication.exhibition_id))throw unavailable();
+ if(!galleryEnabled||!exhibition||!withinExhibitionWindow(exhibition,Date.now())||!review)throw unavailable();
 
  if(section==='first'){
   if(!session)throw unavailable();
@@ -148,12 +157,20 @@ async function loadPublicGroupWorkshop(req,res,admin){
   return send(res,200,{draft,assets:artworks.map(({id,image_url})=>({id,image_url}))});
  }
 
- const [records,assetLinks]=await Promise.all([
+ const [records,assets]=await Promise.all([
   readAseanActivityRecords(admin,{group,assignment},session,{publicView:true}),
-  query(admin.from('museum_publication_asset_links').select('source_asset_id,gallery_asset_id')
-   .eq('review_id',publication.review_id)),
+  publishedWorkshopAssets(admin,publication.review_id,review.snapshot),
  ]);
- const approvedAssets=new Set(Object.values(review.snapshot?.artworks||{}));
+ return send(res,200,{
+  assignment,groupLabel:group.label,draft:review.snapshot,version:review.version,records,assets,
+  live:session?{id:session.id,status:session.status,stageIndex:session.stage_index,media:mediaTask(session)}:null,
+ });
+}
+
+async function publishedWorkshopAssets(admin,reviewId,snapshot){
+ const assetLinks=await query(admin.from('museum_publication_asset_links').select('source_asset_id,gallery_asset_id')
+  .eq('review_id',reviewId));
+ const approvedAssets=new Set(Object.values(snapshot?.artworks||{}));
  const links=assetLinks.filter(link=>approvedAssets.has(link.source_asset_id));
  const files=links.length?await query(admin.from('gallery_assets').select('id,path')
   .in('id',links.map(link=>link.gallery_asset_id))):[];
@@ -164,11 +181,7 @@ async function loadPublicGroupWorkshop(req,res,admin){
   const imageUrl=await signGalleryDisplayImage(admin,{id:link.gallery_asset_id,path},'gallery',600);
   return imageUrl?{id:link.source_asset_id,image_url:imageUrl}:null;
  }));
- return send(res,200,{
-  assignment,groupLabel:group.label,draft:review.snapshot,version:review.version,records,
-  assets:assets.filter(Boolean),
-  live:session?{id:session.id,status:session.status,stageIndex:session.stage_index,media:mediaTask(session)}:null,
- });
+ return assets.filter(Boolean);
 }
 
 async function loadScopedReview(ctx,reviewId){

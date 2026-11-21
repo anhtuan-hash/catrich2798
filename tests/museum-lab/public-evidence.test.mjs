@@ -80,3 +80,61 @@ test('anonymous dashboard exposes only saved evidence from visible, finalized AS
   assert.equal((await call(operation,'POST')).code,403,operation);
  }
 });
+
+test('public workshop reads its linked exhibition directly and checks its publication scope',async t=>{
+ const groupId='00000000-0000-4000-8000-000000000123';
+ const school='Museum QA';
+ const draft={title:'Student exhibit'};
+ const room={id:'room',school_scope:school,status:'published',visibility:'school'};
+ const rows={
+  gcp_assignments:[{id:'lesson',class_scope:'11.3',school_scope:school,lesson_template:ASEAN_TEMPLATE,
+   content_frozen_at:'2026-11-17T00:00:00Z',archived_at:null}],
+  gcp_groups:[{id:groupId,assignment_id:'lesson',label:'Group 01',state:'published'}],
+  gcp_publication_links:[{group_id:groupId,review_id:'review',exhibition_id:room.id}],
+  gallery_settings:[{id:true,enabled:true}],
+  gallery_exhibitions:[room],
+  gcp_reviews:[{id:'review',group_id:groupId,state:'published',archived_at:null,snapshot:draft,version:2}],
+  museum_live_sessions:[],
+  museum_publication_asset_links:[],
+ };
+ const previous={VITE_SUPABASE_URL:process.env.VITE_SUPABASE_URL,SUPABASE_SERVICE_ROLE_KEY:process.env.SUPABASE_SERVICE_ROLE_KEY};
+ process.env.VITE_SUPABASE_URL='https://museum-qa.invalid';
+ process.env.SUPABASE_SERVICE_ROLE_KEY='local-qa-fixture';
+ t.after(()=>{
+  for(const [key,value] of Object.entries(previous)){
+   if(value===undefined)delete process.env[key];else process.env[key]=value;
+  }
+ });
+ t.mock.method(globalThis,'fetch',async request=>{
+  const url=new URL(typeof request==='string'?request:request.url);
+  const table=url.pathname.split('/').pop();
+  if(table==='gallery_exhibitions')assert.equal(url.searchParams.get('id'),'eq.room');
+  assert.ok(Object.hasOwn(rows,table),'Unexpected database read: '+table);
+  const result=rows[table].filter(row=>[...url.searchParams].every(([field,filter])=>{
+   if(filter.startsWith('eq.'))return String(row[field])===filter.slice(3);
+   if(filter==='is.null')return row[field]==null;
+   if(filter.startsWith('in.('))return filter.slice(4,-1).split(',').includes(String(row[field]));
+   return true;
+  }));
+  const fields=url.searchParams.get('select');
+  return Response.json(fields==='*'?result:result.map(row=>Object.fromEntries(fields.split(',').map(key=>[key,row[key]]))));
+ });
+ const load=async(method='GET')=>{
+  const reply={setHeader(){},status(code){this.code=code;return this;},json(data){this.data=data;return this;}};
+  await galleryStaff({query:{operation:'public-group-workshop',groupId},headers:{},method},reply);
+  return reply;
+ };
+ const visible=await load();
+ assert.equal(visible.code,200);
+ assert.deepEqual(visible.data.draft,draft);
+ assert.equal(visible.data.groupLabel,'Group 01');
+ assert.equal((await load('POST')).code,403);
+ for(const [field,value] of Object.entries({
+  school_scope:'Other school',status:'archived',visibility:'private',ends_at:'2026-01-01T00:00:00Z',
+ })){
+  const original=room[field];
+  room[field]=value;
+  assert.equal((await load()).code,404,field);
+  room[field]=original;
+ }
+});
