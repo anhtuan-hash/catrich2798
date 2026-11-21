@@ -95,7 +95,7 @@ function App() {
       {route === staffLogin ? <StaffLogin /> : (
         <Suspense fallback={<p className="museum-site-loading" role="status">Đang tải Museum Lab…</p>}>
           <MuseumLab key={session ? 'staff' : 'guest'} currentUser={session?.user}
-            publicReadOnly={!session} language="vi" />
+            publicReadOnly={!session} language="vi" standalone />
         </Suspense>
       )}
     </>
