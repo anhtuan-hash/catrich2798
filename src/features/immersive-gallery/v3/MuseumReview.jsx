@@ -186,7 +186,8 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
    tr(language,'Xem bảo tàng 2D/3D','Preview museum')}
  </button>;
  const groupContext=[language==='en'?englishSystemGroupLabel(group?.label):group?.label,assignment?.class_scope].filter(Boolean).join(' · ');
- const submissionVersion=tr(language,'BẢN NỘP','SUBMISSION')+' · v'+selected?.version;
+ const submissionLabel=tr(language,'BẢN NỘP','SUBMISSION');
+ const submissionVersion=submissionLabel+' · v'+selected?.version;
  const open=r=>{setSelectedId(r.id);setForm(null);setError('');setSuccess('');closePreview();setReviewArtAssets([]);};
  const renderReview=r=>{
   const g=groups.find(x=>x.id===r.group_id),a=assignments.find(x=>x.id===g?.assignment_id),status=NOTES[r.state]||{label:r.state,kind:'gray'};
@@ -274,7 +275,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
     <div className="bml-section-head"><div className="swiss-editorial-review-heading">
      {!catalogue?<span className="bml-overline">{editorial&&groupContext?groupContext:submissionVersion}</span>:null}
      <h2 ref={detailHeading} id={editorial?'museum-review-title':undefined} tabIndex={editorial?-1:undefined}>{selected.snapshot?.title||tr(language,'Bản nháp','Draft')}</h2>
-     <p>{catalogue?[groupContext,submissionVersion].filter(Boolean).join(' / '):editorial&&groupContext?submissionVersion:groupContext}</p></div>
+     <p>{catalogue?[groupContext,submissionLabel].filter(Boolean).join(' / '):editorial&&groupContext?submissionVersion:groupContext}</p></div>
      <div className="bml-review-detail-controls">
       {editorial?previewButton:null}
       <button type="button" className="bml-icon-btn" disabled={busy} onClick={()=>{setSelectedId(null);closePreview();setForm(null);if(editorial)openedCard.current?.focus();}} aria-label={editorial?tr(language,'Đóng chi tiết','Close submission'):'Close'}><ArrowLeft size={21} aria-hidden="true"/></button>
