@@ -259,11 +259,12 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
    const exitCount=mine.filter(g=>activityCards.some(t=>t.group_id===g.id)).length;
    const expanded=selected===a.id||(selected==='__auto__'&&a.id===assignments[0]?.id);
    const frozen=Boolean(a.content_frozen_at);
-   const canManagePasscodes=isAdmin&&a.created_by===data?.profile?.id;
+   const showPublicGroupLink=data?.publicReadOnly||(standalone&&frozen);
+   const canManagePasscodes=!showPublicGroupLink&&isAdmin&&a.created_by===data?.profile?.id;
    const allVisible=mine.length>0&&mine.every(g=>visibleSecrets[g.id]&&secrets[g.id]);
    const activeGroup=mine.find(group=>group.id===pickedGroup)||mine[0];
    const activeLabel=language==='en'?englishSystemGroupLabel(activeGroup?.label):activeGroup?.label;
-   const publicExhibit=data?.publicReadOnly&&data.publishedGalleries?.find(gallery=>gallery.assignment_id===a.id)
+   const publicExhibit=showPublicGroupLink&&data?.publishedGalleries?.find(gallery=>gallery.assignment_id===a.id)
     ?.destinations?.find(destination=>destination.groupLabel===activeGroup?.label);
    const activeTicket=activityCards.find(ticket=>ticket.group_id===activeGroup?.id);
    const activeAnswer=typeof activeTicket?.value==='string'?activeTicket.value:JSON.stringify(activeTicket?.value);
@@ -357,7 +358,10 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
                 <MuseumGroupQr exhibitionId={publicExhibit.id} groupLabel={activeLabel} language={language} />
               </div>
             )}
-            {!data?.offlineReadOnly && !data?.publicReadOnly && activeGroup.invite_handle && (
+            {standalone&&frozen&&!publicExhibit&&<p className="bml-muted">
+              {tr(language,'Chưa có triển lãm công khai cho nhóm này.','There is no public exhibit for this group.')}
+            </p>}
+            {!data?.offlineReadOnly && !showPublicGroupLink && activeGroup.invite_handle && (
               <div className="bml-lesson-qr-access">
                 <MuseumGroupQr
                   handle={activeGroup.invite_handle}
