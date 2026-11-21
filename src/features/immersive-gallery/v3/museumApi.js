@@ -29,7 +29,13 @@ export async function staffRequest(action,body){
   },...(body?{body:JSON.stringify(body)}:{})
  });
  const value=await response.json().catch(()=>({error:'No valid response received from the server.'}));
- if(!response.ok||value.error)throw new Error(englishMuseumError(value.error,'Unable to complete this request.'));
+ if(!response.ok||value.error){
+  // Class creation does not validate an existing student invitation.
+  const message=action==='create-assignment'
+   ?value.error||'Unable to create the lesson. Please try again.'
+   :englishMuseumError(value.error,'Unable to complete this request.');
+  throw Object.assign(new Error(message),{code:value.code});
+ }
  if(action==='dashboard'&&(!value.profile||!Array.isArray(value.assignments)||!Array.isArray(value.groups)))
   throw new Error('Invalid staff session response.');
  return value;

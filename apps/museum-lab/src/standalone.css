@@ -65,6 +65,9 @@ body { margin: 0; background: #fff; }
   background: #fff;
 }
 .museum-staff-workspace h2 { margin: 0; font-size: 1.125rem; }
+.museum-staff-identity { min-width: 0; display: grid; gap: .2rem; overflow-wrap: anywhere; }
+.museum-staff-identity strong, .museum-staff-identity span { font-size: .875rem; }
+.museum-staff-identity span { color: var(--igv2-muted, #36404c); }
 .museum-staff-workspace-actions { display: flex; flex-wrap: wrap; gap: .55rem; }
 .museum-sign-in, .museum-site-loading { margin: 2rem auto; width: min(28rem, calc(100% - 2rem)); }
 .museum-sign-in form, .museum-sign-in label { display: grid; gap: .5rem; }

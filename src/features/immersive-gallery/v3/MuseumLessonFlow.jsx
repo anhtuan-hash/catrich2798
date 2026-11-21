@@ -40,15 +40,24 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'})
  const isAdmin=data?.profile?.role==='admin'&&!data?.offlineReadOnly;
  const [form,setForm]=useState({classScope:'',groupCount:ASEAN_MAX_GROUPS,accessWindow:'standard',title:'',brief:''});
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[invites,setInvites]=useState(null);
+ const creatorSettings=data?.creatorSettings;
+ const codesUnavailable=creatorSettings?.group_codes_ready===false;
+ const setupMessage=tr(language,'Máy chủ chưa được cấu hình để tạo mã nhóm.','The server has not been configured to generate group codes.');
+ const disabledMessage=tr(language,'Hãy bật Creator Pass trong phần Cài đặt để giao bài.','Enable Creator Pass in Settings to issue the assignment.');
  const title=form.title||ASEAN_TITLE,brief=form.brief||ASEAN_BRIEF;
  const issue=async()=>{
+  if(busy||!isAdmin||!creatorSettings?.enabled||codesUnavailable)return;
   setError('');setBusy(true);
   try{
    const payload={title,classScope:form.classScope.trim(),brief,groupCount:form.groupCount,lessonTemplate:ASEAN_TEMPLATE,
     deadlineAt:deadlineForWindow(form.accessWindow)};
    const r=await staffRequest('create-assignment',payload);setInvites(r.invitations);
    await onCompleted();
-  }catch(e){setError(e.message);}finally{setBusy(false);}
+  }catch(e){
+   if(e.code==='creator_pass_not_configured')setError(setupMessage);
+   else if(e.code==='creator_pass_disabled')setError(disabledMessage);
+   else setError(e.message);
+  }finally{setBusy(false);}
  };
  const steps=[
   tr(language,'Kế hoạch bài dạy','Lesson plan'),
@@ -118,14 +127,14 @@ export function LessonWizard({data,onExit,onCompleted,onSettings,language='vi'})
     <div className="bml-wizard-summary"><div><BookOpen size={21}/><span>{ASEAN_TITLE}</span></div>
      <div><Users size={21}/><span>{form.groupCount} {tr(language,'nhóm','groups')} · {form.classScope}</span></div>
 </div>
-    {!data?.creatorSettings?.enabled?<div className="bml-banner bml-warning-banner"><LockKeyhole size={20}/><span>{tr(language,'Creator Pass đang tắt. Admin cần bật sau khi nghiệm thu trước khi giao bài thật.','Creator Pass is OFF. An administrator must enable it after acceptance.')}</span>
+    {!creatorSettings?.enabled?<div className="bml-banner bml-warning-banner"><LockKeyhole size={20}/><span>{disabledMessage}</span>
       <button type="button" className="bml-text-btn" onClick={onSettings}>{tr(language,'Cài đặt','Settings')}</button></div>:null}
    </>:null}
-   <Notice error={error}/>
+   <Notice error={error||(step===2&&creatorSettings?.enabled&&codesUnavailable?setupMessage:'')}/>
    <div className="bml-wizard-footer"><button type="button" className="bml-outline" onClick={()=>step===0?onExit():setStep(s=>s-1)}>
      <ArrowLeft size={17}/>{tr(language,'Quay lại','Back')}</button>
     {step<2?<button type="button" className="bml-primary" disabled={step===1&&(!form.classScope.trim()||!isAdmin)} onClick={()=>setStep(s=>s+1)}>{tr(language,'Tiếp tục','Continue')} <ArrowRight size={17}/></button>:
-    <button type="button" className="bml-primary" disabled={busy||!isAdmin||!data?.creatorSettings?.enabled||!form.classScope.trim()}
+    <button type="button" className="bml-primary" disabled={busy||!isAdmin||!creatorSettings?.enabled||codesUnavailable||!form.classScope.trim()}
       onClick={issue}><QrCode size={18}/>{busy?tr(language,'Đang tạo…','Creating…'):tr(language,'Tạo mã nhóm & giao bài','Generate group codes')}</button>}</div>
   </section></>}
  </div>;
@@ -146,7 +155,7 @@ function PrivatePasscodeCard({secret,available,revealed,busy,onShow,onHide,onCop
  </div>;
 }
 
-export function LessonsList({data,onCreate,onReview,onRefresh,query='',language='vi'}){
+export function LessonsList({data,onCreate,onReview,onRefresh,query='',language='vi',standalone=false}){
  const [selected,setSelected]=useState('__auto__'),[invites,setInvites]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [pickedGroup,setPickedGroup]=useState(null);
  const [secrets,setSecrets]=useState({}),[visibleSecrets,setVisibleSecrets]=useState({});
@@ -357,6 +366,9 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
                   revoked={activeGroup.invite_revoked}
                   language={language}
                 />
+                {standalone&&isAdmin&&!canManagePasscodes&&<p className="bml-muted">
+                  {tr(language,'Mã riêng của nhóm chỉ hiển thị với tài khoản đã tạo bài này.','Group passcodes are visible to the account that created this lesson.')}
+                </p>}
                 {canManagePasscodes && (
                   <PrivatePasscodeCard
                     secret={secrets[activeGroup.id]}
