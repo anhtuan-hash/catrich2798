@@ -22,6 +22,7 @@ import '../v2/swiss.css';
 import '../v2/contestSwissPass.css';
 import './museumLessonsEditorial.css';
 import './museumSubmissionsEditorial.css';
+import './museumSubmissionsCatalogue.css';
 const tr=(language,vi,en)=>language==='en'?en:vi;
 const initialMuseumTab=()=>{
  if(typeof window==='undefined')return 'home';
@@ -40,7 +41,7 @@ const TAB_TO_NAV={home:'overview',lessons:'lessons',submissions:'submissions',
  gallery:'exhibitions',wizard:'lessons',templates:'teaching-plan',
  live:'teacher-live',evidence:'competition-dossier',settings:'settings'};
 
-export default function MuseumLabApp({currentUser,language='en',transport,publicReadOnly=false}){
+export default function MuseumLabApp({currentUser,language='en',transport,publicReadOnly=false,standalone=false}){
  const staffTransport=transport||(publicReadOnly?publicStaffRequest:staffRequest);
  const liveTransport=publicReadOnly?publicLiveStaff:liveStaff;
  const [uiLanguage,setUiLanguage]=useState(()=>{
@@ -91,6 +92,8 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
  const shellNavigate=(navId)=>{ navigate(NAV_TO_TAB[navId]||'home'); };
  const visitor=publicReadOnly||!!staff?.publicReadOnly;
  const readOnly=visitor||!!staff?.offlineReadOnly;
+ const verifiedStaff=standalone&&!readOnly&&currentUser?.id&&staff?.profile?.id===currentUser.id;
+ const verifiedAdmin=verifiedStaff&&staff.profile.role==='admin';
  const create=()=>{if(!readOnly)navigate('wizard');};
  const activeNav=TAB_TO_NAV[tab]||'overview';
  const matchingAssignments=(staff?.assignments||[]).filter(a=>isAsean(a)===isAsean(lessonTemplate));
@@ -106,20 +109,28 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
   exitTickets:(staff.exitTickets||[]).filter(r=>matchingGroupIds.has(r.group_id)),
   publishedGalleries:(staff.publishedGalleries||[]).filter(g=>isAsean(g)===isAsean(lessonTemplate))}:staff;
  const sharedScreenProps={language:uiLanguage,data:staff,staff,onNavigate:navigate,onRefresh:refresh,transport:staffTransport,onCreate:readOnly?undefined:create,onBack:()=>navigate('home'),initialReview:reviewId};
- const overview=<OverviewScreen {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate} publicReadOnly={visitor}/>;
+ const overview=<OverviewScreen {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate} publicReadOnly={visitor} standalone={standalone}/>;
  return <MuseumFilePreviewProvider language={uiLanguage} enabled={!offlineArchive}>
- <ImmersiveShell activeNav={activeNav} onNavigate={shellNavigate} language={uiLanguage} onLanguageChange={chooseLanguage} staff={staff} data={staff} query={query} onQueryChange={setQuery} onRefresh={refresh} onHelp={()=>setHelp(true)} pendingCount={pendingCount} lessonTemplate={lessonTemplate}>
+ <ImmersiveShell activeNav={activeNav} onNavigate={shellNavigate} language={uiLanguage} onLanguageChange={chooseLanguage} staff={staff} data={staff} query={query} onQueryChange={setQuery} onRefresh={refresh} onHelp={()=>setHelp(true)} pendingCount={pendingCount} lessonTemplate={lessonTemplate} submissionsCatalogue={standalone&&tab==='submissions'} standalone={standalone}>
   <div className="bml" data-testid="brian-museum-lab-v3" lang={uiLanguage} data-ui-locale={uiLanguage==='en'?'en-US':'vi-VN'} data-public-readonly={visitor?'true':'false'}>
    {error?<div className="bml-banner bml-danger-banner" role="alert" style={{marginBottom:18}}><ShieldAlert size={19}/>
      <div><strong>{tr(uiLanguage,'Không thể đồng bộ dữ liệu quản lý','Could not load staff data')}</strong><p>{error}</p>
       <button type="button" className="bml-outline" onClick={()=>{setLoading(true);refresh();}}><RefreshCw size={17}/>{tr(uiLanguage,'Thử lại','Retry')}</button></div></div>:null}
+   {tab==='home'&&verifiedStaff&&!error?<section className="museum-staff-workspace" aria-labelledby="museum-staff-workspace-title">
+    <h2 id="museum-staff-workspace-title">{verifiedAdmin?tr(uiLanguage,'Khu quản trị','Administrator workspace'):tr(uiLanguage,'Khu vực giáo viên','Teacher workspace')}</h2>
+    <div className="museum-staff-workspace-actions">
+     {verifiedAdmin?<button type="button" className="bml-primary" onClick={create}><Plus size={17} aria-hidden="true"/>{tr(uiLanguage,'Tạo bài học mới','New lesson')}</button>:null}
+     <button type="button" className="bml-outline" onClick={()=>navigate('lessons')}>{verifiedAdmin?tr(uiLanguage,'Quản lý bài học','Manage lessons'):tr(uiLanguage,'Bài học của tôi','My lessons')}</button>
+     <button type="button" className="bml-outline" onClick={()=>navigate('submissions')}>{tr(uiLanguage,'Xem bài nộp','View submissions')}</button>
+    </div>
+   </section>:null}
    {loading?<div className="bml-empty bml-surface" role="status"><RefreshCw size={27}/>{tr(uiLanguage,'Đang tải bài học và phân quyền…','Loading lessons and permissions…')}</div>:
    tab==='home'?overview:
-   tab==='live'?<TeacherLiveScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} transport={liveTransport} initialTemplate={lessonTemplate}/>:
+   tab==='live'?<TeacherLiveScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} transport={liveTransport} initialTemplate={lessonTemplate} standalone={standalone}/>:
    tab==='wizard'?<LessonWizard language={uiLanguage} data={staff} onCompleted={refresh} onExit={()=>navigate('lessons')} onSettings={()=>navigate('settings')}/>:
    tab==='lessons'?<LessonsList key={lessonTemplate} language={uiLanguage} data={matchingData} query={query}
      onCreate={()=>create()} onReview={id=>navigate('submissions',id)} onRefresh={refresh}/>:
-   tab==='submissions'?<SubmissionsScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate} query={query}/>:
+   tab==='submissions'?<SubmissionsScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate} query={query} catalogue={standalone}/>:
    tab==='gallery'?<ExhibitionsScreen key={lessonTemplate} {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate} query={query}/>:
    tab==='templates'?<TeachingPlanScreen {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate}/>:
    tab==='evidence'?(isAsean(lessonTemplate)?<AseanDossier data={matchingData} language={uiLanguage}

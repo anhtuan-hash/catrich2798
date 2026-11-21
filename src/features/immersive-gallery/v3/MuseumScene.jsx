@@ -16,7 +16,9 @@ import {isAsean} from './aseanLesson.js';
 import {PEK_GALLERY_WALL_INSCRIPTIONS} from '../pekMuseumMotto.js';
 import {buildCollectionHall} from '../swissCollectionLayout.js';
 import './museumEditorial3D.css';
-const GalleryCanvas=lazy(()=>import('../GalleryCanvasR3F.jsx'));
+const loadGalleryCanvas=()=>import('../GalleryCanvasR3F.jsx');
+const GalleryCanvas=lazy(loadGalleryCanvas);
+const preloadGalleryCanvas=()=>{loadGalleryCanvas().catch(()=>{});};
 const Exhibit360Viewer=lazy(()=>import('./Exhibit360Viewer.jsx'));
 const clean=(x,n=180)=>String(x??'').slice(0,n);
 const numberLabel=n=>String(n).padStart(2,'0');
@@ -75,8 +77,9 @@ export function reviewMuseum(review,assets=[],lessonTemplate){
   }))
  };
 }
-export default function MuseumScene({gallery,onBack,onClose,language='vi',embedded=false,compact=false,initial3D=false,onExhibitSelect,cinema=false,initialRoomIndex=0,startIn2D=false}){
+export default function MuseumScene({gallery,onBack,onClose,language='vi',embedded=false,compact=false,initial3D=false,onExhibitSelect,cinema=false,initialRoomIndex=0,startIn2D=false,onOpen3D}){
  const [activeRoom,setActiveRoom]=useState(initialRoomIndex),[threeD,setThreeD]=useState(!startIn2D&&(cinema||initial3D)),[selectedId,setSelectedId]=useState(null);
+ const inline=Boolean(onOpen3D);
  const [fullPosterId,setFullPosterId]=useState(null);
  const editorialCinema=cinema&&isAsean(gallery);
  const swiss3D=editorialCinema&&threeD;
@@ -133,11 +136,17 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
    await cinemaRef.current.requestFullscreen();
   }catch{setFallbackFullscreen(true);}
  };
+ const open3D=async event=>{
+  const trigger=event.currentTarget;
+  if(document.fullscreenElement===cinemaRef.current||fallbackFullscreen)await toggleFullscreen();
+  onOpen3D(trigger);
+ };
  useEffect(()=>{
   if(!cinema)return undefined;
   const onFullscreen=()=>setIsFullscreen(document.fullscreenElement===cinemaRef.current);
   const onEscape=event=>{
-   if(event.key==='Tab'&&(!selectedId||editorial)&&!fullPosterId){
+   if(inline&&!cinemaRef.current?.contains(event.target))return;
+   if(event.key==='Tab'&&(!inline||isFullscreen||fallbackFullscreen)&&(!selectedId||editorial)&&!fullPosterId){
     const controls=[...(cinemaRef.current?.querySelectorAll('button:not(:disabled),a[href]')||[])]
      .filter(el=>el.getClientRects().length>0&&getComputedStyle(el).visibility!=='hidden');
     if(!controls.length)return;
@@ -151,6 +160,10 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
    if(cinema&&threeD&&focusActive(focus)){
     event.preventDefault();event.stopPropagation();focusBack();return;
    }
+   if(inline){
+    if(fallbackFullscreen){event.preventDefault();setFallbackFullscreen(false);}
+    return;
+   }
    if(!selectedId&&!fullPosterId&&!document.fullscreenElement){
     event.preventDefault();leaveCinema();
    }
@@ -158,7 +171,7 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
   document.addEventListener('fullscreenchange',onFullscreen);
   document.addEventListener('keydown',onEscape);
   return()=>{document.removeEventListener('fullscreenchange',onFullscreen);document.removeEventListener('keydown',onEscape);};
- },[cinema,onClose,selectedId,fullPosterId,infoOpen,threeD,focus.phase,editorial,closeInfo]);
+ },[cinema,onClose,selectedId,fullPosterId,infoOpen,threeD,focus.phase,editorial,closeInfo,inline,isFullscreen,fallbackFullscreen]);
  const posterCloseRef=useRef(null),posterOpenerRef=useRef(null);
  const dialogRef=useRef(null),closeRef=useRef(null),openerRef=useRef(null);
  const editorialScrollRef=useRef(null),roomTabsRef=useRef(null);
@@ -231,9 +244,9 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
  useEffect(()=>{
   if(!editorial)return;
   if(editorialScrollRef.current)editorialScrollRef.current.scrollTop=0;
-  if(!selectedId)roomTabsRef.current?.querySelector('[aria-current="true"]')
+  if(!inline&&!selectedId)roomTabsRef.current?.querySelector('[aria-current="true"]')
    ?.scrollIntoView({block:'nearest',inline:'nearest'});
- },[editorial,roomIndex,selectedId]);
+ },[editorial,roomIndex,selectedId,inline]);
  const changeRoom=index=>{
   if(index===roomIndex&&!fourWall)return;
   if(fourWall&&focus.phase!=='idle')return;
@@ -260,7 +273,7 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
   return()=>window.removeEventListener('keydown',onKey);
  },[cinema,threeD,focus.phase,focus.exhibitId,exhibits]);
  return <section ref={cinemaRef} className={'bml-scene '+(editorial?'bml-swiss-2d ':'bml-paper-2d ')+(!threeD?'is-2d ':'')+(embedded?'bml-scene-embedded ':'')+(compact?'bml-scene-compact ':'')+(cinema?'bml-museum-cinema ':'')+(swiss3D?'bml-swiss-3d ':'')+(fallbackFullscreen?'is-fallback-fullscreen':'')}
-  data-testid="museum-visitor" data-museum-mode={cinema?'cinema':'classic'}>
+  data-testid="museum-visitor" data-museum-mode={inline?'inline':cinema?'cinema':'classic'}>
   {!compact&&!cinema?<header className="bml-scene-header">
    <div className="bml-scene-title">
     {onBack?<button type="button" className="bml-icon-btn" onClick={onBack} aria-label={tr('Quay lại','Back')}><ArrowLeft size={20}/></button>:null}
@@ -276,12 +289,13 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
   {cinema?<div className="bml-cinema-hud" data-testid="museum-cinema-hud">
    {swiss3D?<div className="bml-swiss-3d-masthead">
     <strong>{museumSchool}</strong><span>DISCOVERY MUSEUM</span>
-   </div>:editorial?<strong className="bml-editorial-masthead">{clean(gallery?.title,140)}</strong>:null}
+   </div>:editorial&&!inline?<strong className="bml-editorial-masthead">{clean(gallery?.title,140)}</strong>:null}
    <div className="bml-cinema-mode-group" role="group" aria-label="Museum view mode">
     <button type="button" className={!threeD?'is-active':''} aria-pressed={!threeD}
      onClick={changeTo2D}><LayoutGrid size={17}/>2D</button>
     <button type="button" className={threeD?'is-active':''} aria-pressed={threeD}
-     onClick={changeTo3D}><Box size={17}/>3D</button>
+     onPointerEnter={inline?preloadGalleryCanvas:undefined} onFocus={inline?preloadGalleryCanvas:undefined}
+     onClick={inline?open3D:changeTo3D}><Box size={17}/>3D</button>
    </div>
    <button type="button" ref={infoTriggerRef} aria-label="Museum information" aria-expanded={infoOpen}
     className="bml-cinema-hud-button" onClick={infoOpen?closeInfo:openInfo}><Info size={19}/></button>
@@ -290,8 +304,8 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
     {isFullscreen||fallbackFullscreen?<Minimize2 size={19}/>:<Maximize2 size={19}/>}
     {editorial?<span>{isFullscreen||fallbackFullscreen?tr('Thoát toàn màn hình','Exit fullscreen'):tr('Toàn màn hình','Fullscreen')}</span>:null}
    </button>
-   <button type="button" className="bml-cinema-close" aria-label="Close museum preview" onClick={leaveCinema}>
-    <X size={19}/><span>Close</span></button>
+   {!inline?<button type="button" className="bml-cinema-close" aria-label="Close museum preview" onClick={leaveCinema}>
+    <X size={19}/><span>Close</span></button>:null}
   </div>:null}
   {cinema&&infoOpen?<aside className="bml-cinema-info" data-testid="museum-cinema-info">
    <header><strong>{clean(swiss3D&&room?.title?room.title:gallery?.title,140)}</strong>

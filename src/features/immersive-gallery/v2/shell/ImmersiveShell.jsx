@@ -78,6 +78,8 @@ export default function ImmersiveShell({
   onHelp,
   pendingCount = 0,
   lessonTemplate,
+  submissionsCatalogue = false,
+  standalone = false,
 }) {
   const payload = data || staff || {};
   const profile = payload?.profile || {};
@@ -124,7 +126,7 @@ export default function ImmersiveShell({
 
   return (
     <div
-      className="igv2"
+      className={submissionsCatalogue ? 'igv2 swiss-editorial-submissions-page' : 'igv2'}
       data-testid="immersive-gallery-v2"
       data-ui-locale={language === 'en' ? 'en-US' : 'vi-VN'}
     >
@@ -367,7 +369,7 @@ export default function ImmersiveShell({
         {children}
       </main>
 
-      <Footer staff={payload} language={language} />
+      <Footer language={language} standalone={standalone} />
     </div>
   );
 }

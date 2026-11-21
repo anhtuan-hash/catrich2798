@@ -3,7 +3,8 @@ import {createHash} from 'node:crypto';
 import {
  db,digest,randomSecret,fail,send,handleError,guardOrigin,guardBody,query,
  settings,staffContext,assertStaff,assertAdmin,reviewer,uid,clean,requireMethod,
- publicMuseumContext,assertActiveMuseumLesson
+ publicMuseumContext,assertActiveMuseumLesson,galleryDatabaseSession,galleryProfileDirectory,
+ syncGalleryProfile,signGalleryDisplayImage
 } from './_galleryCreator.js';
 import {encryptGroupPasscode,decryptGroupPasscode} from './_galleryPasscodes.js';
 import {createQuickAccessVerifier} from './_galleryQuickAccess.js';
@@ -160,8 +161,8 @@ async function loadPublicGroupWorkshop(req,res,admin){
  const assets=await Promise.all(links.map(async link=>{
   const path=paths.get(link.gallery_asset_id);
   if(!path)return null;
-  const result=await admin.storage.from('brian-gallery-private').createSignedUrl(path,600);
-  return result.data?.signedUrl?{id:link.source_asset_id,image_url:result.data.signedUrl}:null;
+  const imageUrl=await signGalleryDisplayImage(admin,{id:link.gallery_asset_id,path},'gallery',600);
+  return imageUrl?{id:link.source_asset_id,image_url:imageUrl}:null;
  }));
  return send(res,200,{
   assignment,groupLabel:group.label,draft:review.snapshot,version:review.version,records,
@@ -208,6 +209,10 @@ export default async function galleryStaff(req,res){
  try {
   const operation=String(req.query?.operation||'');
   const admin=db();
+  if(operation==='database-session'){
+   requireMethod(req,'POST');guardOrigin(req);
+   return send(res,200,await galleryDatabaseSession(req,admin));
+  }
   if(operation===PUBLIC_WORKSHOP_OPERATION)return await loadPublicGroupWorkshop(req,res,admin);
   const bearer=String(req.headers?.authorization||'');
   const hasBearer=/^Bearer\s+\S{40,}$/i.test(bearer);
@@ -305,11 +310,8 @@ export default async function galleryStaff(req,res){
     .select('id,path').in('id',assetIds)):[];
    // Private storage remains private; signed URLs are restricted to this
    // authenticated, same-school published catalogue and expire automatically.
-   const signed=await Promise.all(assets.map(async asset=>{
-    const result=await admin.storage.from('brian-gallery-private')
-     .createSignedUrl(asset.path,600);
-    return [asset.id,result.error?'':(result.data?.signedUrl||'')];
-   }));
+   const signed=await Promise.all(assets.map(async asset=>
+    [asset.id,await signGalleryDisplayImage(admin,asset,'gallery',600)]));
    const links=new Map(signed);
    const hydrated=rooms.map(room=>({...room,
     exhibits:exhibits.filter(e=>e.room_id===room.id).map(e=>({...e,
@@ -417,9 +419,10 @@ export default async function galleryStaff(req,res){
     const keys=aseanReviewIds.has(row.review_id)?Object.keys(aseanCeilings):Object.keys(rubricCeilings);
     return {...row,scores:Object.fromEntries(keys.map(key=>[key,row.scores?.[key]]))};
    }):rubricRows;
-   const reviewerCandidates=ctx.role==='admin'?await query(admin.from('profiles')
+   const directory=galleryProfileDirectory(admin);
+   const reviewerCandidates=ctx.role==='admin'?await query(directory.from('profiles')
     .select('id,full_name,role').eq('school',ctx.profile.school).eq('approved',true).limit(100)):
-    grants.length?await query(admin.from('profiles').select('id,full_name,role')
+    grants.length?await query(directory.from('profiles').select('id,full_name,role')
      .in('id',grants.map(g=>g.reviewer_id)).eq('approved',true)):[];
    return send(res,200,{profile:{role:ctx.publicReadOnly?'viewer':ctx.profile.role,school:ctx.profile.school,id:ctx.user.id},
     publicReadOnly:ctx.publicReadOnly===true,
@@ -546,10 +549,11 @@ export default async function galleryStaff(req,res){
    const body=guardBody(req,3000);
    const reviewerId=String(body.reviewerId||'');
    if(!uid(reviewerId)||reviewerId===ctx.user.id)throw fail(400,'Tài khoản TTCM cần được chỉ định độc lập.');
-   const person=await query(admin.from('profiles').select('id,role,school,approved')
+   const person=await query(galleryProfileDirectory(admin).from('profiles').select('id,role,school,approved,full_name')
     .eq('id',reviewerId).maybeSingle());
    if(!person||!person.approved||clean(person.school,180)!==ctx.profile.school)
      throw fail(403,'Người duyệt phải là tài khoản Brian đã duyệt cùng trường.');
+   await syncGalleryProfile(admin,person);
    const grant=await query(admin.from('gcp_reviewer_grants').upsert({
     reviewer_id:reviewerId,school_scope:ctx.profile.school,
     can_publish:Boolean(body.canPublish),active:true,granted_by:ctx.user.id

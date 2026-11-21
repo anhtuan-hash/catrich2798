@@ -7,12 +7,32 @@ export {normalizeGuestDraft,validateGuestSubmission};
 export const randomSecret=(length=32)=>randomBytes(length).toString('base64url');
 export const fail=(status,message)=>Object.assign(new Error(message),{status});
 const env=k=>String(process.env[k]||'').trim();
-const url=()=>env('VITE_SUPABASE_URL')||env('SUPABASE_URL');
-export const db=()=>{
- const key=env('SUPABASE_SERVICE_ROLE_KEY');
- if(!url()||!key)throw fail(503,'Dịch vụ chưa được cấu hình.');
- return createClient(url(),key,{auth:{persistSession:false,autoRefreshToken:false}});
+const siteUrl=()=>env('VITE_SUPABASE_URL')||env('SUPABASE_URL');
+const galleryUrl=()=>env('GALLERY_SUPABASE_URL');
+const galleryKey=()=>env('GALLERY_SUPABASE_SERVICE_ROLE_KEY');
+const separateGalleryDatabase=()=>Boolean(galleryUrl()||galleryKey());
+const serviceClient=(url,key)=>{
+ if(!url||!key)throw fail(503,'Dịch vụ chưa được cấu hình.');
+ return createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
 };
+export const db=()=>separateGalleryDatabase()
+ ?serviceClient(galleryUrl(),galleryKey())
+ :serviceClient(siteUrl(),env('SUPABASE_SERVICE_ROLE_KEY'));
+export const galleryProfileDirectory=admin=>separateGalleryDatabase()
+ ?serviceClient(siteUrl(),env('SUPABASE_SERVICE_ROLE_KEY'))
+ :admin;
+export async function syncGalleryProfile(admin,profile){
+ if(!separateGalleryDatabase())return;
+ await query(admin.rpc('gallery_sync_brian_profile',{
+  p_id:profile.id,p_name:profile.full_name??null,p_school:profile.school??null,
+  p_role:profile.role,p_approved:profile.approved===true
+ }));
+}
+async function syncBrianIdentity(admin,user,profile){
+ if(profile)await syncGalleryProfile(admin,profile);
+ else if(separateGalleryDatabase())
+  await query(admin.from('profiles').update({approved:false}).eq('id',user.id).eq('approved',true));
+}
 export const digest=value=>{
  const pepper=env('GCP_HASH_PEPPER');
  if(pepper.length<48)throw fail(503,'Cấu hình bảo mật Creator Pass chưa sẵn sàng.');
@@ -24,6 +44,18 @@ export const safeEqual=(a,b)=>{
 };
 export const clean=(v,n=140)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,n);
 export const uid=x=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(x||''));
+export async function signGalleryDisplayImage(admin,{id,path},kind,expiresIn){
+ const bucket=kind==='artwork'?'museum-artwork-private':'brian-gallery-private';
+ const primary=await admin.storage.from(bucket).createSignedUrl(path,expiresIn);
+ if(primary.data?.signedUrl)return primary.data.signedUrl;
+ if((!separateGalleryDatabase()&&env('GALLERY_STANDALONE')!=='1')||!uid(id))return '';
+
+ // The competition export contains WebP display copies. Keep the PNG
+ // paths and their checksums available for the original evidence restore.
+ const recoveryPath='recovered/asean-11-3/'+kind+'/'+id+'.webp';
+ const recovered=await admin.storage.from('brian-gallery-private').createSignedUrl(recoveryPath,expiresIn);
+ return recovered.data?.signedUrl||'';
+}
 // Anonymous competition visitors. Not a real account, and never an admin.
 export const PUBLIC_MUSEUM_ACTOR='00000000-0000-4000-8000-000000000001';
 export async function publicMuseumContext(admin){
@@ -163,17 +195,39 @@ export async function guestContext(req,admin,{write=false,allowPublishedWorkshee
 export function guestLessonReadOnly(assignment,group){
  return Boolean(assignment?.content_frozen_at||group?.state==='published');
 }
-export async function staffContext(req,admin){
+async function brianIdentity(req,directory){
  const bearer=String(req.headers?.authorization||'');
  if(!/^Bearer\s+\S{40,}$/i.test(bearer))throw fail(401,'Cần đăng nhập Brian.');
  const token=bearer.replace(/^Bearer\s+/i,'').trim();
- const {data:{user}={},error}=await admin.auth.getUser(token);
+ const {data:{user}={},error}=await directory.auth.getUser(token);
  if(error||!user?.id)throw fail(401,'Phiên Brian không hợp lệ.');
- const profile=await query(admin.from('profiles').select('id,role,school,approved')
+ const profile=await query(directory.from('profiles').select('id,role,school,approved,full_name')
   .eq('id',user.id).maybeSingle());
+ return {user,profile,token};
+}
+export async function staffContext(req,admin){
+ const {user,profile}=await brianIdentity(req,galleryProfileDirectory(admin));
+ await syncBrianIdentity(admin,user,profile);
  if(!profile||profile.approved!==true)throw fail(403,'Tài khoản chưa được duyệt.');
  if(!clean(profile.school,180))throw fail(403,'Tài khoản chưa có trường công tác.');
  return {user,profile,admin,role:clean(profile.role,50).toLowerCase()};
+}
+export async function galleryDatabaseSession(req,admin){
+ const key=env('GALLERY_SUPABASE_JWT_SECRET');
+ if(!separateGalleryDatabase()||key.length<32)
+  throw fail(503,'Phiên Gallery chưa được cấu hình.');
+ const {user,profile,token}=await brianIdentity(req,galleryProfileDirectory(admin));
+ await syncBrianIdentity(admin,user,profile);
+ const now=Math.floor(Date.now()/1000);
+ const siteClaims=JSON.parse(Buffer.from(token.split('.')[1],'base64url').toString('utf8'));
+ const expiresAt=Math.min(now+120,Number(siteClaims.exp));
+ if(!Number.isFinite(expiresAt)||expiresAt<=now)throw fail(401,'Phiên Brian đã hết hạn.');
+ const json=value=>Buffer.from(JSON.stringify(value)).toString('base64url');
+ const contents=json({alg:'HS256',typ:'JWT'})+'.'+json({
+  aud:'authenticated',role:'authenticated',sub:user.id,
+  iss:new URL('/auth/v1',galleryUrl()).href,iat:now,exp:expiresAt
+ });
+ return {accessToken:contents+'.'+createHmac('sha256',key).update(contents).digest('base64url'),expiresAt};
 }
 export function assertStaff(ctx){
  if(!['admin','teacher','department_head','department-head','ttcm','to_truong','tổ trưởng','department_leader','department leader','subject_leader','subject leader','leader'].includes(ctx.role))
@@ -184,10 +238,12 @@ export async function reviewer(ctx,reviewerId,{publish=false}={}){
  if(!uid(reviewerId))throw fail(400,'Mã TTCM không hợp lệ.');
  const [g,p]=await Promise.all([
   query(ctx.admin.from('gcp_reviewer_grants').select('*').eq('reviewer_id',reviewerId).eq('active',true).maybeSingle()),
-  query(ctx.admin.from('profiles').select('id,school,approved').eq('id',reviewerId).maybeSingle())
+  query(galleryProfileDirectory(ctx.admin).from('profiles').select('id,full_name,school,role,approved')
+   .eq('id',reviewerId).maybeSingle())
  ]);
  if(!g||!p||p.approved!==true||clean(p.school,180)!==ctx.profile.school||g.school_scope!==ctx.profile.school||
    (publish&&!g.can_publish))throw fail(403,'TTCM chưa được cấp quyền đúng trường.');
+ await syncGalleryProfile(ctx.admin,p);
  return g;
 }
 export function requireMethod(req,...methods){

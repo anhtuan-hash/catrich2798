@@ -4,7 +4,7 @@ import {RUBRIC,scoreRubric,suggestRubric} from './museumData.js';
 import {ASEAN_RUBRIC,isAsean,aseanPeerGroup} from './aseanLesson.js';
 import {LESSON_RUBRIC_LEVELS} from './lessonPlanAlignment.js';
 import {englishSystemGroupLabel,staffRequest} from './museumApi.js';
-import {reviewMuseum} from './MuseumScene.jsx';
+import MuseumScene,{reviewMuseum} from './MuseumScene.jsx';
 import MuseumExhibitionDetail from './MuseumExhibitionDetail.jsx';
 import {artStaff} from './museumLiveApi.js';
 const tr=(lang,vi,en)=>lang==='en'?en:vi;
@@ -18,7 +18,37 @@ const NOTES={
  published:{label:'Đã công bố',kind:'green'},
  rejected:{label:'Đã từ chối',kind:'red'}
 };
-export function Submissions({data,onRefresh,initialReview,onNavigate,transport=staffRequest,query='',language='vi',editorial=false}){
+
+function PublishedSubmissionExhibition({id,transport,language}){
+ const [result,setResult]=useState(null);
+ const [attempt,setAttempt]=useState(0);
+ const [previewTrigger,setPreviewTrigger]=useState(null);
+ useEffect(()=>{
+  let active=true;
+  transport('showcase-exhibition',{id}).then(({gallery})=>{
+   if(!gallery?.rooms?.length)throw new Error('Published exhibition room unavailable');
+   if(active)setResult({gallery});
+  }).catch(()=>{if(active)setResult({failed:true});});
+  return()=>{active=false;};
+ },[id,transport,attempt]);
+ return <section className="swiss-editorial-review-exhibition" data-testid="museum-submission-exhibition"
+  aria-label={tr(language,'Triển lãm của nhóm','Group exhibition')}>
+  {result?.gallery?<>
+   <MuseumScene gallery={result.gallery} language={language} embedded cinema startIn2D onOpen3D={setPreviewTrigger}/>
+   {previewTrigger?<MuseumExhibitionDetail gallery={result.gallery} language={language} startInCinema onBack={()=>{
+    setPreviewTrigger(null);
+    window.requestAnimationFrame(()=>previewTrigger.focus({preventScroll:true}));
+   }}/>:null}
+  </>:
+   <div className="swiss-editorial-review-exhibition-status" role="status">
+    {result?.failed?<>{tr(language,'Chưa tải được triển lãm của nhóm.','Could not load the group exhibition.')}
+     <button type="button" className="bml-outline" onClick={()=>{setResult(null);setAttempt(value=>value+1);}}>{tr(language,'Thử lại','Retry')}</button>
+    </>:tr(language,'Đang tải triển lãm…','Loading group exhibition…')}
+   </div>}
+ </section>;
+}
+
+export function Submissions({data,onRefresh,initialReview,onNavigate,transport=staffRequest,query='',language='vi',editorial=false,catalogue=false,summary=null}){
  const [filter,setFilter]=useState('all'),[selectedId,setSelectedId]=useState(initialReview||null),
   [busy,setBusy]=useState(false),[error,setError]=useState(''),
   [success,setSuccess]=useState(''),[preview,setPreview]=useState(false),[form,setForm]=useState(null);
@@ -36,6 +66,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
   .find(gallery=>gallery.assignment_id===assignment?.id):null;
  const publishedRoomId=collection?.destinations?.find(destination=>destination.groupLabel===group?.label)?.id;
  const collectionId=publishedRoomId?collection.id:null;
+ const inlineExhibition=catalogue&&Boolean(publishedRoomId);
  const closePreview=()=>{setPreview(false);setPublishedPreview(null);};
  useEffect(()=>{
   if(editorial&&selected?.id)detailHeading.current?.focus();
@@ -169,20 +200,70 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
  };
  const previewGallery=preview?(collectionId?publishedPreview?.gallery:
   !publicReadOnly?reviewMuseum(selected,reviewArtAssets,assignment?.lesson_template):null):null;
- const previewButton=publicReadOnly&&!publishedRoomId?null:<button type="button" className="bml-outline bml-review-preview-toggle"
-  ref={previewTrigger} aria-busy={preview&&!previewGallery} onClick={()=>{setError('');setReviewArtAssets([]);setPreview(true);}}>
+ const openPreview=trigger=>{previewTrigger.current=trigger;setError('');setReviewArtAssets([]);setPreview(true);};
+ const previewButton=inlineExhibition||publicReadOnly&&!publishedRoomId?null:<button type="button" className="bml-outline bml-review-preview-toggle"
+  aria-busy={preview&&!previewGallery} onClick={event=>openPreview(event.currentTarget)}>
   <Eye size={17} aria-hidden="true"/>{preview&&!previewGallery?tr(language,'Đang mở triển lãm…','Opening exhibition…'):
    tr(language,'Xem bảo tàng 2D/3D','Preview museum')}
  </button>;
  const groupContext=[language==='en'?englishSystemGroupLabel(group?.label):group?.label,assignment?.class_scope].filter(Boolean).join(' · ');
- const submissionVersion=tr(language,'BẢN NỘP','SUBMISSION')+' · v'+selected?.version;
+ const submissionLabel=tr(language,'BẢN NỘP','SUBMISSION');
+ const submissionVersion=submissionLabel+' · v'+selected?.version;
  const open=r=>{setSelectedId(r.id);setForm(null);setError('');setSuccess('');closePreview();setReviewArtAssets([]);};
+ const renderReview=r=>{
+  const g=groups.find(x=>x.id===r.group_id),a=assignments.find(x=>x.id===g?.assignment_id),status=NOTES[r.state]||{label:r.state,kind:'gray'};
+  const savedScores=(isAdmin||(publicReadOnly&&r.state==='published'))?rubricsByReview.get(r.id)?.scores:undefined;
+  const rowAsean=isAsean(a);
+  const total=savedScores?(rowAsean?ASEAN_RUBRIC:RUBRIC).reduce((sum,criterion)=>sum+(Number(savedScores[criterion.key])||0),0):null;
+  const groupLabel=language==='en'?englishSystemGroupLabel(g?.label||'Nhóm'):g?.label||'Nhóm';
+  const groupAndClass=[groupLabel,a?.class_scope].filter(Boolean).join(' · ');
+  const title=r.snapshot?.title||a?.title||'English museum';
+  const statusName=tr(language,status.label,{
+   submitted:'Teacher review',ttcm_review:'Department review',changes_requested:'Needs revision',approved_locked:'Approved',published:'Published',rejected:'Rejected'}[r.state]||status.label);
+  const score=total===null?null:`${total}/${rowAsean?10:100}`;
+  const rubricLabel=tr(language,'Rubric đã lưu','Saved rubric');
+  const openLabel=tr(language,'Xem chi tiết','Open submission');
+  const active=selectedId===r.id;
+  const openReview=event=>{openedCard.current=event.currentTarget;open(r);};
+  if(catalogue)return <tr key={r.id} className={active?'is-selected':undefined}>
+   <td className="swiss-editorial-review-group">{groupAndClass}</td>
+   <th scope="row"><button className="swiss-editorial-review-open" type="button" disabled={busy}
+    aria-expanded={active} aria-controls={active?'museum-review-detail':undefined} onClick={openReview}>
+    <span>{title}</span><ArrowRight size={17} aria-hidden="true" />
+   </button></th>
+   <td>{statusName}</td>
+   <td className="swiss-editorial-review-score">{score??'—'}</td>
+  </tr>;
+  return <button className={'bml-review-card '+(active?'is-selected':'')} type="button" key={r.id} disabled={busy} aria-expanded={editorial?active:undefined} aria-controls={editorial&&active?'museum-review-detail':undefined} onClick={openReview}>
+   {editorial?<>
+    <span className="bml-review-card-top">
+     <span className="swiss-editorial-review-group">{groupAndClass}</span>
+     <span className="swiss-editorial-review-status">{statusName}</span>
+    </span>
+    <strong className="swiss-editorial-review-title">{title}</strong>
+    <span className="swiss-editorial-review-meta">
+     {score?<small className="bml-card-rubric">{rubricLabel}: <b>{score}</b></small>:null}
+     <span className="bml-review-card-link">{openLabel} <ArrowUpRight size={16} aria-hidden="true"/></span>
+    </span>
+   </>:<>
+    <div className="bml-review-card-top"><span className="bml-group-avatar"><Users size={21}/></span>
+     <span className={'bml-status-pill bml-status-'+status.kind}>{statusName}</span></div>
+    <strong>{groupLabel}</strong><span>{title}</span>
+    <small>{a?.class_scope||''}</small>
+    {score?<small className="bml-card-rubric">{rubricLabel} · <b>{score}</b></small>:null}
+    <span className="bml-review-card-link">{openLabel} <ArrowRight size={17}/></span>
+   </>}
+  </button>;
+ };
+ const filterLabel=tr(language,'Lọc bài nộp','Filter submissions');
  return <div className={'bml-screen'+(editorial?' swiss-editorial-review-desk':'')} data-testid="museum-review-desk">
   {!editorial?<div className="bml-heading-actions"><div><div className="bml-overline">{tr(language,'ĐÁNH GIÁ HỌC TẬP','LEARNING ASSESSMENT')}</div>
    <h1>{tr(language,'Bài nộp của học sinh','Student submissions')}</h1>
    <p>{tr(language,'Đây là bài nộp bảo tàng; Exit Ticket được xem riêng trong Bài học.','Museum project submissions appear here; Exit Tickets are available under Lessons.')}</p></div>
    <div className="bml-heading-meta"><Users size={19}/>{reviews.length} {tr(language,'bảo tàng đã nộp','museum submissions')} · {data?.exitTickets?.length||0} Exit Tickets</div></div>:null}
-  <div className="bml-submissions-toolbar"><div className="bml-tab-filter" role="group" aria-label={tr(language,'Lọc bài nộp','Filter submissions')}>
+  <div className="bml-submissions-toolbar">
+   {catalogue?<h2>{filterLabel}</h2>:null}
+   <div className="bml-tab-filter" role="group" aria-label={filterLabel}>
    {[['all','Tất cả'],['submitted','Chờ Admin'],['ttcm_review','Chờ Admin (cũ)'],['changes_requested','Cần sửa'],['approved_locked','Đã duyệt']].map(([id,label])=>
     <button type="button" key={id} onClick={()=>setFilter(id)} className={filter===id?'is-active':''} aria-pressed={filter===id}>{tr(language,label,
     {all:'All',submitted:'Admin review',ttcm_review:'Admin review (legacy)',changes_requested:'Needs revision',approved_locked:'Approved'}[id])}
@@ -192,7 +273,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
    <ShieldCheck size={17}/>{publishing
     ?tr(language,'Đang công bố','Publishing')+' '+publishing.done+'/'+publishing.total
     :tr(language,'Công bố hàng loạt','Publish all approved')+' ('+publishable.length+')'}
-  </button>:null}</div>
+  </button>:null}{summary}</div>
   <div className="bml-review-results" style={editorial?undefined:{display:'contents'}}>
   {error?<div className="bml-banner bml-danger-banner" role="alert"><ShieldAlert size={19}/><span className="bml-review-error">{error}</span></div>:null}
   {publishing?<span className="bml-review-publish-progress" role="status">{tr(language,'Đã xử lý','Processed')} {publishing.done}/{publishing.total}</span>:null}
@@ -201,50 +282,28 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
     <h2>{tr(language,'Không có bài nộp trong mục này','No submissions in this category')}</h2>
     <p>{tr(language,'Các nhóm sẽ xuất hiện ở đây sau khi nộp triển lãm.','Submitted group exhibitions will appear here.')}</p>
     <button type="button" className="bml-outline" onClick={()=>onNavigate('lessons')}>{tr(language,'Xem bài học','View lessons')}</button>
-   </div>:<div className="bml-review-grid">{mine.map(r=>{
-    const g=groups.find(x=>x.id===r.group_id),a=assignments.find(x=>x.id===g?.assignment_id),status=NOTES[r.state]||{label:r.state,kind:'gray'};
-    const savedScores=(isAdmin||(publicReadOnly&&r.state==='published'))?rubricsByReview.get(r.id)?.scores:undefined;
-    const rowAsean=isAsean(a);
-    const total=savedScores?(rowAsean?ASEAN_RUBRIC:RUBRIC).reduce((sum,criterion)=>sum+(Number(savedScores[criterion.key])||0),0):null;
-    const groupLabel=language==='en'?englishSystemGroupLabel(g?.label||'Nhóm'):g?.label||'Nhóm';
-    const title=r.snapshot?.title||a?.title||'English museum';
-    const statusName=tr(language,status.label,{
-      submitted:'Teacher review',ttcm_review:'Department review',changes_requested:'Needs revision',approved_locked:'Approved',published:'Published',rejected:'Rejected'}[r.state]||status.label);
-    const rubricLabel=tr(language,'Rubric đã lưu','Saved rubric');
-    const openLabel=tr(language,'Xem chi tiết','Open submission');
-    return <button className={'bml-review-card '+(selectedId===r.id?'is-selected':'')} type="button" key={r.id} disabled={busy} aria-expanded={editorial?selectedId===r.id:undefined} aria-controls={editorial&&selectedId===r.id?'museum-review-detail':undefined} onClick={event=>{openedCard.current=event.currentTarget;open(r);}}>
-     {editorial?<>
-      <span className="bml-review-card-top">
-        <span className="swiss-editorial-review-group">{[groupLabel,a?.class_scope].filter(Boolean).join(' · ')}</span>
-        <span className="swiss-editorial-review-status">{statusName}</span>
-      </span>
-      <strong className="swiss-editorial-review-title">{title}</strong>
-      <span className="swiss-editorial-review-meta">
-        {total!==null?<small className="bml-card-rubric">{rubricLabel}: <b>{total}/{rowAsean?10:100}</b></small>:null}
-        <span className="bml-review-card-link">{openLabel} <ArrowUpRight size={16} aria-hidden="true"/></span>
-      </span>
-     </>:<>
-      <div className="bml-review-card-top"><span className="bml-group-avatar"><Users size={21}/></span>
-       <span className={'bml-status-pill bml-status-'+status.kind}>{statusName}</span></div>
-      <strong>{groupLabel}</strong><span>{title}</span>
-      <small>{a?.class_scope||''}</small>
-      {total!==null?<small className="bml-card-rubric">{rubricLabel} · <b>{total}/{rowAsean?10:100}</b></small>:null}
-      <span className="bml-review-card-link">{openLabel} <ArrowRight size={17}/></span>
-     </>}
-    </button>;
-   })}</div>}
+   </div>:catalogue?<table className="swiss-editorial-review-table" aria-label={tr(language,'Danh sách bài nộp','Submission list')}>
+    <thead><tr>{[
+     tr(language,'Nhóm','Group'),tr(language,'Triển lãm','Exhibition'),tr(language,'Trạng thái','Status'),tr(language,'Điểm','Rubric'),
+    ].map(label=><th key={label} scope="col">{label}</th>)}</tr></thead>
+    <tbody>{mine.map(renderReview)}</tbody>
+   </table>:<div className="bml-review-grid">{mine.map(renderReview)}</div>}
   </div>
   {selected?<section className="bml-review-detail bml-surface" id={editorial?'museum-review-detail':undefined} aria-labelledby={editorial?'museum-review-title':undefined}>
-   {frozen?<div className="bml-banner bml-success-banner" role="status"><LockKeyhole size={18}/> Finalized lesson · Read-only review. Grading, approval and deletion are locked.</div>:null}
-    <div className="bml-section-head"><div>
-     <span className="bml-overline">{editorial&&groupContext?groupContext:submissionVersion}</span>
+   {frozen?<div className="bml-banner bml-success-banner swiss-editorial-review-lock" role="status"><LockKeyhole size={18} aria-hidden="true"/>
+    {tr(catalogue?language:'en','Bài học đã kết thúc · Chỉ xem. Đã khóa chấm điểm, duyệt và xóa bài.','Finalized lesson · Read-only review. Grading, approval and deletion are locked.')}
+   </div>:null}
+    <div className="bml-section-head"><div className="swiss-editorial-review-heading">
+     {!catalogue?<span className="bml-overline">{editorial&&groupContext?groupContext:submissionVersion}</span>:null}
      <h2 ref={detailHeading} id={editorial?'museum-review-title':undefined} tabIndex={editorial?-1:undefined}>{selected.snapshot?.title||tr(language,'Bản nháp','Draft')}</h2>
-     <p>{editorial&&groupContext?submissionVersion:groupContext}</p></div>
+     <p>{catalogue?[groupContext,submissionLabel].filter(Boolean).join(' / '):editorial&&groupContext?submissionVersion:groupContext}</p></div>
      <div className="bml-review-detail-controls">
       {editorial?previewButton:null}
       <button type="button" className="bml-icon-btn" disabled={busy} onClick={()=>{setSelectedId(null);closePreview();setForm(null);if(editorial)openedCard.current?.focus();}} aria-label={editorial?tr(language,'Đóng chi tiết','Close submission'):'Close'}><ArrowLeft size={21} aria-hidden="true"/></button>
      </div>
     </div>
+    {inlineExhibition?<PublishedSubmissionExhibition key={publishedRoomId} id={publishedRoomId}
+     transport={transport} language={language}/>:null}
     <div className="bml-review-detail-layout">
      <div className="bml-review-preview">
       <div className="bml-review-preview-head"><h3>{tr(language,'Sản phẩm học sinh','Student exhibition')}</h3>

@@ -1,5 +1,5 @@
 import React,{useState} from 'react';
-import {QrCode,Maximize,Minimize2,BookOpen,Library,Volume2,Film,Sparkles,Pause,Play,RefreshCw,Eye,LockOpen,Lock} from 'lucide-react';
+import {ArrowLeft,ArrowRight,QrCode,Maximize,Minimize2,BookOpen,Library,Volume2,Film,Sparkles,Pause,Play,RefreshCw,Eye,LockOpen,Lock} from 'lucide-react';
 const t=(lang,vi,en)=>lang==='en'?en:vi;
 /**
  * TeacherToolbar — the full teacher control row.
@@ -13,7 +13,7 @@ export default function TeacherToolbar({
   session=null,currentIndex=0,stageCount=11,
   motionOn=true,activeTool=null,presentationActive=false,
   onBack,onPrevious,onNext,onToggleTask,onReveal,onToggleTool,onFullscreen,
-  onToggleMotion,onTogglePause,onRefresh,onChangeCompletion,completed=false
+  onToggleMotion,onTogglePause,onRefresh,onChangeCompletion,completed=false,hub=false
 }){
   const ended=session?.status==='ended';
   const mutateLocked=readOnly||busy||ended;
@@ -31,31 +31,50 @@ export default function TeacherToolbar({
       window.setTimeout(()=>setNavKey(''),wait);
     }
   };
-  const btn=(key,label,Icon,{onClick,disabled=false,pressed=false,variant='',extraAria='',loading=false}={})=>(
+  const btn=(key,label,Icon,{onClick,disabled=false,pressed,variant='',extraAria='',loading=false,status}={})=>(
     <button key={key} type="button" className={`adv-toolbtn${variant?' adv-toolbtn--'+variant:''}${pressed?' is-active':''}${loading?' is-loading':''}`}
-      onClick={onClick} disabled={disabled||loading} aria-pressed={pressed||undefined} aria-busy={loading||undefined} aria-label={extraAria||label}>
-      {loading?<span className="adv-spin" aria-hidden="true"/>:Icon?<Icon size={14} aria-hidden="true"/>:null}{label}
+      onClick={onClick} disabled={disabled||loading} aria-pressed={pressed} aria-busy={loading||undefined} aria-label={extraAria||label}>
+      {loading?<span className="adv-spin" aria-hidden="true"/>:Icon?<Icon size={hub?19:14} aria-hidden="true"/>:null}
+      <span>{label}</span>
+      {status&&<span className="adv-hub-state" data-on={motionOn} aria-hidden="true">{status}</span>}
     </button>
   );
-  return (
+  const motionLabel=t(language,'Chuyển động','Motion');
+  const motionState=motionOn?t(language,'BẬT','ON'):t(language,'TẮT','OFF');
+  const motionDescription=motionOn?t(language,'Chuyển động: BẬT','Motion ON'):t(language,'Chuyển động: TẮT','Motion OFF');
+  const controls={
+    previous:btn('previous',navKey==='previous'?t(language,'Đang chuyển…','Moving…'):hub?t(language,'Hoạt động trước','Previous activity'):t(language,'← Hoạt động trước','← Previous activity'),hub?ArrowLeft:null,{onClick:()=>runNav('previous',onPrevious),disabled:(!readOnly&&busy)||currentIndex===0,loading:navKey==='previous'}),
+    next:btn('next',navKey==='next'?t(language,'Đang chuyển…','Moving…'):hub?t(language,'Hoạt động tiếp theo','Next activity'):t(language,'Hoạt động tiếp theo →','Next activity →'),hub?ArrowRight:null,{onClick:()=>runNav('next',onNext),disabled:(!readOnly&&(busy||ended))||isLast,variant:'primary',loading:navKey==='next',extraAria:t(language,'Chuyển sang hoạt động tiếp theo','Advance to next activity')}),
+    task:btn('task',stageOpen?t(language,'Đóng nhiệm vụ','Close task'):t(language,'Mở nhiệm vụ','Open task'),stageOpen||mutateLocked?Lock:LockOpen,{onClick:onToggleTask,disabled:mutateLocked,extraAria:stageOpen?t(language,'Đóng nhiệm vụ hiện tại','Close current task'):t(language,'Mở nhiệm vụ hiện tại','Open current task')}),
+    reveal:btn('reveal',readOnly?(revealed?t(language,'Ẩn giải thích','Hide explanation'):t(language,'Xem giải thích','Show explanation')):revealed?t(language,'Đã hiện giải thích','Explanation shown'):t(language,'Hiện giải thích','Reveal explanation'),Eye,{onClick:onReveal,disabled:busy||(!readOnly&&(ended||revealed))}),
+    qr:showJoinQr&&btn('qr','QR',QrCode,{disabled:offline,onClick:()=>onToggleTool('qr'),pressed:activeTool==='qr'}),
+    fullscreen:btn('fullscreen',presentationActive?t(language,'Thoát toàn màn hình','Exit fullscreen'):t(language,'Toàn màn hình','Fullscreen'),presentationActive?Minimize2:Maximize,{onClick:onFullscreen}),
+    notes:btn('notes',t(language,'Ghi chú dạy','Teaching notes'),BookOpen,{onClick:()=>onToggleTool('notes'),pressed:activeTool==='notes'}),
+    resources:btn('resources',t(language,'Thư viện','Research library'),Library,{onClick:()=>onToggleTool('resources'),pressed:activeTool==='resources'}),
+    voice:btn('voice',t(language,'Giọng đọc','Voiceover'),Volume2,{onClick:()=>onToggleTool('voice'),pressed:activeTool==='voice'}),
+    video:btn('video','Video Lab',Film,{onClick:()=>onToggleTool('video'),pressed:activeTool==='video'}),
+    motion:btn('motion',hub?motionLabel:motionDescription,Sparkles,{onClick:onToggleMotion,pressed:motionOn,variant:!hub&&motionOn?'mint':'',status:hub?motionState:null,extraAria:hub?motionLabel:motionDescription}),
+    pause:btn('pause',session?.status==='paused'?t(language,'Tiếp tục','Resume'):t(language,'Tạm dừng','Pause'),session?.status==='paused'?Play:Pause,{onClick:onTogglePause,disabled:mutateLocked}),
+    refresh:btn('refresh',t(language,'Làm mới','Refresh'),RefreshCw,{onClick:onRefresh,disabled:busy}),
+    completion:onChangeCompletion&&(completed
+      ?btn('unlock',t(language,'Mở khóa bài dạy','Unlock lesson'),LockOpen,{onClick:onChangeCompletion,disabled:busy})
+      :btn('complete',t(language,'Kết thúc bài dạy','End lesson'),Lock,{onClick:onChangeCompletion,disabled:busy,variant:'primary'})),
+  };
+  if(!hub)return (
     <div className="toolbar adv-toolbar" role="toolbar" aria-label={t(language,'Thanh điều khiển giáo viên','Teacher control toolbar')}>
-      {btn('previous',navKey==='previous'?t(language,'Đang chuyển…','Moving…'):t(language,'← Hoạt động trước','← Previous activity'),null,{onClick:()=>runNav('previous',onPrevious),disabled:(!readOnly&&busy)||currentIndex===0,loading:navKey==='previous'})}
-      {btn('next',navKey==='next'?t(language,'Đang chuyển…','Moving…'):t(language,'Hoạt động tiếp theo →','Next activity →'),null,{onClick:()=>runNav('next',onNext),disabled:(!readOnly&&(busy||ended))||isLast,variant:'primary',loading:navKey==='next',extraAria:t(language,'Chuyển sang hoạt động tiếp theo','Advance to next activity')})}
-      {btn('task',stageOpen?t(language,'Đóng nhiệm vụ','Close task'):t(language,'Mở nhiệm vụ','Open task'),stageOpen?Lock:LockOpen,{onClick:onToggleTask,disabled:mutateLocked,extraAria:stageOpen?t(language,'Đóng nhiệm vụ hiện tại','Close current task'):t(language,'Mở nhiệm vụ hiện tại','Open current task')})}
-      {btn('reveal',readOnly?(revealed?t(language,'Ẩn giải thích','Hide explanation'):t(language,'Xem giải thích','Show explanation')):revealed?t(language,'Đã hiện giải thích','Explanation shown'):t(language,'Hiện giải thích','Reveal explanation'),Eye,{onClick:onReveal,disabled:busy||(!readOnly&&(ended||revealed))})}
-      {showJoinQr&&btn('qr','QR',QrCode,{disabled:offline,onClick:()=>onToggleTool('qr'),pressed:activeTool==='qr'})}
-      {btn('fullscreen',presentationActive?t(language,'Thoát toàn màn hình','Exit fullscreen'):t(language,'Toàn màn hình','Fullscreen'),presentationActive?Minimize2:Maximize,{onClick:onFullscreen})}
-      {btn('notes',t(language,'Ghi chú dạy','Teaching notes'),BookOpen,{onClick:()=>onToggleTool('notes'),pressed:activeTool==='notes'})}
-      {btn('resources',t(language,'Thư viện','Research library'),Library,{onClick:()=>onToggleTool('resources'),pressed:activeTool==='resources'})}
-      {btn('voice',t(language,'Giọng đọc','Voiceover'),Volume2,{onClick:()=>onToggleTool('voice'),pressed:activeTool==='voice'})}
-      {btn('video','Video Lab',Film,{onClick:()=>onToggleTool('video'),pressed:activeTool==='video'})}
-      {btn('motion',motionOn?t(language,'Chuyển động: BẬT','Motion ON'):t(language,'Chuyển động: TẮT','Motion OFF'),Sparkles,{onClick:onToggleMotion,pressed:motionOn,variant:motionOn?'mint':''})}
-      {btn('pause',session?.status==='paused'?t(language,'Tiếp tục','Resume'):t(language,'Tạm dừng','Pause'),session?.status==='paused'?Play:Pause,{onClick:onTogglePause,disabled:mutateLocked})}
-      {btn('refresh',t(language,'Làm mới','Refresh'),RefreshCw,{onClick:onRefresh,disabled:busy})}
-      {onChangeCompletion&&(completed
-        ?btn('unlock',t(language,'Mở khóa bài dạy','Unlock lesson'),LockOpen,{onClick:onChangeCompletion,disabled:busy})
-        :btn('complete',t(language,'Kết thúc bài dạy','End lesson'),Lock,{onClick:onChangeCompletion,disabled:busy,variant:'primary'}))}
+      {Object.values(controls)}
     </div>
   );
+  const sections=[
+    {key:'activity',label:t(language,'Hoạt động','Activity'),tools:['previous','next','task','reveal']},
+    {key:'presentation',label:t(language,'Trình chiếu','Presentation'),tools:['fullscreen','voice','video','motion']},
+    {key:'session',label:t(language,'Tài liệu và phiên học','Resources & session'),tools:['notes','resources','pause','refresh','qr','completion']},
+  ];
+  return sections.map(({key,label,tools})=>(
+    <section className={`adv-hub-section adv-hub-section--${key}`} key={key} aria-label={label}>
+      <h3>{label}</h3>
+      <div className="adv-hub-buttons">{tools.map(tool=>controls[tool])}</div>
+    </section>
+  ));
 }
 export {TeacherToolbar};

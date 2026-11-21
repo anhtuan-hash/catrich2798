@@ -25,20 +25,21 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
   elapsed=0,remaining=0,
   respondedCount=null, progressLabel=null,
   isFullscreen=false,onExitFullscreen,
-  fullscreenControls=null,fullscreenPanel=null,
+  fullscreenControls=null,fullscreenPanel=null,toolHub=null,workspaceContent=null,
   assignments=[],assignmentId='',assignmentBusy=false,onAssignment,onAseanJoin,onAseanStudioHelp,aseanDraftTools,aseanHighlights,aseanContextCard
 },ref){
   const period=stage?.period??1;
+  const asean=stage?.kind==='asean';
+  const phaseLanguage=asean?'en':language;
   const phaseName=period===1
-    ?t(language,'KHỞI ĐỘNG & THIẾT KẾ','INVESTIGATE & DESIGN')
-    :t(language,'TẠO, KIỂM TRA & CẢI TIẾN','CREATE, TEST & IMPROVE');
+    ?t(phaseLanguage,'KHỞI ĐỘNG & THIẾT KẾ','INVESTIGATE & DESIGN')
+    :t(phaseLanguage,'TẠO, KIỂM TRA & CẢI TIẾN','CREATE, TEST & IMPROVE');
   const phaseLabel=`${phaseName}${stage?.kind&&stage.kind!=='asean'?` · ${String(stage.kind).toUpperCase()}`:''}`;
   const taskOpen=Boolean(session?.stageOpen);
   const statusLabel=readOnly?t(language,'CHỈ XEM','VIEW ONLY'):taskOpen
     ?t(language,'ĐANG MỞ HOẠT ĐỘNG','TASK OPEN')
     :t(language,'HOẠT ĐỘNG CHƯA MỞ','TASK CLOSED');
   const hasLessonSlide=Boolean(MUSEUM_ACTIVITY_SLIDES[stage?.id]);
-  const asean=stage?.kind==='asean';
   const isPresenting=asean&&isFullscreen;
   const scrollRegion=useRef(null);
   useEffect(()=>{
@@ -48,8 +49,10 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
     if(isPresenting&&scrollRegion.current)scrollRegion.current.scrollTop=0;
   },[isPresenting,currentIndex]);
   const videoLayout=Boolean(curriculumNode&&view==='video');
+  const timer=<strong className="adv-stage-timer" aria-label={t(language,'Thời gian còn lại','Time remaining')}>{readOnly?'00:00':fmtClock(remaining)}</strong>;
+  const status=<span className="adv-live-status" data-open={taskOpen&&!readOnly?'true':'false'} title={readOnly?frozenReason:undefined}><i/>{statusLabel}</span>;
   return (
-    <section className={'stage adv-stage adv-stage--paper'+(hasLessonSlide?' adv-p2-slide':'')+(videoLayout?' adv-p2-video':'')+(asean?' adv-stage--asean':'')+(isPresenting?' is-presenting':'')} ref={ref} data-testid="igv2-teacher-live-stage"
+    <section className={'stage adv-stage adv-stage--paper'+(hasLessonSlide?' adv-p2-slide':'')+(videoLayout?' adv-p2-video':'')+(asean?' adv-stage--asean':'')+(isPresenting?' is-presenting':'')+(toolHub?' adv-stage--with-hub':'')} ref={ref} data-testid="igv2-teacher-live-stage"
       aria-label={t(language,'Sân khấu hoạt động lớp học trực tiếp','Live classroom activity stage')}>
       {isFullscreen&&!asean?<button type="button" className="adv-stage-exit-fullscreen" onClick={onExitFullscreen} aria-label={t(language,'Thoát toàn màn hình','Exit fullscreen')}><Minimize2 size={13}/> {t(language,'Thoát','Exit')}</button>:null}
       <div className="adv-slide-scroll" ref={scrollRegion} role={isPresenting?'region':undefined}
@@ -85,7 +88,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
           <>
             <div className={'adv-stage-layout' + (videoLayout||stage?.kind==='asean'?' is-video':'')}>
               <div className="adv-stage-copy">
-                <div className="adv-stage-section">{phaseLabel}</div>
+                <div className="adv-stage-section" lang={phaseLanguage}>{phaseLabel}</div>
                 {stage?.kind==='asean'?<AseanLiveSlide currentIndex={currentIndex} language={language} revealed={revealed}
                   onJoin={onAseanJoin} onStudioHelp={onAseanStudioHelp} draftTools={aseanDraftTools} highlights={aseanHighlights} contextCard={aseanContextCard}/>:<>
                 <h2 className="adv-stage-title">{stage?.title||t(language,'Đang tải hoạt động…','Loading activity…')}</h2>
@@ -104,11 +107,15 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
         )}
       </div>
       </div>
-      <div className={'adv-stage-bottom'+(asean?' adv-stage-bottom--asean':'')}>
-        <strong className="adv-stage-timer" aria-label={readOnly?'Review mode':t(language,'Thời gian còn lại','Time remaining')}>{readOnly?'00:00':fmtClock(remaining)}</strong>
-        <span className="adv-live-status" data-open={taskOpen&&!readOnly?'true':'false'} title={readOnly?frozenReason:undefined}><i/>{statusLabel}</span>
+      {toolHub?<aside className="adv-live-hub" data-testid="teacher-live-tool-hub" aria-label={t(language,'Công cụ giảng dạy','Tool hub')}>
+        <h2>{t(language,'Công cụ giảng dạy','Tool hub')}</h2>
+        <div className="adv-hub-status">{timer}{status}</div>
+        {toolHub}
+      </aside>:<div className={'adv-stage-bottom'+(asean?' adv-stage-bottom--asean':'')}>
+        {timer}{status}
         {!asean&&<span>{progressLabel??(respondedCount!=null?`${respondedCount} ${t(language,'phản hồi nhóm','group responses')}`:'')}</span>}
-      </div>
+      </div>}
+      {workspaceContent&&<div className="adv-live-evidence" hidden={isFullscreen}>{workspaceContent}</div>}
       {isFullscreen&&fullscreenControls?<div className="adv-stage-fullscreen-controls" data-testid="museum-fullscreen-viewer-controls"
         style={asean?undefined:{position:'absolute',zIndex:30,left:12,right:12,bottom:8,padding:'8px 10px',background:'#fffdf8',color:'#111',border:'1.5px solid #111'}}>
         {fullscreenControls}

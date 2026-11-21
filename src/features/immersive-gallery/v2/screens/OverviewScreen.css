@@ -724,3 +724,211 @@
     order: 4;
   }
 }
+
+/* Standalone competition overview */
+.igv2 .ov-root--competition {
+  --overview-rule: #202020;
+  --overview-red: #bb0718;
+  gap: 10px;
+}
+
+.igv2 .ov-root--competition .ov-nav-strip {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  border-block: 1px solid var(--overview-rule);
+}
+
+.igv2 .ov-root--competition .ov-tile {
+  min-height: 108px;
+  padding: 16px 18px 25px;
+}
+
+.igv2 .ov-root--competition .ov-tile + .ov-tile {
+  border-inline-start: 1px solid var(--overview-rule);
+}
+
+.igv2 .ov-root--competition .ov-tile:hover {
+  background: #f0ece1;
+  transform: none;
+}
+
+.igv2 .ov-root--competition :is(.ov-tile-icon, .ov-tile-arrow, .ov-view-all, .ov-stat-number) {
+  color: var(--overview-red);
+}
+
+.igv2 .ov-root--competition .ov-tile-text {
+  padding: 0;
+}
+
+.igv2 .ov-root--competition .ov-tile-text strong {
+  font-size: clamp(16px, 1.6vw, 23px);
+}
+
+.igv2 .ov-root--competition .ov-tile-text > span {
+  font-size: 13px;
+}
+
+.igv2 .ov-root--competition .ov-tile .ov-tile-arrow {
+  inset: auto 12px 7px auto;
+  background: transparent;
+}
+
+.igv2 .ov-root--competition .ov-two-col {
+  grid-template-columns: minmax(0, 1.09fr) minmax(0, 1fr);
+  gap: 0;
+  border-block: 1px solid var(--overview-rule);
+}
+
+.igv2 .ov-root--competition .ov-card {
+  border: 0;
+  padding: clamp(12px, 1.5vw, 22px);
+  background: transparent;
+}
+
+.igv2 .ov-root--competition .ov-progress-card {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  border-inline-start: 1px solid var(--overview-rule);
+  gap: clamp(10px, 1.5vw, 22px);
+}
+
+.igv2 .ov-root--competition .ov-card-head {
+  min-height: 34px;
+  padding-block-end: 9px;
+  border-block-end: 1px solid var(--overview-rule);
+}
+
+.igv2 .ov-root--competition .ov-card-title {
+  font-size: clamp(21px, 2.25vw, 32px);
+  line-height: 1.12;
+}
+
+.igv2 .ov-root--competition .ov-view-all {
+  background: transparent;
+  border: 0;
+  padding: 4px 0 4px 6px;
+}
+
+.igv2 .ov-root--competition .ov-recent-inner {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+.igv2 .ov-root--competition .ov-recent-body {
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+}
+
+.igv2 .ov-root--competition :is(.ov-recent-art, .ov-climate-img, .ov-meta-pill, .ov-bar-track, .ov-bar-fill) {
+  border-radius: 0;
+}
+
+.igv2 .ov-root--competition .ov-meta-pill {
+  background: transparent;
+  border-color: var(--overview-rule);
+}
+
+.igv2 .ov-root--competition .ov-progress-label {
+  white-space: normal;
+}
+
+.igv2 .ov-root--competition .ov-bar-track {
+  min-width: 0;
+}
+
+.igv2 .ov-lesson-cover {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: #f5ebd6;
+  border-block-end: 2px solid #bb0718;
+}
+
+.igv2 .ov-lesson-cover img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 5;
+  object-fit: cover;
+}
+
+.igv2 .ov-lesson-cover strong {
+  display: block;
+  padding: 5px 1px;
+  font-size: 11px;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.igv2 .ov-root--competition .ov-progress-main {
+  padding: 0;
+  justify-content: flex-start;
+}
+
+.igv2 .ov-root--competition .ov-stat-item + .ov-stat-item {
+  border-block-start: 1px solid var(--overview-rule);
+  padding-block-start: 12px;
+}
+
+.igv2 .ov-root--competition .ov-stat-number {
+  font-size: clamp(32px, 3.8vw, 55px);
+}
+
+.igv2 .ov-root--competition .ov-stat-label {
+  color: var(--igv2-ink);
+}
+
+.igv2 .ov-root--competition .ov-progress-media {
+  min-height: 0;
+}
+
+.igv2 .ov-root--competition .ov-progress-img {
+  object-position: center;
+}
+
+@media (max-width: 960px) {
+  .igv2 .ov-root--competition .ov-two-col {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .igv2 .ov-root--competition .ov-progress-card {
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--overview-rule);
+  }
+  .igv2 .ov-root--competition .ov-progress-img {
+    max-height: 255px;
+  }
+}
+
+@media (max-width: 720px) {
+  .igv2 .ov-root--competition .ov-nav-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .igv2 .ov-root--competition .ov-tile:nth-child(odd) {
+    border-inline-start: 0;
+  }
+  .igv2 .ov-root--competition .ov-tile:nth-child(n + 3) {
+    border-block-start: 1px solid var(--overview-rule);
+  }
+  .igv2 .ov-root--competition .ov-tile {
+    padding-inline: 10px;
+  }
+  .igv2 .ov-root--competition .ov-tile-content {
+    gap: 7px;
+  }
+  .igv2 .ov-root--competition .ov-tile-icon svg {
+    width: 21px;
+    height: 21px;
+  }
+}
+
+@media (max-width: 520px) {
+  .igv2 .ov-root--competition .ov-recent-body {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+  .igv2 .ov-lesson-cover img {
+    aspect-ratio: 4 / 5;
+    max-height: 150px;
+  }
+}
