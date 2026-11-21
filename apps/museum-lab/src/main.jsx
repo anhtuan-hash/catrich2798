@@ -7,6 +7,7 @@ const MuseumLab = lazy(() => import('../../../src/features/immersive-gallery/v3/
 const StudentWorkshop = lazy(() => import('../../../src/features/immersive-gallery/v3/MuseumLabStudent.jsx'));
 const home = '#/tool/immersive-gallery';
 const staffLogin = '#/staff-login';
+const siteName = '@brian.universe';
 
 function useHash() {
   const [hash, setHash] = useState(() => window.location.hash);
@@ -36,7 +37,7 @@ function StaffLogin({ onSignedIn }) {
         password: String(form.get('password')),
       });
       if (error || !data?.session) {
-        setError('Không đăng nhập được. Hãy kiểm tra email và mật khẩu Museum Lab.');
+        setError(`Không đăng nhập được. Hãy kiểm tra email và mật khẩu ${siteName}.`);
         return;
       }
       onSignedIn(data.session);
@@ -91,7 +92,7 @@ function App() {
   return (
     <>
       <header className="museum-site-bar">
-        <a className="museum-site-title" href={home}>Museum Lab</a>
+        <a className="museum-site-title" href={home}>{siteName}</a>
         {session === undefined ? <span role="status">Đang kiểm tra phiên đăng nhập…</span> : session ? (
           <div className="museum-staff-session">
             <span>Đã đăng nhập</span>
@@ -100,10 +101,10 @@ function App() {
         ) : <a href={staffLogin}>Đăng nhập giáo viên</a>}
       </header>
       {signOutError && <p role="alert">{signOutError}</p>}
-      {session === undefined ? <p className="museum-site-loading">Đang mở Museum Lab…</p> : route === staffLogin && !session ? (
+      {session === undefined ? <p className="museum-site-loading">Đang mở {siteName}…</p> : route === staffLogin && !session ? (
         <StaffLogin onSignedIn={signedIn} />
       ) : (
-        <Suspense fallback={<p className="museum-site-loading" role="status">Đang tải Museum Lab…</p>}>
+        <Suspense fallback={<p className="museum-site-loading" role="status">Đang tải {siteName}…</p>}>
           <MuseumLab key={session?.user.id ?? 'guest'} currentUser={session?.user}
             publicReadOnly={!session} language="vi" standalone />
         </Suspense>
