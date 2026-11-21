@@ -44,6 +44,18 @@ export const safeEqual=(a,b)=>{
 };
 export const clean=(v,n=140)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,n);
 export const uid=x=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(x||''));
+export async function signGalleryDisplayImage(admin,{id,path},kind,expiresIn){
+ const bucket=kind==='artwork'?'museum-artwork-private':'brian-gallery-private';
+ const primary=await admin.storage.from(bucket).createSignedUrl(path,expiresIn);
+ if(primary.data?.signedUrl)return primary.data.signedUrl;
+ if(!separateGalleryDatabase()||!uid(id))return '';
+
+ // The competition export contains WebP display copies. Keep the PNG
+ // paths and their checksums available for the original evidence restore.
+ const recoveryPath='recovered/asean-11-3/'+kind+'/'+id+'.webp';
+ const recovered=await admin.storage.from('brian-gallery-private').createSignedUrl(recoveryPath,expiresIn);
+ return recovered.data?.signedUrl||'';
+}
 // Anonymous competition visitors. Not a real account, and never an admin.
 export const PUBLIC_MUSEUM_ACTOR='00000000-0000-4000-8000-000000000001';
 export async function publicMuseumContext(admin){

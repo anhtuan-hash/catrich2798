@@ -4,7 +4,7 @@ import {
  db,digest,randomSecret,fail,send,handleError,guardOrigin,guardBody,query,
  settings,staffContext,assertStaff,assertAdmin,reviewer,uid,clean,requireMethod,
  publicMuseumContext,assertActiveMuseumLesson,galleryDatabaseSession,galleryProfileDirectory,
- syncGalleryProfile
+ syncGalleryProfile,signGalleryDisplayImage
 } from './_galleryCreator.js';
 import {encryptGroupPasscode,decryptGroupPasscode} from './_galleryPasscodes.js';
 import {createQuickAccessVerifier} from './_galleryQuickAccess.js';
@@ -161,8 +161,8 @@ async function loadPublicGroupWorkshop(req,res,admin){
  const assets=await Promise.all(links.map(async link=>{
   const path=paths.get(link.gallery_asset_id);
   if(!path)return null;
-  const result=await admin.storage.from('brian-gallery-private').createSignedUrl(path,600);
-  return result.data?.signedUrl?{id:link.source_asset_id,image_url:result.data.signedUrl}:null;
+  const imageUrl=await signGalleryDisplayImage(admin,{id:link.gallery_asset_id,path},'gallery',600);
+  return imageUrl?{id:link.source_asset_id,image_url:imageUrl}:null;
  }));
  return send(res,200,{
   assignment,groupLabel:group.label,draft:review.snapshot,version:review.version,records,
@@ -310,11 +310,8 @@ export default async function galleryStaff(req,res){
     .select('id,path').in('id',assetIds)):[];
    // Private storage remains private; signed URLs are restricted to this
    // authenticated, same-school published catalogue and expire automatically.
-   const signed=await Promise.all(assets.map(async asset=>{
-    const result=await admin.storage.from('brian-gallery-private')
-     .createSignedUrl(asset.path,600);
-    return [asset.id,result.error?'':(result.data?.signedUrl||'')];
-   }));
+   const signed=await Promise.all(assets.map(async asset=>
+    [asset.id,await signGalleryDisplayImage(admin,asset,'gallery',600)]));
    const links=new Map(signed);
    const hydrated=rooms.map(room=>({...room,
     exhibits:exhibits.filter(e=>e.room_id===room.id).map(e=>({...e,

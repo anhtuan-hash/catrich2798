@@ -1,6 +1,6 @@
 // Teacher-owned live classroom. Accountless student groups reuse Creator Pass cookies.
 // Strict class scope, explicit stage transitions, no identity inference, real N group devices.
-import {db,fail,send,handleError,guardOrigin,guardBody,guestContext,assertActiveMuseumLesson,staffContext,assertStaff,query,uid,clean,requireMethod,publicMuseumContext} from './_galleryCreator.js';
+import {db,fail,send,handleError,guardOrigin,guardBody,guestContext,assertActiveMuseumLesson,staffContext,assertStaff,query,uid,clean,requireMethod,publicMuseumContext,signGalleryDisplayImage} from './_galleryCreator.js';
 import {LIVE_STAGES,liveStage,sessionStage,VIDEO_QUESTION_VERSION,validResponse,summarizeResponses} from '../src/features/immersive-gallery/v3/liveLesson.js';
 import {surveyFor,checkpointGallery,feedbackFor} from './_museumEvidence.js';
 import {validatePeer} from '../src/features/immersive-gallery/v3/learningEvidence.js';
@@ -52,9 +52,9 @@ async function groupGallery(admin,groupId){
  const assets=await query(admin.from('museum_artwork_assets').select('id,storage_path,original_name')
   .eq('group_id',groupId).eq('status','private_ready').limit(6));
  const signed=await Promise.all(assets.map(async a=>{
-  const {data,error}=await admin.storage.from('museum-artwork-private').createSignedUrl(a.storage_path,90);
-  if(error||!data?.signedUrl)throw fail(503,'Không thể xem tranh ảnh.');
-  return {id:a.id,image_url:data.signedUrl,original_name:a.original_name};
+  const imageUrl=await signGalleryDisplayImage(admin,{id:a.id,path:a.storage_path},'artwork',90);
+  if(!imageUrl)throw fail(503,'Không thể xem tranh ảnh.');
+  return {id:a.id,image_url:imageUrl,original_name:a.original_name};
  }));
  return {groupLabel:group.label,draft:draft.doc,version:draft.version,artworks:signed,expiresSeconds:90};
 }
