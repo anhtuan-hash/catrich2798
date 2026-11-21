@@ -33,7 +33,7 @@ export const CLASSROOM_RECORDS = Object.freeze({
   confirmation: 'Nguyễn Anh Tuấn, the teacher responsible for class 11.4, confirms that the survey, feedback and saved versions are records of classroom activity.',
   sourceNote: 'The original BRIAN export describes the entries as prepared for presentation in Record_provenance.csv. This description of classroom activity follows the teacher’s confirmation.',
   example: 'The Last Light · EXH. 02 · G01',
-  exhibitionUrl: 'https://esl-brian.vercel.app/#/tool/immersive-gallery?exhibition=gcp-087a5236534747fc9f714a332b26620c'
+  exhibitionUrl: '/#/tool/immersive-gallery?exhibition=gcp-087a5236534747fc9f714a332b26620c'
 });
 
 export const LESSON_PLAN_NOTES = Object.freeze({

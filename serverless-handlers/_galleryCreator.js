@@ -48,7 +48,7 @@ export async function signGalleryDisplayImage(admin,{id,path},kind,expiresIn){
  const bucket=kind==='artwork'?'museum-artwork-private':'brian-gallery-private';
  const primary=await admin.storage.from(bucket).createSignedUrl(path,expiresIn);
  if(primary.data?.signedUrl)return primary.data.signedUrl;
- if(!separateGalleryDatabase()||!uid(id))return '';
+ if((!separateGalleryDatabase()&&env('GALLERY_STANDALONE')!=='1')||!uid(id))return '';
 
  // The competition export contains WebP display copies. Keep the PNG
  // paths and their checksums available for the original evidence restore.
