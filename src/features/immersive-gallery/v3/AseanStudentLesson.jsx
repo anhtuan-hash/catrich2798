@@ -29,17 +29,17 @@ const visitorResult=record=>validAseanResponse(3,record)
  :null;
 
 function ClassVisitorModel({language,onQuiz}){
- const {title,vi,captions}=ASEAN_DISCUSSION_MODEL;
+ const {title,captions}=ASEAN_DISCUSSION_MODEL;
  return <section className="asean-visitor-model bml-surface" aria-labelledby="asean-visitor-model-title">
-  <h3 id="asean-visitor-model-title" lang={language}>{T(language,vi,title)}</h3>
-  <AseanDiscussionPhoto language={language} imageSource="/museum/asean/presenter/hue-meridian-gate.webp"
+  <h3 id="asean-visitor-model-title">{title}</h3>
+  <AseanDiscussionPhoto language="en" imageSource="/museum/asean/presenter/hue-meridian-gate.webp"
    fallback={<div className="asean-model-image-fallback"><Landmark aria-hidden="true"/></div>}/>
   <ul className="asean-model-captions">{ASEAN_FRAMES.map((frame,index)=><li key={frame.key}>
    <strong><AseanFrameIcon index={index}/>{frame.label}</strong><span>{captions[index]}</span>
   </li>)}</ul>
   <div className="asean-model-prompt">
    <p><MessageSquare aria-hidden="true"/>Which visitor question still needs a clearer answer? Agree on the missing detail and share it with your class.</p>
-   <button type="button" className="bml-outline" onClick={onQuiz}>
+   <button type="button" className="bml-outline" lang={language} onClick={onQuiz}>
     {T(language,'Đến phần trắc nghiệm','Go to the quiz')}<ArrowRight size={16} aria-hidden="true"/>
    </button>
   </div>
@@ -63,8 +63,8 @@ function ResponseFields({stage,fields,update,groupLabel,question,recorded,langua
    <legend>{stage===5?card.title:'Your two sentences'}</legend>
    <p className="asean-response-context">{card.country}</p>
    <div className="asean-response-grid">
-    <div className="asean-writing-note"><p><strong><AseanFrameIcon index={1}/>Visitors can …</strong>{card.experience}</p>{text('experience',stage===5?T(language,'Một hoạt động du khách có thể làm','One thing a visitor can do'):'One thing a visitor can do')}</div>
-    <div className="asean-writing-note"><p><strong><Lightbulb aria-hidden="true"/>Visitors should …</strong>{card.advice}</p>{text('advice',stage===5?T(language,'Một lời khuyên cho du khách','One piece of advice'):'One piece of advice')}</div>
+    <div className="asean-writing-note"><p><strong><AseanFrameIcon index={1}/>Visitors can …</strong>{card.experience}</p>{text('experience','One thing a visitor can do')}</div>
+    <div className="asean-writing-note"><p><strong><Lightbulb aria-hidden="true"/>Visitors should …</strong>{card.advice}</p>{text('advice','One piece of advice')}</div>
    </div>
   </fieldset>;
  }
@@ -199,7 +199,7 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
  </p>;
  return <section className={'bml-surface asean-group-response'+(v1Visit?' asean-v1-visit':v2Visit?' asean-v2-retest':'')}>
   {transfer&&<div lang={language}>
-   <h3>{T(language,'2. Viết hai câu cho điểm đến mới','2. Write two sentences for a new destination')}</h3>
+   <h3 lang="en">2. Write two sentences for a new destination</h3>
    {!open&&!submitted&&<p className="asean-response-closed" role="status">
     {session.readOnly?T(language,'Bài học đã kết thúc. Chưa có bài viết đã nộp.','The lesson has ended. No writing was submitted.')
      :T(language,'Chờ giáo viên mở phần nộp Hoạt động 6. Em có thể đọc thẻ trước.','Wait for your teacher to open Activity 6 for submissions. You can read the card now.')}
@@ -210,11 +210,11 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
    </p>}
   </div>}
   {v1Visit&&!submitted&&<div className="asean-visit-intro" lang={language}>
-   <h3 data-visit-start tabIndex={-1}>{T(language,'1. Tham quan phòng được giao','1. Visit the assigned exhibit')}</h3>
+   <h3 data-visit-start tabIndex={-1} lang="en">1. Visit the assigned exhibit</h3>
    {visitedExhibit&&!visit?.gallery&&<p><strong>{visitedExhibit}</strong></p>}
-   {!submitted&&<p role={visit&&!visit.gallery?'status':undefined}>{visit&&!visit.gallery
+   {!submitted&&<p role={visit&&!visit.gallery?'status':undefined} lang={visit&&!visit.gallery?language:'en'}>{visit&&!visit.gallery
     ?T(language,'Bản trước góp ý chưa sẵn sàng. Hỏi giáo viên rồi thử mở lại.','The first exhibit is not ready. Ask your teacher, then try again.')
-    :T(language,'Mở bản trước góp ý, đọc ba khung và ghi nhớ khung mở đầu tiên. Đóng phòng để điền phiếu góp ý.','Open the first exhibit, inspect all three frames and remember which one you opened first. Close the viewer to fill in the feedback.')}</p>}
+    :'Open the first exhibit, inspect all three frames and remember which one you opened first. Close the viewer to fill in the feedback.'}</p>}
    {open&&!submitted&&<div className="bml-toolbar">
     <button type="button" className={visit?.gallery?'bml-outline':'bml-primary'} onClick={()=>loadVisit('3d')} disabled={busy}>
      <Box size={18}/>{busy?T(language,'Đang mở…','Opening…'):visit?.gallery?T(language,'Mở lại bản trước góp ý','Reopen the first exhibit'):T(language,'Mở bản trước góp ý được giao','Open assigned first exhibit')}
@@ -230,7 +230,7 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
    {reconstructed&&<p role="status">{T(language,'Bản trước góp ý của phòng này là bản tham chiếu dựng lại.','This first exhibit is a reconstructed reference.')}</p>}
   </div>}
   {v2Visit&&<div className="asean-visit-intro" lang={language}>
-   <h3 data-activity5-visitor tabIndex={-1}>{T(language,'2. Thử bản đã chỉnh sửa của nhóm được giao','2. Retest the assigned group’s revised exhibit')}</h3>
+   <h3 data-activity5-visitor tabIndex={-1} lang="en">2. Retest the assigned group’s revised exhibit</h3>
    {visitedExhibit&&<p><strong>{visitedExhibit}</strong></p>}
    {!visit?.gallery&&!submitted&&retestTask?.ready&&<p lang="en">{ASEAN_FRAMES[retestTask.question-1]?.question}</p>}
    {!open&&!submitted&&<p role="status">{session.readOnly||live?.stageIndex>4
@@ -239,7 +239,7 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
    {open&&!submitted&&(retestTask?.ready===false
     ?<p role="status">{T(language,'Đang chờ nhóm được giao lưu bản đã chỉnh sửa.','Waiting for the assigned group to save its revised exhibit.')}</p>
     :<>
-     <p>{T(language,'Mở phòng, tìm câu trả lời rồi đóng phòng để ghi bằng chứng.','Open the exhibit, find the answer, then close the viewer to cite the frame you used.')}</p>
+     <p lang="en">Open the exhibit, find the answer, then close the viewer to cite the frame you used.</p>
      <button type="button" className={visit?.gallery?'bml-outline':'bml-primary'} onClick={()=>loadVisit()} disabled={busy}>
       <Box size={18}/>{visit?.gallery?T(language,'Mở lại bản đã chỉnh sửa được giao','Reopen assigned revised exhibit'):T(language,'Mở bản đã chỉnh sửa được giao','Open assigned revised exhibit')}
      </button>
@@ -248,13 +248,13 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
   {(!visitStage||submitted||visit?.gallery)&&<form id={formId} onSubmit={submit}>
    {v1Visit&&(submitted?<p role="status" lang={language}>
     {[T(language,'Đã nộp góp ý','Visitor feedback submitted'),visitorResult(record)].filter(Boolean).join(' · ')}
-   </p>:<h3 data-visit-form-heading tabIndex={-1} lang={language}>{T(language,'2. Điền phiếu góp ý','2. Complete the visitor feedback')}</h3>)}
+   </p>:<h3 data-visit-form-heading tabIndex={-1} lang="en">2. Complete the visitor feedback</h3>)}
    {v1Visit&&visitedExhibit&&<p className="asean-visit-target" lang={language}>
     {T(language,'Triển lãm được góp ý','Exhibit visited')} · <strong>{visitedExhibit}</strong>
    </p>}
    {v2Visit&&(submitted?<p role="status" lang={language}>
     {T(language,'Đã nộp phiếu thử lại','Retest submitted')} · {record.score}/1
-   </p>:<h4 data-activity5-answer tabIndex={-1} lang={language}>{T(language,'Ghi kết quả thử lại','Record your retest answer')}</h4>)}
+   </p>:<h4 data-activity5-answer tabIndex={-1} lang="en">Record your retest answer</h4>)}
    {v2Visit&&!submitted&&visitedExhibit&&<p className="asean-visit-target" lang={language}>
     {T(language,'Phòng vừa thử','Exhibit tested')} · <strong>{visitedExhibit}</strong>
    </p>}
@@ -269,9 +269,9 @@ function GroupResponse({session,stage,open,record,live,refreshRecords,refreshLiv
    {!submitted&&scoreMismatch&&<p role="status">For a score of 1, choose {ASEAN_FRAMES[visit.question-1]?.label} as the evidence frame. Choose 0 if the answer is missing or unclear.</p>}
    {submitted?!visitStage&&<p className="asean-response-saved" role="status" lang={transfer?language:undefined}><Check size={16} aria-hidden="true"/>{transfer
     ?T(language,'Đã nộp hai câu tiếng Anh','Writing submitted'):stage===1?'Exhibit plan submitted.':'Group response saved.'}</p>:
-    !formId&&(!transfer||open)&&<button className="bml-primary" type="submit" disabled={busy||!open||scoreMismatch}>
+    !formId&&(!transfer||open)&&<button className="bml-primary" type="submit" lang={language} disabled={busy||!open||scoreMismatch}>
      {v2Visit?T(language,'Nộp phiếu thử lại','Submit retest answer'):
-      transfer?T(language,'Nộp hai câu tiếng Anh','Submit two sentences'):'Submit group response'}
+      transfer||stage===0?T(language,'Nộp hai câu tiếng Anh','Submit two sentences'):T(language,'Nộp câu trả lời của nhóm','Submit group response')}
     </button>}
   </form>}
   {error&&<p className="bml-banner bml-danger-banner" ref={errorRef} tabIndex={formId?-1:undefined} role="alert">{error}</p>}
@@ -334,19 +334,15 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
   ?T(language,'Đang chờ '+retestVisitor+' nộp phiếu thử lại.','Waiting for '+retestVisitor+' to submit its retest.')
   :T(language,'Chưa có phiếu thử lại từ '+retestVisitor+'.','No retest submission from '+retestVisitor+'.');
  const revisionTask=captured
-  ?T(language,'Đối chiếu bản sửa của nhóm em, rồi thử bản đã chỉnh sửa của nhóm được giao.',
-   'Review your group’s revision, then retest the revised exhibit assigned to you.')
+  ?'Review your group’s revision, then retest the revised exhibit assigned to you.'
   :records.feedback
-   ?T(language,'Đọc góp ý, sửa một khung và giải thích lý do. Lưu bản đã chỉnh sửa để nhóm khách mới thử lại cùng câu hỏi.',design.studentTask)
-   :T(language,'Chọn một chú thích hoặc ảnh cần làm rõ. Giải thích thay đổi rồi lưu bản đã chỉnh sửa để nhóm khách mới thử lại.',
-    'Choose a caption or photo that could answer a visitor’s question more clearly. Explain your change and save the revised exhibit for the fresh visitor test.');
+   ?design.studentTask
+   :'Choose a caption or photo that could answer a visitor’s question more clearly. Explain your change and save the revised exhibit for the fresh visitor test.';
  const reportTask=records.retest
-  ?T(language,'Nêu điều nhóm đã sửa và điều nhóm khách tìm thấy khi thử lại.','Report what your group changed and what the visitors found.')
+  ?'Report what your group changed and what the visitors found.'
   :records.staffRetest
-   ?T(language,'Nêu chi tiết đã đổi và ghi rõ nhóm khách chưa nộp phiếu thử lại.',
-    'Describe the change and say that the visitor group has yet to submit its retest.')
-   :T(language,'Nêu điều nhóm đã sửa và cho biết nhóm khách chưa nộp phiếu thử lại.',
-    'Report what changed and say that the visitor group has yet to submit.');
+   ?'Describe the change and say that the visitor group has yet to submit its retest.'
+   :'Report what changed and say that the visitor group has yet to submit.';
  const editable=liveOpen&&(stage===2||(stage===4&&!captured))&&!submitted;
  const document=documentFromStudio({...studio,title:destination?.name||'',summary:destination?.country||'',theme:'culture'},session.assignment);
  const missing=aseanExhibitMissing(document);
@@ -407,8 +403,8 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
  const missingPhotos=frames.filter(frame=>frame.needsPhoto);
  const readyFrames=frames.filter(frame=>frame.ready).length;
  const buildPhotoTask=missingPhotos.length
-  ?T(language,'Bổ sung ảnh cho các khung sau','Add photos for these frames')+': '+missingPhotos.map(frame=>frame.label).join(', ')+'.'
-  :T(language,'Ba ảnh của nhóm đã có trong triển lãm.','Your three photos are already in place.');
+  ?'Add photos for these frames'+': '+missingPhotos.map(frame=>frame.label).join(', ')+'.'
+  :'Your three photos are already in place.';
  const draftStatus=dirty?T(language,'Có thay đổi chưa lưu','Unsaved changes'):
   missing.length?Number(version)>0
    ?T(language,'Đã lưu bản nháp · Còn thiếu mục','Draft saved · Some items are still missing')
@@ -516,34 +512,33 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        <div className="asean-activity-meta" lang={language}>
         <span className="asean-activity-index" aria-hidden="true"><ActivityIcon/></span>
         <div>
-         <p className="bml-question-eyebrow">{T(language,'Hoạt động','Activity')} {stage+1} / {ASEAN_STAGES.length} · {aseanPhase(stage)[language==='en'?'en':'vi']}</p>
+         <p className="bml-question-eyebrow">{T(language,'Hoạt động','Activity')} {stage+1} / {ASEAN_STAGES.length} · <span lang="en">{aseanPhase(stage).en}</span></p>
          <p className="asean-activity-time"><Clock3 aria-hidden="true"/>{T(language,'Tiết','Period')} {current.period} · {current.minutes} {T(language,'phút','min')}</p>
         </div>
        </div>
        <h2 id="asean-student-activity-title">{stage===0?'1. Write about '+aseanWritingCard(session.groupLabel).title:
-        stage===5?T(language,'Trình bày và nộp bài',design.studentTitle):design.studentTitle}</h2>
-       <p lang={[2,3,4,5].includes(stage)?language:undefined}>{stage===0
+        design.studentTitle}</h2>
+       <p>{stage===0
         ?'What would you tell a friend visiting for the first time? Write one thing they can do and one piece of advice. Submit both sentences, then try the Hué example in Step 2.'
         :stage===5
         ?reportTask
-        :stage===4?revisionTask:stage===2?buildPhotoTask:stage===3
-        ?T(language,'Thử xem một khách mới có thể tự tìm đủ ba câu trả lời trong phòng của nhóm khác hay không.',design.studentTask)
+        :stage===4?revisionTask:stage===2?buildPhotoTask
         :design.studentTask}</p>
       </div>
       {stage===2&&<div className="asean-build-instructions" lang={language}>
-       {editable&&<ol>
-        <li>{T(language,'Chỉnh sửa triển lãm. Rà ba chú thích tiếng Anh (20–30 từ mỗi khung), nguồn ảnh và nguồn dữ kiện.',design.studentTask)}</li>
-        <li>{T(language,'Xem thử phòng 3D và lưu bản nháp nếu có thay đổi.','Preview your exhibit in 3D and save any changes.')}</li>
+       {editable&&<ol lang="en">
+        <li>{design.studentTask}</li>
+        <li>Preview your exhibit in 3D and save any changes.</li>
        </ol>}
        <button type="button" className="bml-primary" onClick={focusStudio}><Box size={18}/>
         {editable?T(language,'Chỉnh sửa triển lãm','Edit your exhibit'):T(language,'Xem lại triển lãm','Review your exhibit')}
        </button>
       </div>}
       {stage===3&&<div className="asean-visit-instructions" lang={language}>
-       <ol className="asean-action-list">
-        <li>{T(language,'Mở phòng được giao và đọc ba khung. Ghi nhớ khung mở đầu tiên.','Open the assigned room, inspect all three frames and remember which one you opened first.')}</li>
-        <li>{T(language,'Ghi hình thức đã dùng, câu trả lời và điểm của từng câu theo bằng chứng.','Record the viewing format, answers and scores based on the evidence.')}</li>
-        <li>{T(language,'Viết một đề xuất cụ thể bằng tiếng Anh và nộp phiếu.','Write one specific suggestion in English and submit the feedback.')}</li>
+       <ol className="asean-action-list" lang="en">
+        <li>Open the assigned room, inspect all three frames and remember which one you opened first.</li>
+        <li>Record the viewing format, answers and scores based on the evidence.</li>
+        <li>Write one specific suggestion in English and submit the feedback.</li>
        </ol>
        {liveOpen&&!stageRecord&&<button type="button" className="bml-outline" onClick={()=>{
         startActivity();focusVisitorStep(visitOpened?'[data-visit-form-heading]':'[data-visit-start]');
@@ -552,13 +547,10 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        </button>}
       </div>}
       {stage===4&&<div className="asean-visit-instructions" lang={language}>
-       <ol className="asean-action-list">
-        <li>{captured?T(language,'Phòng nhóm em: so sánh khung trước và sau khi sửa, rồi xem kết quả thử lại.',
-         'Your exhibit: compare the same frame before and after revision, then check the retest result.')
-         :T(language,'Phòng nhóm em: sửa một khung, giải thích lý do và lưu bản đã chỉnh sửa.',
-         'Your exhibit: revise one frame, explain the change and save the revised exhibit.')}</li>
-        <li>{T(language,'Phòng được giao: mở bản đã chỉnh sửa và trả lời lại một câu hỏi kèm khung làm bằng chứng.',
-         'Assigned exhibit: open the revised exhibit and answer one question again, citing the frame you used.')}</li>
+       <ol className="asean-action-list" lang="en">
+        <li>{captured?'Your exhibit: compare the same frame before and after revision, then check the retest result.'
+         :'Your exhibit: revise one frame, explain the change and save the revised exhibit.'}</li>
+        <li>Assigned exhibit: open the revised exhibit and answer one question again, citing the frame you used.</li>
        </ol>
        <div className="asean-retest-links">
         <button type="button" className="bml-outline" onClick={()=>{startActivity();focusVisitorStep('[data-activity5-own]');}}>
@@ -570,10 +562,10 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
        </div>
       </div>}
       {stage===5&&<div className="asean-visit-instructions asean-share-steps" lang={language}>
-       <ol className="asean-action-list">
-        <li>{T(language,'Xem lại bản chỉnh sửa và kết quả thử lại để trình bày.','Review your revised exhibit and the retest result before presenting.')}</li>
-        <li>{T(language,'Viết và nộp hai câu tiếng Anh về điểm đến mới trên thẻ bên dưới.','Write and submit two English sentences about the new destination on the card below.')}</li>
-        <li>{T(language,'Nộp triển lãm 3D của nhóm ở cột bên phải.','Submit your group’s 3D exhibit in the project panel.')}</li>
+       <ol className="asean-action-list" lang="en">
+        <li>Review your revised exhibit and the retest result before presenting.</li>
+        <li>Write and submit two English sentences about the new destination on the card below.</li>
+        <li>Submit your group’s 3D exhibit in the project panel.</li>
        </ol>
        <button type="button" className="bml-outline" onClick={()=>{startActivity();focusVisitorStep('[data-activity6-exhibit]');}}>
         {publicView?T(language,'Tới bài triển lãm đã nộp','Go to the submitted exhibit'):
@@ -582,8 +574,8 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
       </div>}
       {isWritingActivity&&<GroupResponse key={stage} session={{...session,readOnly}} stage={stage} live={live} open={liveOpen}
        record={stageRecord} refreshLive={refreshLive} refreshRecords={refreshRecords}
-       transferNeedsResubmission={stage===5&&records.transferNeedsResubmission} language={stage===5?language:'en'}/>}
-      {stage!==0&&stage!==5&&<AseanActivityArt activity={design.id} language={language} framePhotos={framePhotos}
+       transferNeedsResubmission={stage===5&&records.transferNeedsResubmission} language={language}/>}
+      {stage!==0&&stage!==5&&<AseanActivityArt activity={design.id} framePhotos={framePhotos}
        visitorResult={stage===3?visitorResult(stageRecord):null}
        revisionCaptured={Boolean(captured)} revisionHasFeedback={Boolean(records.feedback)}/>}
       {[1,2,4].includes(stage)&&destination&&<div className="asean-student-sources">
@@ -610,7 +602,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
   </section>
   <section className="bml-student-primary bml-student-project-panel" aria-labelledby="bml-student-project-title">
    <header className="bml-student-panel-head bml-student-project-head">
-    <h2 id="bml-student-project-title"><ActivityIcon aria-hidden="true"/>{stage===0?T(language,'2. Thảo luận mẫu chung','2. Discuss the class example'):
+    <h2 id="bml-student-project-title" lang={stage===0?'en':language}><ActivityIcon aria-hidden="true"/>{stage===0?'2. Discuss the class example':
      stage===3?T(language,'Phiếu góp ý tham quan','Visitor Feedback'):
      stage===4?T(language,'Chỉnh sửa và thử lại','Revision & Retest'):
      stage===5?T(language,'Triển lãm của nhóm','Group Exhibit'):T(language,'Sản phẩm nhóm','Group Project')}</h2>
@@ -748,7 +740,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
       {stage===3&&records.feedback&&<section className="asean-own-revision">
        <h4>{T(language,'Góp ý nhận được cho triển lãm của nhóm mình','Feedback received on your own exhibit')}</h4>
        <p>{records.feedback.comment}</p>
-       {liveOpen&&<p>{T(language,'Trao đổi bằng tiếng Anh với nhóm khách.','Reply to the visitors or ask a follow-up question in English.')}</p>}
+       {liveOpen&&<p>Reply to the visitors or ask a follow-up question in English.</p>}
       </section>}
       {stage!==2&&error&&<p className="bml-banner bml-danger-banner" role="alert">{error}</p>}
       {stage!==2&&notice&&<p role="status">{notice}</p>}

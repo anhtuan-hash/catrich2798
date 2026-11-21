@@ -17,7 +17,8 @@ const t=(lang,vi,en)=>lang==='en'?en:vi;
 const kit=LESSON_KITS[0]||{};
 export default function TeachingPlanScreen({language='vi',data,lessonTemplate,onCreate,onBack,onNavigate}){
   const asean=isAsean(lessonTemplate);
-  const {plan:paperPlan,href:planHref,filename:planFilename}=getAseanPaperPlan(language);
+  const {plan:paperPlan}=getAseanPaperPlan('en');
+  const {href:planHref,filename:planFilename}=getAseanPaperPlan(language);
   const unit=asean ? 4 : 5;
   const activityCount=asean ? paperPlan.activities.length : LIVE_STAGES.length;
   const indexedStages=LIVE_STAGES.map((stage,index)=>({stage,index}));
@@ -78,7 +79,7 @@ export default function TeachingPlanScreen({language='vi',data,lessonTemplate,on
           <div className="plan-label">{asean?t(language,'DỰ ÁN TRIỂN LÃM 3D','3D EXHIBITION PROJECT'):'OUR CLIMATE ACTION MUSEUM'}</div>
           <h2 id="plan-project-title" lang="en">{title}</h2>
           {asean ? (
-            <div className="plan-paper-metadata" lang={language}>
+            <div className="plan-paper-metadata" lang="en">
               <ul role="list">
                 {paperPlan.metadata.map(line=><li key={line}>{line}</li>)}
               </ul>

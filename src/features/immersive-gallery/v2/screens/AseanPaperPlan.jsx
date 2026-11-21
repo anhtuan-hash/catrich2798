@@ -63,10 +63,8 @@ function PlanActivity({activity, number, language}) {
 }
 
 export default function AseanPaperPlan({plan, language}) {
-  const periodLabel = language === 'en' ? 'Period' : 'Tiết';
-  const minutesLabel = language === 'en' ? 'minutes' : 'phút';
   return (
-    <div className="plan-paper-body" lang={language}>
+    <div className="plan-paper-body" lang="en">
       <ContentPanel className="plan-section" ariaLabel={plan.objectives.title}>
         <h2>{plan.objectives.title}</h2>
         {plan.objectives.sections.map(section => <PlanSection key={section.title} section={section} />)}
@@ -87,7 +85,7 @@ export default function AseanPaperPlan({plan, language}) {
         <h3>{plan.assessment.title}</h3>
         <PlanTable rows={plan.assessment.rows} />
         <p>{plan.assessment.note}</p>
-        <p><MuseumFileLink href={ASEAN_EVIDENCE_PDF} filename="ASEAN_11_3_Evidence.pdf"
+        <p lang={language}><MuseumFileLink href={ASEAN_EVIDENCE_PDF} filename="ASEAN_11_3_Evidence.pdf"
           title={language === 'en' ? 'Activity 5 evidence · Angkor, Class 11.3' : 'Minh chứng Hoạt động 5 · Angkor, lớp 11.3'}>
           {language === 'en' ? 'Activity 5 evidence · Angkor, Class 11.3' : 'Minh chứng Hoạt động 5 · Angkor, lớp 11.3'}
         </MuseumFileLink></p>
@@ -106,8 +104,8 @@ export default function AseanPaperPlan({plan, language}) {
             const minutes = activities.reduce((sum, activity) => sum + activity.minutes, 0);
             const firstActivity = plan.activities.indexOf(activities[0]) + 1;
             return (
-              <section className="plan-period" key={period} aria-label={`${periodLabel} ${period}`}>
-                <h3>{periodLabel} {period} · {minutes} {minutesLabel}</h3>
+              <section className="plan-period" key={period} aria-label={`Period ${period}`}>
+                <h3>Period {period} · {minutes} minutes</h3>
                 <ol className="plan-activities" role="list" start={firstActivity}>
                   {activities.map((activity, index) => <PlanActivity key={activity.title} activity={activity} number={firstActivity + index} language={language} />)}
                 </ol>

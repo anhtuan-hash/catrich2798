@@ -370,7 +370,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
             onAseanJoin={asean&&!data?.offlineReadOnly&&!data?.publicReadOnly?()=>toggleTool('qr'):undefined}
             onAseanStudioHelp={asean?()=>toggleTool('notes'):undefined}
             aseanHighlights={aseanHighlights}
-            aseanContextCard={groupPicker&&<details className="asean-slide-disclosures asean-slide-writing-card">
+            aseanContextCard={groupPicker&&<details className="asean-slide-disclosures asean-slide-writing-card" lang={language}>
              <summary>{studentCard?t(language,'Thẻ viết của nhóm','Group writing card'):t(language,'Phòng được giao theo nhóm','Assigned exhibit by group')}</summary>
              {groupPicker}
              {studentCard?<dl lang="en"><dt>{studentCard.title}</dt><dd>{studentCard.country}</dd>
@@ -545,12 +545,12 @@ function aseanStageHighlights(stage,state,groups,language,publicReadOnly){
 }
 
 function AseanTeachingNotes({stage,language,uploadsEnabled}){
- return stage?<div><h3>{language==='vi'?stage.vi:stage.title}</h3>
+ return stage?<div><h3 lang="en">{stage.title}</h3>
   {stage.id==='asean-build'&&<>
-   <ol>
-    <li>{t(language,'Học sinh mở QR hoặc link mời của nhóm rồi đăng nhập bằng mã nhóm.','Students open the class QR or their invitation link and sign in with their group pass.')}</li>
-    <li>{t(language,'Khi giáo viên mở Hoạt động 3, xưởng hiện trên trang học sinh. Nếu đang xem hoạt động khác, chọn Follow teacher.','The workshop appears on the student page when Activity 3 is open. If students are browsing another activity, select Follow teacher.')}</li>
-    <li>{t(language,'Tải ba ảnh, viết chú thích và ghi nguồn. Chọn xem thử triển lãm rồi lưu bản nháp. Khi giáo viên mở Hoạt động 4, bản nháp mới nhất đã lưu trở thành bản trước góp ý.','Upload the three photos, write the captions and add credits. Preview the exhibit, then save the draft. When the teacher opens Activity 4, the latest saved draft becomes the first exhibit.')}</li>
+   <ol lang="en">
+    <li>Students open the class QR or their invitation link and sign in with their group pass.</li>
+    <li>The workshop appears on the student page when Activity 3 is open. If students are browsing another activity, select Follow teacher.</li>
+    <li>Upload the three photos, write the captions and add credits. Preview the exhibit, then save the draft. When the teacher opens Activity 4, the latest saved draft becomes the first exhibit.</li>
    </ol>
    {uploadsEnabled===false&&<p role="status">{t(language,'Tải ảnh đang tắt. Bật “Tải tranh ảnh 3D” trong Cài đặt để nhóm có thể dựng phòng.','Photo uploads are off. Enable 3D artwork uploads in Settings so groups can build their rooms.')}</p>}
   </>}

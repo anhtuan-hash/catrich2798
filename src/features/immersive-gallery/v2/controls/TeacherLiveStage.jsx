@@ -29,16 +29,17 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
   assignments=[],assignmentId='',assignmentBusy=false,onAssignment,onAseanJoin,onAseanStudioHelp,aseanDraftTools,aseanHighlights,aseanContextCard
 },ref){
   const period=stage?.period??1;
+  const asean=stage?.kind==='asean';
+  const phaseLanguage=asean?'en':language;
   const phaseName=period===1
-    ?t(language,'KHỞI ĐỘNG & THIẾT KẾ','INVESTIGATE & DESIGN')
-    :t(language,'TẠO, KIỂM TRA & CẢI TIẾN','CREATE, TEST & IMPROVE');
+    ?t(phaseLanguage,'KHỞI ĐỘNG & THIẾT KẾ','INVESTIGATE & DESIGN')
+    :t(phaseLanguage,'TẠO, KIỂM TRA & CẢI TIẾN','CREATE, TEST & IMPROVE');
   const phaseLabel=`${phaseName}${stage?.kind&&stage.kind!=='asean'?` · ${String(stage.kind).toUpperCase()}`:''}`;
   const taskOpen=Boolean(session?.stageOpen);
   const statusLabel=readOnly?t(language,'CHỈ XEM','VIEW ONLY'):taskOpen
     ?t(language,'ĐANG MỞ HOẠT ĐỘNG','TASK OPEN')
     :t(language,'HOẠT ĐỘNG CHƯA MỞ','TASK CLOSED');
   const hasLessonSlide=Boolean(MUSEUM_ACTIVITY_SLIDES[stage?.id]);
-  const asean=stage?.kind==='asean';
   const isPresenting=asean&&isFullscreen;
   const scrollRegion=useRef(null);
   useEffect(()=>{
@@ -85,7 +86,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
           <>
             <div className={'adv-stage-layout' + (videoLayout||stage?.kind==='asean'?' is-video':'')}>
               <div className="adv-stage-copy">
-                <div className="adv-stage-section">{phaseLabel}</div>
+                <div className="adv-stage-section" lang={phaseLanguage}>{phaseLabel}</div>
                 {stage?.kind==='asean'?<AseanLiveSlide currentIndex={currentIndex} language={language} revealed={revealed}
                   onJoin={onAseanJoin} onStudioHelp={onAseanStudioHelp} draftTools={aseanDraftTools} highlights={aseanHighlights} contextCard={aseanContextCard}/>:<>
                 <h2 className="adv-stage-title">{stage?.title||t(language,'Đang tải hoạt động…','Loading activity…')}</h2>
