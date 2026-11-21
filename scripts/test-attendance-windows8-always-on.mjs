@@ -85,9 +85,12 @@ assert.ok(ttcmComponent.includes('data-global-motion-isolate="true"'), 'TTCM ove
 assert.ok(motionRuntime.includes('MOTION_ISOLATION_SELECTOR'), 'Global motion runtime must recognize isolated app-owned motion');
 assert.ok(motionRuntime.includes('isMotionIsolated(node)'), 'Global motion runtime must skip isolated modal/list entrants');
 
-assert.ok(globalMotionCss.includes(':not(.attendance-shell)'), 'Global motion retirement must exempt Attendance shell');
-assert.ok(globalMotionCss.includes(':not(.ttcm-m3-shell)'), 'Global motion retirement must exempt TTCM shell');
-assert.ok(!globalMotionCss.includes(':not(.attendance-layer)'), 'Attendance backdrop must remain under the global static-motion reset');
-assert.ok(!globalMotionCss.includes(':not(.ttcm-m3-layer)'), 'TTCM backdrop must remain under the global static-motion reset');
+// BMPE removes the old global motion kill-switch entirely. Attendance and
+// TTCM continue to own their native Windows 8 launch animations (asserted
+// above); they no longer need exceptions to a site-wide disabled animation.
+assert.ok(!globalMotionCss.includes('brian-motion-retired-a'), 'No unconditional global motion reset may override app-owned launch');
+assert.ok(!globalMotionCss.includes('Retire motion globally'), 'Global retirement is no longer the supported motion policy');
+assert.ok(!globalMotionCss.includes(':not(.attendance-layer)'), 'Attendance layer must not be globally immobilized');
+assert.ok(!globalMotionCss.includes(':not(.ttcm-m3-layer)'), 'TTCM layer must not be globally immobilized');
 
 console.log('Attendance + TTCM Windows 8 launch motion contract OK');

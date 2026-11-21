@@ -387,5 +387,16 @@ html body :is(.brian-nav__primary,.brian-nav__inner,.brian-nav__brand,[class*="g
     transform: none !important;
     will-change: auto !important;
   }
+  /* Page-enter uses four ID-weight selectors. Reduced-motion must explicitly
+     win that cascade, not only set transition-duration on lower-specificity
+     descendants. Preserve the visible settled page and keyboard focus. */
+  html[data-motion-page] body #bes-main-content:not(#gm-reduce-a#gm-reduce-b#gm-reduce-c#gm-reduce-d),
+  html[data-motion-page] body [data-bes-main-content][data-global-page-enter="true"]:not(#gm-reduce-a#gm-reduce-b#gm-reduce-c#gm-reduce-d) {
+    animation-name: none !important;
+    animation-duration: 0ms !important;
+    opacity: 1 !important;
+    transform: none !important;
+    will-change: auto !important;
+  }
   .gm-route-loader { display: none !important; }
 }

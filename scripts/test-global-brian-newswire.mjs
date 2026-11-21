@@ -38,7 +38,10 @@ assert.equal(/translate3d\(0,[^0]/.test(css), false, 'newswire transitions must 
 assert.match(css, /@media\(max-width:620px\)/);
 assert.match(css, /@media \(prefers-reduced-motion:reduce\)/);
 assert.equal(css.includes('marquee'), false, 'newswire must not use legacy marquee motion');
-assert.match(motionReset, /:not\(\.brian-newswire\):not\(\.brian-newswire \*\)/);
+// The historical global motion reset is now retired by BMPE: Newswire and all
+// other enabled features should animate through their own scoped CSS/WAAPI.
+assert.doesNotMatch(motionReset, /:not\(\.brian-newswire\):not\(\.brian-newswire \*\)/);
+assert.doesNotMatch(motionReset, /Retire motion globally while preserving static layout/);
 
 assert.match(regionalCss, /:is\(\.brian-editorial-brief, \.brian-newswire\)/);
 assert.match(regionalCss, /font-family: var\(--bes-font-newswire\) !important/);

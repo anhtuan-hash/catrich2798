@@ -1,75 +1,13 @@
+/* BMPE Wave 1 (2026-11-07).
+   Preserve existing premium blur, lighting and ambient filters for the
+   default balanced/low profile. The former blanket backdrop-filter:none and
+   filter:none rules changed the visible design without a verified profile.
 
+   Keeping background-attachment:scroll avoids fixed-background scroll paint
+   invalidation. Measured viewport/layer optimizations belong to their owning
+   components and must pass visual/performance QA before landing. */
 
 html[data-performance='balanced'] body .app-shell[data-route],
 html[data-performance='low'] body .app-shell[data-route] {
   background-attachment: scroll !important;
-}
-
-html[data-performance='balanced'] body .app-shell[data-route] :is(
-  .bes-top-chrome,
-  .brian-nav,
-  .brian-nav__search,
-  .brian-notification-center,
-  .global-command-palette,
-  [role='dialog'],
-  dialog,
-  .modal,
-  .drawer,
-  .sheet
-),
-html[data-performance='low'] body .app-shell[data-route] :is(
-  .bes-top-chrome,
-  .brian-nav,
-  .brian-nav__search,
-  .brian-notification-center,
-  .global-command-palette,
-  [role='dialog'],
-  dialog,
-  .modal,
-  .drawer,
-  .sheet
-) {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  filter: none !important;
-}
-
-html[data-performance='balanced'] body .app-shell[data-route] .bes-top-chrome::before,
-html[data-performance='balanced'] body .app-shell[data-route] .bes-top-chrome::after,
-html[data-performance='balanced'] body .app-shell[data-route] .brian-nav::before,
-html[data-performance='balanced'] body .app-shell[data-route] .brian-nav::after,
-html[data-performance='low'] body .app-shell[data-route] .bes-top-chrome::before,
-html[data-performance='low'] body .app-shell[data-route] .bes-top-chrome::after,
-html[data-performance='low'] body .app-shell[data-route] .brian-nav::before,
-html[data-performance='low'] body .app-shell[data-route] .brian-nav::after {
-  filter: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-html[data-performance='balanced'] body .app-shell[data-route='home'] :is(
-  .boh-stage-orbit,
-  .boh-stage-dots,
-  .boh-stage-spark,
-  [class*='aurora'],
-  [class*='glow']
-),
-html[data-performance='low'] body .app-shell[data-route='home'] :is(
-  .boh-stage-orbit,
-  .boh-stage-dots,
-  .boh-stage-spark,
-  [class*='aurora'],
-  [class*='glow']
-) {
-  filter: none !important;
-}
-
-html[data-performance='balanced'] body .app-shell[data-route='home'] .bes-top-chrome,
-html[data-performance='balanced'] body .app-shell[data-route='home'] .brian-nav,
-html[data-performance='balanced'] body .app-shell[data-route='home'] .brian-nav__search,
-html[data-performance='low'] body .app-shell[data-route='home'] .bes-top-chrome,
-html[data-performance='low'] body .app-shell[data-route='home'] .brian-nav,
-html[data-performance='low'] body .app-shell[data-route='home'] .brian-nav__search {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
 }
