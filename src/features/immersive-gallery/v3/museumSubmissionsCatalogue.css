@@ -258,16 +258,26 @@
   grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
 }
 
-.swiss-editorial-submissions-page .swiss-editorial-review-cover {
-  display: block;
-  width: 100%;
-  aspect-ratio: 3.3 / 1;
-  object-fit: cover;
-  margin-block: 0 12px;
+.swiss-editorial-submissions-page .swiss-editorial-review-exhibition {
+  min-width: 0;
+  margin-block: 16px;
+  border: 1px solid var(--submissions-line);
 }
 
-.swiss-editorial-submissions-page .swiss-editorial-review-cover[hidden] {
-  display: none;
+.swiss-editorial-submissions-page .swiss-editorial-review-exhibition-status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px;
+}
+
+.swiss-editorial-submissions-page .bml [data-museum-mode="inline"]:not(:fullscreen):not(.is-fallback-fullscreen) {
+  block-size: auto;
+}
+
+.swiss-editorial-submissions-page .bml [data-museum-mode="inline"]:not(:fullscreen):not(.is-fallback-fullscreen) .bml-editorial-viewport {
+  overflow: visible;
 }
 
 .igv2.swiss-editorial-submissions-page .bml .bml-submission-exhibit {

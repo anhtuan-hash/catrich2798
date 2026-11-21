@@ -4,7 +4,7 @@ import {RUBRIC,scoreRubric,suggestRubric} from './museumData.js';
 import {ASEAN_RUBRIC,isAsean,aseanPeerGroup} from './aseanLesson.js';
 import {LESSON_RUBRIC_LEVELS} from './lessonPlanAlignment.js';
 import {englishSystemGroupLabel,staffRequest} from './museumApi.js';
-import {reviewMuseum} from './MuseumScene.jsx';
+import MuseumScene,{reviewMuseum} from './MuseumScene.jsx';
 import MuseumExhibitionDetail from './MuseumExhibitionDetail.jsx';
 import {artStaff} from './museumLiveApi.js';
 const tr=(lang,vi,en)=>lang==='en'?en:vi;
@@ -18,13 +18,35 @@ const NOTES={
  published:{label:'Đã công bố',kind:'green'},
  rejected:{label:'Đã từ chối',kind:'red'}
 };
+
+function PublishedSubmissionExhibition({id,transport,language,onOpen3D}){
+ const [result,setResult]=useState(null);
+ const [attempt,setAttempt]=useState(0);
+ useEffect(()=>{
+  let active=true;
+  transport('showcase-exhibition',{id}).then(({gallery})=>{
+   if(!gallery?.rooms?.length)throw new Error('Published exhibition room unavailable');
+   if(active)setResult({gallery});
+  }).catch(()=>{if(active)setResult({failed:true});});
+  return()=>{active=false;};
+ },[id,transport,attempt]);
+ return <section className="swiss-editorial-review-exhibition" data-testid="museum-submission-exhibition"
+  aria-label={tr(language,'Triển lãm của nhóm','Group exhibition')}>
+  {result?.gallery?<MuseumScene gallery={result.gallery} language={language} embedded cinema startIn2D onOpen3D={onOpen3D}/>:
+   <div className="swiss-editorial-review-exhibition-status" role="status">
+    {result?.failed?<>{tr(language,'Chưa tải được triển lãm của nhóm.','Could not load the group exhibition.')}
+     <button type="button" className="bml-outline" onClick={()=>{setResult(null);setAttempt(value=>value+1);}}>{tr(language,'Thử lại','Retry')}</button>
+    </>:tr(language,'Đang tải triển lãm…','Loading group exhibition…')}
+   </div>}
+ </section>;
+}
+
 export function Submissions({data,onRefresh,initialReview,onNavigate,transport=staffRequest,query='',language='vi',editorial=false,catalogue=false,summary=null}){
  const [filter,setFilter]=useState('all'),[selectedId,setSelectedId]=useState(initialReview||null),
   [busy,setBusy]=useState(false),[error,setError]=useState(''),
   [success,setSuccess]=useState(''),[preview,setPreview]=useState(false),[form,setForm]=useState(null);
  const [reviewArtAssets,setReviewArtAssets]=useState([]);
  const [publishedPreview,setPublishedPreview]=useState(null);
- const [publishedCover,setPublishedCover]=useState(null);
  const [publishing,setPublishing]=useState(null);
  const detailHeading=useRef(null), openedCard=useRef(null), previewTrigger=useRef(null);
  const publicReadOnly=Boolean(data?.publicReadOnly);
@@ -37,20 +59,11 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
   .find(gallery=>gallery.assignment_id===assignment?.id):null;
  const publishedRoomId=collection?.destinations?.find(destination=>destination.groupLabel===group?.label)?.id;
  const collectionId=publishedRoomId?collection.id:null;
- const cover=publishedCover?.galleryId===publishedRoomId?publishedCover?.exhibit:null;
+ const inlineExhibition=catalogue&&Boolean(publishedRoomId);
  const closePreview=()=>{setPreview(false);setPublishedPreview(null);};
  useEffect(()=>{
   if(editorial&&selected?.id)detailHeading.current?.focus();
  },[editorial,selected?.id]);
- useEffect(()=>{
-  if(!catalogue||!publishedRoomId)return undefined;
-  let active=true;
-  transport('showcase-exhibition',{id:publishedRoomId}).then(({gallery})=>{
-   const exhibit=gallery?.rooms?.flatMap(room=>room.exhibits||[]).find(item=>item.kind==='image'&&item.image_url);
-   if(active)setPublishedCover({galleryId:publishedRoomId,exhibit});
-  }).catch(()=>{/* The submission remains readable if its cover is unavailable. */});
-  return()=>{active=false;};
- },[catalogue,publishedRoomId,transport]);
  // Teacher/admin art URLs are private and short-lived. Fetch when a submission
  // preview opens and renew while it remains visible, without touching snapshots.
  useEffect(()=>{
@@ -180,8 +193,9 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
  };
  const previewGallery=preview?(collectionId?publishedPreview?.gallery:
   !publicReadOnly?reviewMuseum(selected,reviewArtAssets,assignment?.lesson_template):null):null;
- const previewButton=publicReadOnly&&!publishedRoomId?null:<button type="button" className="bml-outline bml-review-preview-toggle"
-  ref={previewTrigger} aria-busy={preview&&!previewGallery} onClick={()=>{setError('');setReviewArtAssets([]);setPreview(true);}}>
+ const openPreview=trigger=>{previewTrigger.current=trigger;setError('');setReviewArtAssets([]);setPreview(true);};
+ const previewButton=inlineExhibition||publicReadOnly&&!publishedRoomId?null:<button type="button" className="bml-outline bml-review-preview-toggle"
+  aria-busy={preview&&!previewGallery} onClick={event=>openPreview(event.currentTarget)}>
   <Eye size={17} aria-hidden="true"/>{preview&&!previewGallery?tr(language,'Đang mở triển lãm…','Opening exhibition…'):
    tr(language,'Xem bảo tàng 2D/3D','Preview museum')}
  </button>;
@@ -281,13 +295,12 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
       <button type="button" className="bml-icon-btn" disabled={busy} onClick={()=>{setSelectedId(null);closePreview();setForm(null);if(editorial)openedCard.current?.focus();}} aria-label={editorial?tr(language,'Đóng chi tiết','Close submission'):'Close'}><ArrowLeft size={21} aria-hidden="true"/></button>
      </div>
     </div>
+    {inlineExhibition?<PublishedSubmissionExhibition key={publishedRoomId} id={publishedRoomId}
+     transport={transport} language={language} onOpen3D={openPreview}/>:null}
     <div className="bml-review-detail-layout">
      <div className="bml-review-preview">
       <div className="bml-review-preview-head"><h3>{tr(language,'Sản phẩm học sinh','Student exhibition')}</h3>
        {editorial?null:previewButton}</div>
-      {cover?<img className="swiss-editorial-review-cover" key={cover.image_url} src={cover.image_url}
-       alt={cover.alt_text||cover.title||selected.snapshot?.title||''} loading="lazy" decoding="async"
-       referrerPolicy="no-referrer" onError={event=>{event.currentTarget.hidden=true;}}/>:null}
       {previewGallery?<MuseumExhibitionDetail gallery={previewGallery} language={language} startInCinema
        initialRoomIndex={collectionId?publishedPreview.roomIndex:0} onBack={()=>{
         closePreview();window.requestAnimationFrame(()=>previewTrigger.current?.focus({preventScroll:true}));
