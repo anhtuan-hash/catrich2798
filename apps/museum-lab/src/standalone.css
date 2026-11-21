@@ -36,9 +36,12 @@ body { margin: 0; background: #fff; }
 .museum-sign-in button { background: #172023; color: white; cursor: pointer; }
 .museum-sign-in [role="alert"] { margin: 0; color: #9b1e18; }
 
-/* Let mixed-language blocks give each language its own typeface. */
-#root :lang(en):not(:has([lang]:not(:lang(en)))):not(:is(
-  code, code *, pre, pre *, kbd, kbd *, samp, samp *, svg, svg *, input, textarea
-)) {
-  font-family: "Museum Eurostile", Inter, "Be Vietnam Pro", Arial, sans-serif !important;
+/* The shared Museum Lab theme also sets important font declarations. */
+@layer museum-english-type {
+  #root :lang(en):not(:has([lang]:not(:lang(en)))):not(:is(
+    code, code *, pre, pre *, kbd, kbd *, samp, samp *, svg, svg *, input, textarea
+  )) {
+    font-family: "Museum Eurostile", Inter, "Be Vietnam Pro", Arial, sans-serif !important;
+    font-synthesis: weight style !important;
+  }
 }
