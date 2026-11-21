@@ -102,13 +102,4 @@ function App() {
   );
 }
 
-const root = document.getElementById('root');
-createRoot(root).render(<App />);
-
-const eurostile = new FontFace('Museum Eurostile', 'local("Eurostile"), local("EurostileRegular")');
-eurostile.load().then(font => {
-  document.fonts.add(font);
-  root.dataset.eurostile = '';
-}, () => {
-  // Keep the existing typography if Eurostile is unavailable on this device.
-});
+createRoot(document.getElementById('root')).render(<App />);

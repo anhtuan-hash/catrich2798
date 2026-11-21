@@ -1,3 +1,11 @@
+@font-face {
+  font-family: "Museum Eurostile";
+  src: url("./assets/Eurostile.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
 body { margin: 0; background: #fff; }
 * { box-sizing: border-box; }
 .museum-site-bar, .museum-sign-in, .museum-site-loading {
@@ -29,7 +37,7 @@ body { margin: 0; background: #fff; }
 .museum-sign-in [role="alert"] { margin: 0; color: #9b1e18; }
 
 /* Let mixed-language blocks give each language its own typeface. */
-#root[data-eurostile] :lang(en):not(:has([lang]:not(:lang(en)))):not(:is(
+#root :lang(en):not(:has([lang]:not(:lang(en)))):not(:is(
   code, code *, pre, pre *, kbd, kbd *, samp, samp *, svg, svg *, input, textarea
 )) {
   font-family: "Museum Eurostile", Inter, "Be Vietnam Pro", Arial, sans-serif !important;
