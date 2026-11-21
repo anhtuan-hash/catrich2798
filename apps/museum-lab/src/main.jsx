@@ -86,7 +86,7 @@ function App() {
   return (
     <>
       <header className="museum-site-bar">
-        <a className="museum-site-title" href={home} lang="en">Museum Lab</a>
+        <a className="museum-site-title" href={home}>Museum Lab</a>
         {session
           ? <button type="button" onClick={signOut}>Đăng xuất</button>
           : <a href={staffLogin}>Đăng nhập giáo viên</a>}
