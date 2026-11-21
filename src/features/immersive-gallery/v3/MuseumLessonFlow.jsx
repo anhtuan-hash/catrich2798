@@ -6,6 +6,7 @@ import {englishSystemGroupLabel} from './museumApi.js';
 import './museumPrepared.css';
 import {staffRequest,joinUrl,saveTextFile} from './museumApi.js';
 import MuseumGroupQr from './MuseumGroupQr.jsx';
+import {isPublicWorkshopGroup} from './aseanPublicWorkshop.js';
 import './museumLessonQr.css';
 import './museumLessonPaperV57.css';
 import './museumQuickAccessV58.css';
@@ -264,8 +265,10 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
    const allVisible=mine.length>0&&mine.every(g=>visibleSecrets[g.id]&&secrets[g.id]);
    const activeGroup=mine.find(group=>group.id===pickedGroup)||mine[0];
    const activeLabel=language==='en'?englishSystemGroupLabel(activeGroup?.label):activeGroup?.label;
-   const publicExhibit=showPublicGroupLink&&data?.publishedGalleries?.find(gallery=>gallery.assignment_id===a.id)
+   const publishedRoom=showPublicGroupLink&&data?.publishedGalleries?.find(gallery=>gallery.assignment_id===a.id)
     ?.destinations?.find(destination=>destination.groupLabel===activeGroup?.label);
+   const publicWorkshop=standalone&&publishedRoom&&!data?.offlineReadOnly&&activeGroup&&isPublicWorkshopGroup(a,activeGroup)&&
+    reviews.some(review=>review.group_id===activeGroup.id&&review.state==='published');
    const activeTicket=activityCards.find(ticket=>ticket.group_id===activeGroup?.id);
    const activeAnswer=typeof activeTicket?.value==='string'?activeTicket.value:JSON.stringify(activeTicket?.value);
    const canRotate=activeGroup&&!frozen&&canManagePasscodes&&['issued','editing','changes_requested'].includes(activeGroup.state);
@@ -353,18 +356,20 @@ export function LessonsList({data,onCreate,onReview,onRefresh,query='',language=
             ) : data?.publicReadOnly ? (
               <p className="bml-muted">{tr(language,'Chưa có câu trả lời đã lưu cho nhóm này.','No saved response is available for this group.')}</p>
             ) : null}
-            {publicExhibit && (
+            {(standalone?publicWorkshop:publishedRoom) && (
               <div className="bml-lesson-qr-access">
-                <MuseumGroupQr exhibitionId={publicExhibit.id} groupLabel={activeLabel} language={language} />
+                <MuseumGroupQr publicGroupId={publicWorkshop?activeGroup.id:undefined}
+                  exhibitionId={standalone?undefined:publishedRoom.id} groupLabel={activeLabel} language={language} />
               </div>
             )}
-            {standalone&&frozen&&!publicExhibit&&<p className="bml-muted">
-              {tr(language,'Chưa có triển lãm công khai cho nhóm này.','There is no public exhibit for this group.')}
+            {standalone&&frozen&&!publicWorkshop&&<p className="bml-muted">
+              {tr(language,'Bài thực hành của nhóm này chưa có bản chỉ xem.','A view-only copy of this group’s workshop is unavailable.')}
             </p>}
             {!data?.offlineReadOnly && !showPublicGroupLink && activeGroup.invite_handle && (
               <div className="bml-lesson-qr-access">
                 <MuseumGroupQr
                   handle={activeGroup.invite_handle}
+                  showInviteLink={standalone}
                   groupLabel={activeLabel}
                   expiresAt={activeGroup.invite_expires_at}
                   revoked={activeGroup.invite_revoked}
