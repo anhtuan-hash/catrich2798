@@ -24,7 +24,8 @@ body { margin: 0; background: #fff; }
 
 .cmast[lang="vi"] .cmast-plate-copy > :not(.cmast-title),
 .cmast .cmast-plate-copy > .cmast-author {
-  font-family: "Museum Banner Inter", Arial, sans-serif;
+  --igv2-font-family: "Museum Banner Inter", Arial, sans-serif;
+  font-family: var(--igv2-font-family);
   font-synthesis: none;
 }
 
