@@ -38,7 +38,7 @@ const link=typeof window!=='undefined'?window.location.origin+window.location.pa
  * Completed/frozen lessons are read-only with the reason surfaced; mutating controls are
  * disabled AND the reason banner is shown (disabled buttons alone are insufficient).
  */
-export default function TeacherLiveScreen({language='vi',data,initialReview,onBack,onRefresh,onNavigate,initialTemplate,onTemplateChange,transport=liveStaff}){
+export default function TeacherLiveScreen({language='vi',data,initialReview,onBack,onRefresh,onNavigate,initialTemplate,onTemplateChange,transport=liveStaff,standalone=false}){
   const assignments=useMemo(()=>(data?.assignments||[]).filter(a=>data?.publicReadOnly||data?.offlineReadOnly||a.created_by===data?.profile?.id||data?.profile?.role==='admin'),[data]);
   const assignmentIds=useMemo(()=>assignments.map(a=>a.id),[assignments]);
   const savedPreference=useRef(loadPresenterRecovery(typeof window!=='undefined'?window.sessionStorage:null,assignmentIds));
@@ -46,6 +46,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const assignment=assignments.find(a=>a.id===assignmentId);
   const asean=isAsean(assignment);
   const stages=asean?ASEAN_STAGES:LIVE_STAGES;
+  const useToolHub=standalone&&asean;
   useEffect(()=>{if(assignment)onTemplateChange?.(assignment.lesson_template||'climate');},[assignment,onTemplateChange]);
   const lessonLink=assignmentId?link+'?lesson='+encodeURIComponent(assignmentId):link;
   const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
@@ -71,7 +72,10 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const [studioGroupId,setStudioGroupId]=useState('');
   const [workbookOpen,setWorkbookOpen]=useState(false);
   const [paper,setPaper]=useState(false),[tally,setTally]=useState(['','','','']),[tallyNote,setTallyNote]=useState('');
-  const stageRef=useRef(null),activeRef=useRef(true);
+  const stageRef=useRef(null),inlineToolsRef=useRef(null),activeRef=useRef(true);
+  useEffect(()=>{
+    if(useToolHub&&!isFullscreen&&activeTool)inlineToolsRef.current?.scrollIntoView({block:'nearest'});
+  },[useToolHub,isFullscreen,activeTool]);
   const refresh=useCallback(async()=>{
     if(!assignmentId)return;
     const sequence=++requestSequence.current;
@@ -305,7 +309,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   ):null;
   const exitResponses=stage?.kind==='exit'&&serverIndex===currentIndex&&Array.isArray(state?.responses)
     ?state.responses.filter(r=>r.stage_index===currentIndex||stage?.kind==='exit').slice(0,30):[];
-  const toolbar=session?<TeacherToolbar offline={!!data?.offlineReadOnly} language={language} readOnly={readOnly} busy={busy} session={session} currentIndex={currentIndex} stageCount={stages.length}
+  const toolbar=session?<TeacherToolbar hub={useToolHub&&!isFullscreen} offline={!!data?.offlineReadOnly} language={language} readOnly={readOnly} busy={busy} session={session} currentIndex={currentIndex} stageCount={stages.length}
     motionOn={motionOn} activeTool={activeTool} presentationActive={asean&&isFullscreen} showJoinQr={!data?.publicReadOnly}
     onChangeCompletion={canManageLesson&&(historicalSession||contentFrozenAt)?changeCompletion:undefined}
     completed={Boolean(contentFrozenAt)}
@@ -313,6 +317,102 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     onReveal={()=>act('reveal')} onToggleTool={toggleTool} onFullscreen={fullscreen}
     onToggleMotion={()=>setMotionOn(v=>!v)} onTogglePause={()=>act(session.status==='paused'?'resume':'pause')}
     onRefresh={()=>{refresh();onRefresh&&onRefresh();}}/>:null;
+  const workspaceContent=session?(<>
+          {!asean&&currentIndex===2&&!state?.survey&&!readOnly?(
+            <div className="adv-panel-overlay" role="region" aria-label={t(language,'Chốt khảo sát','Freeze survey')}>
+              <button type="button" className="adv-toolbtn" onClick={()=>setPaper(v=>!v)} aria-pressed={paper}>{paper?t(language,'Ẩn kiểm phiếu giấy','Hide paper tally'):t(language,'Nhập kiểm phiếu giấy','Enter paper tally')}</button>
+              {paper?(<div style={{marginTop:10,display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+                {['','','',''].map((_,i)=><input key={i} inputMode="numeric" value={tally[i]} placeholder={t(language,'Số nhóm','Count')} onChange={e=>setTally(v=>v.map((x,j)=>j===i?e.target.value:x))} aria-label={t(language,'Số nhóm lựa chọn ','Groups choosing option ')+(i+1)} style={{padding:'6px 8px',border:'1px solid var(--adv-divider)'}}/>)}
+                <input value={tallyNote} placeholder={t(language,'Ghi chú (không bắt buộc)','Note (optional)')} onChange={e=>setTallyNote(e.target.value)} style={{gridColumn:'1 / -1',padding:'6px 8px',border:'1px solid var(--adv-divider)'}}/>
+                <button type="button" className="adv-toolbtn adv-toolbtn--primary" style={{gridColumn:'1 / -1'}} disabled={busy} onClick={freeze}>{t(language,'Chốt khảo sát','Freeze survey')}</button>
+              </div>):(<button type="button" className="adv-toolbtn adv-toolbtn--primary" style={{marginLeft:8}} disabled={busy} onClick={freeze}>{t(language,'Chốt khảo sát trực tuyến','Freeze online survey')}</button>)}
+            </div>
+          ):null}
+          {activeTool&&!isFullscreen&&<div ref={inlineToolsRef}>
+          {!isFullscreen&&activeTool==='qr'?(
+            <div className="adv-panel-overlay" role="region" aria-label={t(language,'Mã QR vào lớp','Class join QR')}>
+              <button type="button" className="adv-panel-close" onClick={()=>setActiveTool(null)} aria-label={t(language,'Đóng mã QR','Close QR')}><X size={14}/></button>
+              <h3 style={{marginTop:0}}>{t(language,'Học sinh quét mã QR để vào','Students scan to join')}</h3>
+              {qr?<><img className="adv-qr-img" src={qr} alt={t(language,'Mã QR vào bài học','Lesson join QR code')}/>
+                <div style={{marginTop:10,display:'flex',gap:8,flexWrap:'wrap'}}>
+                  <button type="button" className="adv-toolbtn" onClick={()=>window.print()}><Printer size={14}/>{t(language,'In mã QR','Print QR')}</button>
+                  <button type="button" className="adv-toolbtn" onClick={async()=>{try{await navigator.clipboard.writeText(lessonLink);}catch{window.prompt(t(language,'Liên kết vào lớp','Class join link'),lessonLink);}}}>{t(language,'Sao chép liên kết','Copy link')}</button>
+                </div></>:<p>{t(language,'Đang tạo mã QR…','Generating QR…')}</p>}
+            </div>
+          ):null}
+          {!isFullscreen&&activeTool==='notes'?(
+            <div className="adv-panel-overlay" role="region" aria-label={t(language,'Ghi chú dạy','Teaching notes')}>
+              <button type="button" className="adv-panel-close" onClick={()=>setActiveTool(null)} aria-label={t(language,'Đóng ghi chú','Close notes')}><X size={14}/></button>
+              {asean?<AseanTeachingNotes stage={stage} language={language} uploadsEnabled={data?.creatorSettings?.upload_enabled}/>:<LessonResources stageIndex={currentIndex} teacher language={language}/>}
+            </div>
+          ):null}
+          {!isFullscreen&&activeTool==='resources'?(
+            <div className="adv-panel-overlay" role="region" aria-label={t(language,'Thư viện nghiên cứu','Research library')}>
+              <button type="button" className="adv-panel-close" onClick={()=>setActiveTool(null)} aria-label={t(language,'Đóng thư viện','Close library')}><X size={14}/></button>
+              {asean?<AseanSources/>:<MuseumResourceHub stage={stage} language={language}/>}
+            </div>
+          ):null}
+          {!isFullscreen&&activeTool==='voice'?(
+            <div className="adv-panel-overlay" role="region" aria-label={t(language,'Giọng đọc','Voiceover')}>
+              <button type="button" className="adv-panel-close" onClick={()=>setActiveTool(null)} aria-label={t(language,'Đóng giọng đọc','Close voiceover')}><X size={14}/></button>
+              <MuseumVoiceover stage={stage} language={language} compact shareWithStudents={Boolean(session?.media?.voiceEnabled)} onShareToggle={readOnly?null:shareNarration}/>
+            </div>
+          ):null}
+          {!isFullscreen&&activeTool==='video'?(
+            <div className="adv-panel-overlay" role="region" aria-label={t(language,'Video Lab','Video Lab')}>
+              <button type="button" className="adv-panel-close" onClick={()=>setActiveTool(null)} aria-label={t(language,'Đóng Video Lab','Close Video Lab')}><X size={14}/></button>
+              <MuseumVideoLab mode="teacher" readOnly={readOnly} stage={stage} stageIndex={currentIndex} media={session?.media} assignmentId={assignmentId} version={session?.version} language={language} transport={transport}/>
+            </div>
+          ):null}
+          </div>}
+          {!isFullscreen&&canManageLesson&&session.p2Enabled&&!slideOnly?<details className="p2-workbook-section"
+            onToggle={event=>setWorkbookOpen(event.currentTarget.open)}>
+            <summary>{t(language,'Sổ phiếu P2 và đánh giá lớp','P2 worksheets and classroom assessment')}</summary>
+            {workbookOpen?<div className="p2-controls">
+              {!readOnly?<p>{t(language,'Thu nhật ký D2 sau một tuần học rồi khóa hồ sơ.','Collect the D2 logs after one school week, then lock the lesson record.')}</p>:null}
+              {onNavigate?<button type="button" className="adv-toolbtn" onClick={()=>onNavigate('submissions')}>{t(language,'E2 · Chấm rubric bài nộp','E2 · Score group submissions')}</button>:null}
+            </div>:null}
+            {workbookOpen?<MuseumP2Workbook key={assignmentId} language={language} role="teacher" transport={transport}
+              assignmentId={assignmentId} groups={groups} readOnly={readOnly}/>:null}
+          </details>:null}
+          {!useToolHub&&<div className="content-gap" style={{marginTop:20}}/>}
+          {!slideOnly&&(!asean||!data?.publicReadOnly)?<CommandCenter groups={groups} responses={state?.responses||[]} feedback={state?.feedback||[]}
+            microResults={state?.microResults||[]} helpGroups={state?.helpGroups||[]}
+            session={session} busy={busy} onRefresh={refresh} onSpotlight={spotlightGroup} onCompare={compareGroup} language={language} asean={asean}/>:null}
+          {!slideOnly&&asean&&currentIndex===4&&displayedStageLoaded&&state?.retestProgress?.length>0&&
+            <AseanRetestProgress rows={state.retestProgress} language={language}/>}
+          {asean&&currentIndex===0&&displayedStageLoaded&&!data?.publicReadOnly&&<section className="bml-surface">
+            <h3>{t(language,'Kết quả trắc nghiệm Huế','Huế quiz results')}</h3>
+            <p>{state.hueQuizResults?.length??0}/{groups.length} {t(language,'nhóm đã nộp','groups submitted')}</p>
+            {state.hueQuizResults?.map(({group_id,details})=><details key={group_id}>
+              <summary>{groups.find(group=>group.id===group_id)?.label} · {details.score}/{ASEAN_HUE_QUESTIONS.length}</summary>
+              <ol lang="en">{details.answers.map((choice,i)=><li key={ASEAN_HUE_QUESTIONS[i].prompt}>
+                {ASEAN_HUE_QUESTIONS[i].options[choice]} · {choice===details.expected[i]?'Correct':'Incorrect'}
+              </li>)}</ol>
+            </details>)}
+          </section>}
+          {asean&&displayedResponses.length>0&&<AseanSubmissionBoard
+            key={assignmentId+'-'+currentIndex} language={language} stage={stage} stageIndex={currentIndex}
+            groups={groups} responses={displayedResponses} writingScores={writingScores}
+            canGrade={canManageLesson&&!readOnly}
+            onSaveGrade={async(groupId,marks)=>{
+             await transport('asean-writing-grade',{assignmentId,groupId,stageIndex:currentIndex,...marks});
+             await refresh();
+            }}/>}
+          {exitResponses.length?(
+            <>
+              <div className="content-gap"><div className="section-title"><span>{t(language,'PHẢN HỒI NHÓM ĐÃ LƯU','RECORDED GROUP REFLECTIONS')}</span><span className="right">{t(language,'Minh chứng chỉ đọc','Read-only evidence')}</span></div></div>
+              <div className="panel">
+                <div className="adv-reflection-list">
+                  {exitResponses.map((r,i)=>{
+                    const g=groups.find(x=>x.id===r.group_id);
+                    return <div className="adv-reflection-row" key={r.id||i}><strong>{englishSystemGroupLabel(g?.label||t(language,'Nhóm','Group'))}</strong><span>{typeof r.value==='string'?r.value:JSON.stringify(r.value)}</span></div>;
+                  })}
+                </div>
+              </div>
+            </>
+          ):null}
+  </>):null;
   // Fullscreen is rendered inside the fullscreen element; every viewer tool
   // remains usable without opening an API write path for completed lessons.
   const fullscreenPanel=isFullscreen&&activeTool?(
@@ -410,102 +510,10 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
                <ul lang="en">{selectedDraft.missing.map(item=><li key={item}>{item}</li>)}</ul>
               </details>}
              </div>:null}
+            toolHub={useToolHub&&!isFullscreen?toolbar:null} workspaceContent={useToolHub?workspaceContent:null}
             fullscreenControls={toolbar} fullscreenPanel={fullscreenPanel}/>
-          <div className="adv-live-dock">
-            {!isFullscreen?toolbar:null}
-          </div>
-          {!asean&&currentIndex===2&&!state?.survey&&!readOnly?(
-            <div className="adv-panel-overlay" role="region" aria-label={t(language,'Chốt khảo sát','Freeze survey')}>
-              <button type="button" className="adv-toolbtn" onClick={()=>setPaper(v=>!v)} aria-pressed={paper}>{paper?t(language,'Ẩn kiểm phiếu giấy','Hide paper tally'):t(language,'Nhập kiểm phiếu giấy','Enter paper tally')}</button>
-              {paper?(<div style={{marginTop:10,display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
-                {['','','',''].map((_,i)=><input key={i} inputMode="numeric" value={tally[i]} placeholder={t(language,'Số nhóm','Count')} onChange={e=>setTally(v=>v.map((x,j)=>j===i?e.target.value:x))} aria-label={t(language,'Số nhóm lựa chọn ','Groups choosing option ')+(i+1)} style={{padding:'6px 8px',border:'1px solid var(--adv-divider)'}}/>)}
-                <input value={tallyNote} placeholder={t(language,'Ghi chú (không bắt buộc)','Note (optional)')} onChange={e=>setTallyNote(e.target.value)} style={{gridColumn:'1 / -1',padding:'6px 8px',border:'1px solid var(--adv-divider)'}}/>
-                <button type="button" className="adv-toolbtn adv-toolbtn--primary" style={{gridColumn:'1 / -1'}} disabled={busy} onClick={freeze}>{t(language,'Chốt khảo sát','Freeze survey')}</button>
-              </div>):(<button type="button" className="adv-toolbtn adv-toolbtn--primary" style={{marginLeft:8}} disabled={busy} onClick={freeze}>{t(language,'Chốt khảo sát trực tuyến','Freeze online survey')}</button>)}
-            </div>
-          ):null}
-          {!isFullscreen&&activeTool==='qr'?(
-            <div className="adv-panel-overlay" role="region" aria-label={t(language,'Mã QR vào lớp','Class join QR')}>
-              <button type="button" className="adv-panel-close" onClick={()=>setActiveTool(null)} aria-label={t(language,'Đóng mã QR','Close QR')}><X size={14}/></button>
-              <h3 style={{marginTop:0}}>{t(language,'Học sinh quét mã QR để vào','Students scan to join')}</h3>
-              {qr?<><img className="adv-qr-img" src={qr} alt={t(language,'Mã QR vào bài học','Lesson join QR code')}/>
-                <div style={{marginTop:10,display:'flex',gap:8,flexWrap:'wrap'}}>
-                  <button type="button" className="adv-toolbtn" onClick={()=>window.print()}><Printer size={14}/>{t(language,'In mã QR','Print QR')}</button>
-                  <button type="button" className="adv-toolbtn" onClick={async()=>{try{await navigator.clipboard.writeText(lessonLink);}catch{window.prompt(t(language,'Liên kết vào lớp','Class join link'),lessonLink);}}}>{t(language,'Sao chép liên kết','Copy link')}</button>
-                </div></>:<p>{t(language,'Đang tạo mã QR…','Generating QR…')}</p>}
-            </div>
-          ):null}
-          {!isFullscreen&&activeTool==='notes'?(
-            <div className="adv-panel-overlay" role="region" aria-label={t(language,'Ghi chú dạy','Teaching notes')}>
-              <button type="button" className="adv-panel-close" onClick={()=>setActiveTool(null)} aria-label={t(language,'Đóng ghi chú','Close notes')}><X size={14}/></button>
-              {asean?<AseanTeachingNotes stage={stage} language={language} uploadsEnabled={data?.creatorSettings?.upload_enabled}/>:<LessonResources stageIndex={currentIndex} teacher language={language}/>}
-            </div>
-          ):null}
-          {!isFullscreen&&activeTool==='resources'?(
-            <div className="adv-panel-overlay" role="region" aria-label={t(language,'Thư viện nghiên cứu','Research library')}>
-              <button type="button" className="adv-panel-close" onClick={()=>setActiveTool(null)} aria-label={t(language,'Đóng thư viện','Close library')}><X size={14}/></button>
-              {asean?<AseanSources/>:<MuseumResourceHub stage={stage} language={language}/>}
-            </div>
-          ):null}
-          {!isFullscreen&&activeTool==='voice'?(
-            <div className="adv-panel-overlay" role="region" aria-label={t(language,'Giọng đọc','Voiceover')}>
-              <button type="button" className="adv-panel-close" onClick={()=>setActiveTool(null)} aria-label={t(language,'Đóng giọng đọc','Close voiceover')}><X size={14}/></button>
-              <MuseumVoiceover stage={stage} language={language} compact shareWithStudents={Boolean(session?.media?.voiceEnabled)} onShareToggle={readOnly?null:shareNarration}/>
-            </div>
-          ):null}
-          {!isFullscreen&&activeTool==='video'?(
-            <div className="adv-panel-overlay" role="region" aria-label={t(language,'Video Lab','Video Lab')}>
-              <button type="button" className="adv-panel-close" onClick={()=>setActiveTool(null)} aria-label={t(language,'Đóng Video Lab','Close Video Lab')}><X size={14}/></button>
-              <MuseumVideoLab mode="teacher" readOnly={readOnly} stage={stage} stageIndex={currentIndex} media={session?.media} assignmentId={assignmentId} version={session?.version} language={language} transport={transport}/>
-            </div>
-          ):null}
-          {!isFullscreen&&canManageLesson&&session.p2Enabled&&!slideOnly?<details className="p2-workbook-section"
-            onToggle={event=>setWorkbookOpen(event.currentTarget.open)}>
-            <summary>{t(language,'Sổ phiếu P2 và đánh giá lớp','P2 worksheets and classroom assessment')}</summary>
-            {workbookOpen?<div className="p2-controls">
-              {!readOnly?<p>{t(language,'Thu nhật ký D2 sau một tuần học rồi khóa hồ sơ.','Collect the D2 logs after one school week, then lock the lesson record.')}</p>:null}
-              {onNavigate?<button type="button" className="adv-toolbtn" onClick={()=>onNavigate('submissions')}>{t(language,'E2 · Chấm rubric bài nộp','E2 · Score group submissions')}</button>:null}
-            </div>:null}
-            {workbookOpen?<MuseumP2Workbook key={assignmentId} language={language} role="teacher" transport={transport}
-              assignmentId={assignmentId} groups={groups} readOnly={readOnly}/>:null}
-          </details>:null}
-          <div className="content-gap" style={{marginTop:20}}/>
-          {!slideOnly&&(!asean||!data?.publicReadOnly)?<CommandCenter groups={groups} responses={state?.responses||[]} feedback={state?.feedback||[]}
-            microResults={state?.microResults||[]} helpGroups={state?.helpGroups||[]}
-            session={session} busy={busy} onRefresh={refresh} onSpotlight={spotlightGroup} onCompare={compareGroup} language={language} asean={asean}/>:null}
-          {!slideOnly&&asean&&currentIndex===4&&displayedStageLoaded&&state?.retestProgress?.length>0&&
-            <AseanRetestProgress rows={state.retestProgress} language={language}/>}
-          {asean&&currentIndex===0&&displayedStageLoaded&&!data?.publicReadOnly&&<section className="bml-surface">
-            <h3>{t(language,'Kết quả trắc nghiệm Huế','Huế quiz results')}</h3>
-            <p>{state.hueQuizResults?.length??0}/{groups.length} {t(language,'nhóm đã nộp','groups submitted')}</p>
-            {state.hueQuizResults?.map(({group_id,details})=><details key={group_id}>
-              <summary>{groups.find(group=>group.id===group_id)?.label} · {details.score}/{ASEAN_HUE_QUESTIONS.length}</summary>
-              <ol lang="en">{details.answers.map((choice,i)=><li key={ASEAN_HUE_QUESTIONS[i].prompt}>
-                {ASEAN_HUE_QUESTIONS[i].options[choice]} · {choice===details.expected[i]?'Correct':'Incorrect'}
-              </li>)}</ol>
-            </details>)}
-          </section>}
-          {asean&&displayedResponses.length>0&&<AseanSubmissionBoard
-            key={assignmentId+'-'+currentIndex} language={language} stage={stage} stageIndex={currentIndex}
-            groups={groups} responses={displayedResponses} writingScores={writingScores}
-            canGrade={canManageLesson&&!readOnly}
-            onSaveGrade={async(groupId,marks)=>{
-             await transport('asean-writing-grade',{assignmentId,groupId,stageIndex:currentIndex,...marks});
-             await refresh();
-            }}/>}
-          {exitResponses.length?(
-            <>
-              <div className="content-gap"><div className="section-title"><span>{t(language,'PHẢN HỒI NHÓM ĐÃ LƯU','RECORDED GROUP REFLECTIONS')}</span><span className="right">{t(language,'Minh chứng chỉ đọc','Read-only evidence')}</span></div></div>
-              <div className="panel">
-                <div className="adv-reflection-list">
-                  {exitResponses.map((r,i)=>{
-                    const g=groups.find(x=>x.id===r.group_id);
-                    return <div className="adv-reflection-row" key={r.id||i}><strong>{englishSystemGroupLabel(g?.label||t(language,'Nhóm','Group'))}</strong><span>{typeof r.value==='string'?r.value:JSON.stringify(r.value)}</span></div>;
-                  })}
-                </div>
-              </div>
-            </>
-          ):null}
+          {!useToolHub&&!isFullscreen&&<div className="adv-live-dock">{toolbar}</div>}
+          {!useToolHub&&workspaceContent}
         </>
       ):null}
       {onBack?<button type="button" className="adv-toolbtn" style={{marginTop:16}} onClick={onBack}><ArrowLeft size={14}/>{t(language,'Quay lại','Back')}</button>:null}

@@ -444,3 +444,158 @@
   color: var(--paper-ink);
 }
 html:has(.adv-stage--asean.is-presenting) { overflow: hidden; }
+
+.igv2 .adv-stage.adv-stage--paper.adv-stage--with-hub {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(238px, 26%);
+  grid-template-rows: auto auto auto 1fr;
+}
+.adv-stage--with-hub > .adv-slide-scroll > :is(.adv-live-mast, .adv-live-meta) {
+  grid-column: 1 / -1;
+}
+.adv-stage--with-hub > .adv-slide-scroll > .adv-stage-body {
+  grid-column: 1;
+  grid-row: 3;
+  min-width: 0;
+}
+.adv-stage--with-hub > .adv-live-evidence {
+  grid-column: 1;
+  grid-row: 4;
+  min-width: 0;
+}
+.adv-live-evidence > :is(div:has(> .adv-panel-overlay), details, section:not(.asean-submission-board)) {
+  min-width: 0;
+}
+.adv-live-hub {
+  grid-column: 2;
+  grid-row: 3 / 5;
+  min-width: 0;
+  padding: 18px clamp(12px, 1.5vw, 22px);
+  border-inline-start: 1px solid var(--paper-ink);
+}
+.adv-live-hub > h2 {
+  margin: 0 0 12px;
+  font-size: clamp(24px, 2.4vw, 36px);
+  line-height: 1.05;
+  letter-spacing: -.045em;
+}
+.adv-hub-status {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 7px 10px;
+  border: 1px solid var(--paper-ink);
+  font-variant-numeric: tabular-nums;
+}
+.igv2 .adv-stage.adv-stage--paper .adv-hub-status .adv-live-status {
+  font-size: 12px;
+  letter-spacing: .03em;
+}
+.adv-hub-section {
+  margin-top: 20px;
+}
+.adv-hub-section > h3 {
+  position: relative;
+  margin: 0 0 8px;
+  padding-block-end: 6px;
+  border-block-end: 1px solid var(--paper-ink);
+  font-size: 17px;
+  line-height: 1.15;
+  letter-spacing: -.025em;
+}
+.adv-hub-section--presentation > h3 {
+  font-size: 23px;
+}
+.adv-hub-section--presentation > h3::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  inset-inline-start: 0;
+  width: 40px;
+  height: 3px;
+  background: #c81223;
+}
+.adv-hub-buttons {
+  display: grid;
+  gap: 6px;
+}
+.igv2[data-testid="igv2-teacher-live-screen"] .adv-live-hub .adv-hub-buttons > .adv-toolbtn {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 9px;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 7px 9px;
+  border-width: 1px;
+  text-align: start;
+  white-space: normal;
+  line-height: 1.2;
+  box-shadow: none;
+}
+.adv-hub-buttons > .adv-toolbtn svg {
+  flex: none;
+}
+.igv2[data-testid="igv2-teacher-live-screen"] .adv-live-hub .adv-hub-buttons > .adv-toolbtn:disabled {
+  opacity: 1;
+  color: #68645d;
+  background: #f0ede6;
+  border-color: #c8c4ba;
+}
+.igv2[data-testid="igv2-teacher-live-screen"] .adv-live-hub .adv-hub-buttons > .adv-toolbtn[aria-pressed="true"]:not(:has(.adv-hub-state)) {
+  border-color: #a40f1a;
+  color: #a40f1a;
+  background: #fff4f3;
+}
+.igv2[data-testid="igv2-teacher-live-screen"] .adv-hub-section--presentation .adv-hub-buttons {
+  gap: 0;
+}
+.igv2[data-testid="igv2-teacher-live-screen"] .adv-hub-section--presentation .adv-hub-buttons > .adv-toolbtn {
+  font-size: 16px;
+  font-weight: 800;
+  min-height: 48px;
+}
+.igv2[data-testid="igv2-teacher-live-screen"] .adv-hub-section--presentation .adv-hub-buttons > .adv-toolbtn + .adv-toolbtn {
+  margin-block-start: -1px;
+}
+.adv-hub-buttons .adv-toolbtn:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid #a40f1a;
+  outline-offset: 2px;
+}
+.adv-hub-state {
+  margin-inline-start: auto;
+  padding: 4px 6px;
+  color: var(--paper-ink);
+  background: #eeeae1;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+}
+.adv-hub-state[data-on="true"] {
+  color: #fff;
+  background: #b51121;
+}
+@media (min-width: 1080px) {
+  .adv-hub-section--session .adv-hub-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 850px) {
+  .igv2 .adv-stage.adv-stage--paper.adv-stage--with-hub {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+  }
+  .adv-stage--with-hub > .adv-slide-scroll > .adv-stage-body,
+  .adv-stage--with-hub > .adv-live-evidence,
+  .adv-stage--with-hub > .adv-live-hub {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .adv-live-hub {
+    border-inline-start: 0;
+    border-block: 1px solid var(--paper-ink);
+  }
+}
