@@ -1,0 +1,40 @@
+/* TTCM assignment event. Isolated scrapbook layer, no changes to official events. */
+.bes-assignment-event-layer { position: fixed; inset: 0; z-index: 19920; display: grid; place-items: center; padding: 20px; font-family: inherit; }
+.bes-assignment-event-scrim { position: absolute; inset: 0; background: rgba(15,31,57,.52); backdrop-filter: blur(6px); }
+.bes-assignment-event-card { position: relative; width: min(640px,100%); max-height: min(90dvh,780px); display:flex; flex-direction:column; overflow:hidden; border: 1px solid #d9c5ab; border-radius: 25px; color:#18345a; background: #fffaf0; box-shadow: 0 28px 80px rgba(11,26,52,.3), 0 2px 0 #fff inset; animation: bes-assignment-event-enter .28s cubic-bezier(.2,.8,.2,1) both; }
+.bes-assignment-event-card::before { content:''; position:absolute; inset:0; pointer-events:none; background:repeating-linear-gradient(0deg,transparent 0 18px,rgba(173,141,90,.025) 19px 20px); }
+.bes-assignment-event-head { position:relative; display:flex; justify-content:space-between; align-items:flex-start; gap:16px; padding:26px 27px 22px; background:linear-gradient(135deg,#fff9ed,#eff4ff 80%); border-bottom:2px dashed #e0c9b1; }
+.bes-assignment-event-heading { display:flex; align-items:flex-start; gap:16px; min-width:0; }
+.bes-assignment-event-bell { flex:none; display:grid; place-items:center; width:52px; height:52px; border-radius:17px; color:#fff; background:#2364be; box-shadow:0 5px 0 #b9d3f5; transform:rotate(-5deg); }
+.bes-assignment-event-overline { display:block; letter-spacing:.14em; font-size:11px; font-weight:800; color:#6b81a0; margin:0 0 7px; }
+.bes-assignment-event-head h2 { font-size:clamp(21px,2.4vw,27px); line-height:1.18; font-weight:800; color:#17365f; margin:0 0 7px; }
+.bes-assignment-event-head p { margin:0; font-size:14px; color:#5b6d88; line-height:1.48; }
+.bes-assignment-event-close { flex:none; display:grid; place-items:center; width:36px; height:36px; background:#fffaf5; border:1px solid #d5c4b4; border-radius:12px; color:#435c7e; cursor:pointer; }
+.bes-assignment-event-close:hover { background:#f6e8dd; }
+.bes-assignment-event-body { position:relative; overflow:auto; padding:24px 27px 14px; min-height:0; }
+.bes-assignment-event-ticket { background:#fff; border:1px solid #e6d8c7; border-radius:17px; padding:22px 23px; box-shadow:0 5px 20px rgba(95,70,38,.055); }
+.bes-assignment-event-ticket-top { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.bes-assignment-event-chip { display:inline-flex; align-items:center; gap:7px; color:#245ca9; font-size:12px; font-weight:800; background:#eaf3ff; padding:7px 11px; border-radius:999px; }
+.bes-assignment-event-count { font-size:12px; color:#77859a; }
+.bes-assignment-event-ticket h3 { font-size:clamp(19px,2.1vw,23px); line-height:1.35; margin:16px 0 11px; overflow-wrap:anywhere; color:#183b6b; }
+.bes-assignment-event-description { color:#445d79; font-size:14px; line-height:1.65; white-space:pre-wrap; overflow-wrap:anywhere; margin:0 0 18px; max-height:180px; overflow:auto; }
+.bes-assignment-event-due { display:flex; align-items:center; gap:12px; padding:12px 14px; background:#f0f6ff; border:1px solid #deebff; border-radius:12px; }
+.bes-assignment-event-due svg { flex:none; color:#3069bd; }
+.bes-assignment-event-due span { display:grid; gap:2px; min-width:0; }
+.bes-assignment-event-due small { font-size:11px; color:#637b9a; }
+.bes-assignment-event-due strong { font-size:14px; color:#193b69; overflow-wrap:anywhere; }
+.bes-assignment-event-due.is-late { background:#fff1ed; border-color:#ffc9bd; }
+.bes-assignment-event-due.is-late svg { color:#bb4032; }
+.bes-assignment-event-due b { margin-left:auto; font-size:11px; color:#a33d2f; white-space:nowrap; }
+.bes-assignment-event-hint { display:flex; align-items:center; gap:8px; color:#687b94; font-size:12px; margin:14px 2px 0; }
+.bes-assignment-event-error { color:#aa302b; font-size:13px; font-weight:700; }
+.bes-assignment-event-actions { display:flex; justify-content:flex-end; gap:10px; padding:18px 27px 23px; background:#fffaf0; border-top:1px dashed #e3d1bc; }
+.bes-assignment-event-actions button { display:inline-flex; align-items:center; justify-content:center; gap:8px; border-radius:12px; border:1px solid #d4c5b4; padding:11px 16px; min-height:42px; font-family:inherit; font-size:13px; font-weight:800; cursor:pointer; }
+.bes-assignment-event-actions button:disabled,.bes-assignment-event-close:disabled { opacity:.55; cursor:wait; }
+.bes-assignment-event-later { background:#fff; color:#516782; }
+.bes-assignment-event-confirm { background:#eaf2ff; border-color:#bcd3f4!important; color:#235699; }
+.bes-assignment-event-open { background:#1964c8; border-color:#1964c8!important; color:white; box-shadow:0 4px 0 #bed6f5; }
+.bes-assignment-event-open:hover:not(:disabled) { background:#1255b2; }
+@keyframes bes-assignment-event-enter { from { opacity:0; transform:translateY(18px) scale(.975); } to { opacity:1; transform:translateY(0) scale(1); } }
+@media(max-width:580px) { .bes-assignment-event-layer { padding:12px; } .bes-assignment-event-card { max-height:90dvh; border-radius:18px; } .bes-assignment-event-head { padding:20px 16px 17px; } .bes-assignment-event-heading { gap:10px; } .bes-assignment-event-bell { width:40px; height:40px; border-radius:12px; } .bes-assignment-event-head h2 { font-size:20px; } .bes-assignment-event-body { padding:16px 15px 10px; } .bes-assignment-event-ticket { padding:16px; } .bes-assignment-event-actions { padding:13px 15px 17px; flex-wrap:wrap; } .bes-assignment-event-open { flex:1 1 100%; order:-1; } .bes-assignment-event-later,.bes-assignment-event-confirm { flex:1; } }
+@media(prefers-reduced-motion: reduce) { .bes-assignment-event-card { animation:none; } }

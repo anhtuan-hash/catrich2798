@@ -217,6 +217,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const rootRef = useRef(null);
+  const pendingOpenItemRef = useRef('');
 
   const systemRole = normalizeSystemRole(currentUser?.role, SYSTEM_ROLES.GUEST);
   const allowed = Boolean(currentUser && [SYSTEM_ROLES.ADMIN, SYSTEM_ROLES.DEPARTMENT_HEAD, SYSTEM_ROLES.TEACHER].includes(systemRole));
@@ -264,14 +265,22 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   useEffect(() => {
     const openTtcm = (event) => {
       const requestedView = event?.detail?.view;
+      const requestedItemId = String(event?.detail?.itemId || '');
       const nextView = ['schedule', 'personnel', 'history'].includes(requestedView) ? requestedView : 'feed';
-      setWorkspaceView(nextView); setFilter(manager ? 'all' : 'unread'); setSelectedItemId('');
+      pendingOpenItemRef.current = requestedItemId;
+      setWorkspaceView(nextView); setFilter(requestedItemId ? 'all' : (manager ? 'all' : 'unread'));
+      setSelectedItemId(requestedItemId);
       setOpen(true); setComposeOpen(false); setError('');
     };
     window.addEventListener('bes-ttcm-open', openTtcm);
     try {
       const pending = window.sessionStorage.getItem('bes-ttcm-open-on-load');
-      if (pending) { window.sessionStorage.removeItem('bes-ttcm-open-on-load'); window.setTimeout(() => openTtcm({ detail: { view: pending } }), 0); }
+      if (pending) {
+        window.sessionStorage.removeItem('bes-ttcm-open-on-load');
+        let detail;
+        try { detail = JSON.parse(pending); } catch { detail = { view: pending }; }
+        window.setTimeout(() => openTtcm({ detail: typeof detail === 'object' && detail ? detail : { view: pending } }), 0);
+      }
     } catch { /* optional */ }
     return () => window.removeEventListener('bes-ttcm-open', openTtcm);
   }, [manager]);
@@ -479,8 +488,27 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
     return Array.isArray(editingItem?.attachments) ? editingItem.attachments : [];
   }, [editingId, items]);
 
+  // A notification can open TTCM before its Realtime feed has finished loading.
+  // Preserve the deep-linked item until it arrives, then select and mark it read.
   useEffect(() => {
-    if (selectedItemId && !filteredItems.some((item) => String(item.id) === String(selectedItemId))) setSelectedItemId('');
+    const itemId = pendingOpenItemRef.current;
+    if (!itemId || !items.some((item) => String(item.id) === itemId)) return;
+    pendingOpenItemRef.current = '';
+    setWorkspaceView('feed');
+    setFilter('all');
+    setSelectedItemId(itemId);
+    setReadIds((current) => {
+      if (current.has(itemId)) return current;
+      const next = new Set(current);
+      next.add(itemId);
+      writeReadIds(currentUser, next);
+      return next;
+    });
+  }, [items, currentUser?.id]);
+
+  useEffect(() => {
+    if (selectedItemId && pendingOpenItemRef.current !== String(selectedItemId)
+      && !filteredItems.some((item) => String(item.id) === String(selectedItemId))) setSelectedItemId('');
   }, [filteredItems, selectedItemId]);
 
   function responsesForItem(itemId) { return responses.filter((entry) => String(entry.item_id) === String(itemId)); }
