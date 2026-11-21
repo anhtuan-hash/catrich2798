@@ -19,9 +19,10 @@ const NOTES={
  rejected:{label:'Đã từ chối',kind:'red'}
 };
 
-function PublishedSubmissionExhibition({id,transport,language,onOpen3D}){
+function PublishedSubmissionExhibition({id,transport,language}){
  const [result,setResult]=useState(null);
  const [attempt,setAttempt]=useState(0);
+ const [previewTrigger,setPreviewTrigger]=useState(null);
  useEffect(()=>{
   let active=true;
   transport('showcase-exhibition',{id}).then(({gallery})=>{
@@ -32,7 +33,13 @@ function PublishedSubmissionExhibition({id,transport,language,onOpen3D}){
  },[id,transport,attempt]);
  return <section className="swiss-editorial-review-exhibition" data-testid="museum-submission-exhibition"
   aria-label={tr(language,'Triển lãm của nhóm','Group exhibition')}>
-  {result?.gallery?<MuseumScene gallery={result.gallery} language={language} embedded cinema startIn2D onOpen3D={onOpen3D}/>:
+  {result?.gallery?<>
+   <MuseumScene gallery={result.gallery} language={language} embedded cinema startIn2D onOpen3D={setPreviewTrigger}/>
+   {previewTrigger?<MuseumExhibitionDetail gallery={result.gallery} language={language} startInCinema onBack={()=>{
+    setPreviewTrigger(null);
+    window.requestAnimationFrame(()=>previewTrigger.focus({preventScroll:true}));
+   }}/>:null}
+  </>:
    <div className="swiss-editorial-review-exhibition-status" role="status">
     {result?.failed?<>{tr(language,'Chưa tải được triển lãm của nhóm.','Could not load the group exhibition.')}
      <button type="button" className="bml-outline" onClick={()=>{setResult(null);setAttempt(value=>value+1);}}>{tr(language,'Thử lại','Retry')}</button>
@@ -296,7 +303,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
      </div>
     </div>
     {inlineExhibition?<PublishedSubmissionExhibition key={publishedRoomId} id={publishedRoomId}
-     transport={transport} language={language} onOpen3D={openPreview}/>:null}
+     transport={transport} language={language}/>:null}
     <div className="bml-review-detail-layout">
      <div className="bml-review-preview">
       <div className="bml-review-preview-head"><h3>{tr(language,'Sản phẩm học sinh','Student exhibition')}</h3>

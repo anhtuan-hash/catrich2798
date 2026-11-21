@@ -16,7 +16,9 @@ import {isAsean} from './aseanLesson.js';
 import {PEK_GALLERY_WALL_INSCRIPTIONS} from '../pekMuseumMotto.js';
 import {buildCollectionHall} from '../swissCollectionLayout.js';
 import './museumEditorial3D.css';
-const GalleryCanvas=lazy(()=>import('../GalleryCanvasR3F.jsx'));
+const loadGalleryCanvas=()=>import('../GalleryCanvasR3F.jsx');
+const GalleryCanvas=lazy(loadGalleryCanvas);
+const preloadGalleryCanvas=()=>{loadGalleryCanvas().catch(()=>{});};
 const Exhibit360Viewer=lazy(()=>import('./Exhibit360Viewer.jsx'));
 const clean=(x,n=180)=>String(x??'').slice(0,n);
 const numberLabel=n=>String(n).padStart(2,'0');
@@ -292,6 +294,7 @@ export default function MuseumScene({gallery,onBack,onClose,language='vi',embedd
     <button type="button" className={!threeD?'is-active':''} aria-pressed={!threeD}
      onClick={changeTo2D}><LayoutGrid size={17}/>2D</button>
     <button type="button" className={threeD?'is-active':''} aria-pressed={threeD}
+     onPointerEnter={inline?preloadGalleryCanvas:undefined} onFocus={inline?preloadGalleryCanvas:undefined}
      onClick={inline?open3D:changeTo3D}><Box size={17}/>3D</button>
    </div>
    <button type="button" ref={infoTriggerRef} aria-label="Museum information" aria-expanded={infoOpen}
