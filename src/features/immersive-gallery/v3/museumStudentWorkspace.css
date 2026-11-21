@@ -616,16 +616,6 @@
  padding: 20px;
 }
 .bml .bml-public-workshop-status a { display: inline-block; margin: 8px; }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace[data-public-workshop] {
- position: relative !important;
- width: min(100%, 760px);
- height: auto !important;
- max-height: none !important;
- min-height: 100svh;
- margin-inline: auto;
- grid-template-rows: auto auto;
- overflow: visible !important;
-}
 .bml.bml-student-dual-workspace[data-public-workshop] .bml-public-dossier-link {
  display: inline-flex;
  align-items: center;
@@ -636,23 +626,31 @@
  font-weight: 750;
  text-decoration: none;
 }
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace[data-public-workshop] [data-banner-expanded] .bml-student-focus {
- grid-template-columns: minmax(0, 1fr) !important;
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace[data-public-workshop] :is(.bml-student-content,.bml-student-workbench) {
- height: auto;
- max-height: none;
- overflow: visible;
- grid-template: auto / minmax(0, 1fr);
-}
-.bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace[data-public-workshop] :is(
- .bml-student-lesson-panel > .bml-student-lesson-scroll,.bml-student-project-pane,.bml-student-stage,
- .bml-student-task.bml-surface,.bml-student-task-scroll
-) {
- flex: 1 0 auto;
- height: auto;
- max-height: none;
- overflow: visible;
+/* Let published workshops scroll as a page when both panes cannot fit vertically. */
+@media (max-width: 999px), (max-height: 550px) {
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace[data-public-workshop] {
+  position: relative !important;
+  height: auto !important;
+  max-height: none !important;
+  min-height: 100svh !important;
+  grid-template-rows: auto auto;
+  overflow: visible !important;
+ }
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace[data-public-workshop] :is(.bml-student-content,.bml-student-workbench) {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  grid-template-rows: auto;
+ }
+ .bml.bml-student-canvas16.bml-student-editorial.bml-student-dual-workspace[data-public-workshop] :is(
+  .bml-student-lesson-panel > .bml-student-lesson-scroll,.bml-student-project-pane,.bml-student-stage,
+  .bml-student-task.bml-surface,.bml-student-task-scroll
+ ) {
+  flex: 1 0 auto;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+ }
 }
 .bml[data-public-workshop] :is(fieldset:disabled, input:disabled, select:disabled, textarea:disabled) {
  opacity: 1;

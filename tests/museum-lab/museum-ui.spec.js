@@ -1870,6 +1870,38 @@ test('student workshop expands both panels when an activity starts and can reope
  await expect(ribbon).toBeHidden();
 });
 
+test('published ASEAN student workshop uses two panes on desktop and stacks on mobile',async({page,isMobile})=>{
+ const groupId='00000000-0000-4000-8000-000000000123';
+ await page.route('**/api/gallery-staff?operation=public-group-workshop&**',route=>{
+  expect(route.request().method()).toBe('GET');
+  return route.fulfill({json:{
+   groupLabel:'Group 02',version:1,assets:[],draft:{title:'Tràng An'},
+   assignment:{id:'qa-public-asean',title:'ASEAN in Three Frames',class_scope:'11.3',lesson_template:'asean-in-three-frames'},
+   records:{rows:[],checkpoints:[]},
+  }});
+ });
+ await page.evaluate(id=>{window.location.hash='#/gallery-create?viewGroup='+id+'&lang=en';},groupId);
+ await page.getByTestId('qa-student-en').click();
+ const workshop=page.getByTestId('asean-student-lesson');
+ await expect(workshop).toHaveAttribute('data-public-workshop','true');
+ await expect(workshop.getByText('Lesson complete · View only')).toBeVisible();
+ const layout=await workshop.evaluate(el=>{
+  const lesson=el.querySelector('.bml-student-lesson-panel').getBoundingClientRect();
+  const project=el.querySelector('.bml-student-project-panel').getBoundingClientRect();
+  return {lessonRight:lesson.right,lessonTop:lesson.top,lessonBottom:lesson.bottom,
+   projectLeft:project.left,projectTop:project.top,projectBottom:project.bottom,
+   viewportHeight:innerHeight,overflow:el.scrollWidth>el.clientWidth+1};
+ });
+ expect(layout.overflow).toBe(false);
+ if(isMobile){
+  expect(layout.projectTop).toBeGreaterThanOrEqual(layout.lessonBottom);
+ }else{
+  expect(layout.lessonRight).toBeLessThan(layout.projectLeft);
+  expect(layout.lessonTop).toBeCloseTo(layout.projectTop,0);
+  expect(layout.projectBottom).toBeLessThanOrEqual(layout.viewportHeight);
+ }
+});
+
 test('ASEAN student workshop renders all six editorial activities',async({page,isMobile},testInfo)=>{
  let stageIndex=2,readOnly=false;
  const writing={experience:'Visitors can walk along the path and look at the ancient brick towers.',
