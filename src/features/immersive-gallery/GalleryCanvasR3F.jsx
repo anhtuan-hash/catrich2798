@@ -10,6 +10,7 @@ import SwissEditorialHall,{SwissArtworkLabel} from './SwissEditorialHall.jsx';
 import SwissCollectionHall from './SwissCollectionHall.jsx';
 import {buildCollectionHall,collectionCameraView,collectionFurnishingAt,collectionHallPosition,collectionWorldPoint} from './swissCollectionLayout.js';
 import {GalleryFurniture,isEditorialFurnitureAt} from './SwissEditorialHallDetails.jsx';
+import {editorialRoomView} from './editorialRoomView.js';
 import MuseumExhibitFocusRig from './v3/MuseumExhibitFocusRig.jsx';
 import {FOCUS_IDLE,focusLayout,clampDelta,smoothstep} from './v3/museumExhibitFocusMotion.js';
 import './pekMuseum.css';
@@ -39,17 +40,18 @@ function cinemaPitch(count){
  return Math.min(2.95,8.4/Math.max(count||1,1));
 }
 function cinemaMount(aspect,count=3,editorial=false){
- const safe=Math.max(.55,Math.min(Number(aspect)||.78,1.85));
  const pitch=cinemaPitch(count);
- const maxW=editorial?Math.min(2.37,Math.max(.3,pitch-.46)):Math.min(2.2,Math.max(1.2,pitch-.5));
- const maxH=editorial?2.29:2.42;
+ if(editorial){
+  const width=Math.min(2.44,Math.max(.32,pitch-.35));
+  const border=Math.min(.17,width*.23);
+  return {image:[width-2*border,1.76],mat:[width-.072,2.00],outer:[width,2.08]};
+ }
+ const safe=Math.max(.55,Math.min(Number(aspect)||.78,1.85));
+ const maxW=Math.min(2.2,Math.max(1.2,pitch-.5));
+ const maxH=2.42;
  let imageW,imageH;
  if(safe>=1){imageW=maxW;imageH=imageW/safe;}
  else{imageH=maxH;imageW=Math.min(maxW,imageH*safe);imageH=imageW/safe;}
- if(editorial){
-  const mat=[imageW+.26,imageH+.26];
-  return {image:[imageW,imageH],mat,outer:[mat[0]+.12,mat[1]+.12]};
- }
  const mat=[imageW+.14,imageH+.14];
  const liner=[mat[0]+.1,mat[1]+.1];
  const gold=[liner[0]+.1,liner[1]+.1];
@@ -184,7 +186,7 @@ function PaperArtwork({exhibit,onSelect,isSelected,schoolEdition=false,cinemaEdi
  });
  return <group ref={ref} name={'BML_OriginalArtwork_'+index} userData={{originalArtwork:true,index}}
   position={position} rotation={transform.rotation} scale={transform.scale}
-  onClick={e=>{e.stopPropagation();if(focus.phase==='idle'){setHovered(false);onSelect?.(exhibit.id);}}}
+  onClick={e=>{e.stopPropagation();if(focus.phase==='idle'&&(!editorial||e.delta<=6)){setHovered(false);onSelect?.(exhibit.id);}}}
   onPointerOver={e=>{
    e.stopPropagation();
    if(focus.phase!=='idle')return;
@@ -274,10 +276,6 @@ function Walls({template,onTeleport,schoolEdition=false,cinemaEdition=false,lite
  </group>;
 }
 const MOVE_KEYS=new Set(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright','shift']);
-// Fit the whole artwork wall in the real content area, including the narrow mobile stage.
-function editorialRoomZ(aspect){
- return THREE.MathUtils.clamp(11.45/(2*Math.tan(THREE.MathUtils.degToRad(27.5))*aspect)-7.82,-1.7,7.9);
-}
 function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=false,cinemaEdition=false,editorial=false,hall,collectionIndex}) {
  const {camera,gl,invalidate,size}=useThree();
  const yaw=useRef(0),pitch=useRef(0),drag=useRef(null),tween=useRef(null),walking=useRef(false);
@@ -295,11 +293,6 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
   invalidate();
  },[camera,invalidate,schoolEdition,cinemaEdition,hall]);
  useEffect(()=>{
-  if(hall||!editorialAspect||paused||walking.current||viewPreset)return;
-  camera.position.set(0,1.95,editorialRoomZ(editorialAspect));
-  invalidate();
- },[camera,editorialAspect,invalidate,paused,viewPreset,hall]);
- useEffect(()=>{
   if(teleport?.length===2){
    tween.current=null;
    camera.position.set(teleport[0],hall?2.15:1.7,teleport[1]);
@@ -312,10 +305,23 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
  },[paused,held]);
  // Viewpoint transitions are camera movement, not CSS resizing.
  useEffect(()=>{
-  if(hall||!cinemaEdition||!viewPreset)return;
-  const overviewZ=editorialAspect?editorialRoomZ(editorialAspect):viewPreset.type==='room'?2.3:1.3;
-  const destination=viewPreset.type==='artwork'?
-   [viewPreset.x??0,1.95,editorial&&viewPreset.x==null?Math.max(-3.55,overviewZ-1.30):-3.56]:[0,1.96,overviewZ];
+  if(hall||!cinemaEdition)return;
+  if(editorial&&editorialAspect){
+   if(!viewPreset&&walking.current)return;
+    const {position,target,fov}=editorialRoomView(editorialAspect,viewPreset?.type);
+   if(viewPreset?.x!=null){position[0]=viewPreset.x;target[0]=viewPreset.x;}
+   const destination=new THREE.Vector3(...position);
+   const angle=new THREE.Quaternion().setFromRotationMatrix(
+    new THREE.Matrix4().lookAt(destination,new THREE.Vector3(...target),camera.up)
+   );
+   const reduce=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+   tween.current={from:camera.position.clone(),to:destination,fromAngle:camera.quaternion.clone(),toAngle:angle,
+    fromFov:camera.fov,toFov:fov,elapsed:0,duration:viewPreset&&!reduce?.66:0};
+   invalidate();
+   return;
+  }
+  if(!viewPreset)return;
+  const destination=viewPreset.type==='artwork'?[viewPreset.x??0,1.95,-3.56]:[0,1.96,2.3];
   const reduce=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   tween.current={from:camera.position.clone(),to:new THREE.Vector3(...destination),
    elapsed:0,duration:reduce?0:(viewPreset.type==='artwork'?.62:.82)};
@@ -342,12 +348,16 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
      if(MOVE_KEYS.has(key)&&!paused){walking.current=true;tween.current=null;held.current.add(key);invalidate();if(key.startsWith('arrow'))e.preventDefault();}
    };
    const keyUp=e=>{held.current.delete(String(e.key).toLowerCase());};
-   const down=e=>{if(e.button!==0||paused)return;drag.current=[e.clientX,e.clientY];canvas.setPointerCapture?.(e.pointerId);};
-   const move=e=>{if(!drag.current||paused)return;walking.current=true;tween.current=null;const [x,y]=drag.current;
+   const down=e=>{if(e.button!==0||paused)return;drag.current={x:e.clientX,y:e.clientY,moved:false};canvas.setPointerCapture?.(e.pointerId);};
+   const move=e=>{
+     if(!drag.current||paused)return;
+     const {x,y,moved}=drag.current;
+     if(editorial&&!moved&&Math.hypot(e.clientX-x,e.clientY-y)<=6)return;
+     walking.current=true;tween.current=null;
      yaw.current-=Math.max(-60,Math.min(60,e.clientX-x))*0.005;
      pitch.current=Math.max(-0.62,Math.min(0.62,pitch.current-(e.clientY-y)*0.003));
      camera.rotation.order='YXZ';camera.rotation.y=yaw.current;camera.rotation.x=pitch.current;
-     drag.current=[e.clientX,e.clientY];invalidate();
+     drag.current={x:e.clientX,y:e.clientY,moved:true};invalidate();
    };
    const up=()=>{drag.current=null;};
    const blur=()=>held.current.clear();
@@ -360,7 +370,7 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
    canvas.addEventListener('pointerup',up);
    canvas.addEventListener('pointercancel',up);
    return()=>{held.current.clear();document.body.style.cursor='';window.removeEventListener('keydown',keyDown);window.removeEventListener('keyup',keyUp);window.removeEventListener('blur',blur);window.removeEventListener('big-gallery-animate',wake);canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerup',up);canvas.removeEventListener('pointercancel',up);};
- },[gl,camera,invalidate,held,paused]);
+ },[gl,camera,invalidate,held,paused,editorial]);
  useFrame((_,delta)=>{
    if(paused)return;
    if(tween.current){
@@ -369,6 +379,7 @@ function CameraWalker({held,paused,onPosition,teleport,viewPreset,schoolEdition=
     const ratio=t.duration===0?1:Math.min(1,t.elapsed/t.duration);
     const ease=ratio*ratio*(3-2*ratio);
     camera.position.lerpVectors(t.from,t.to,ease);
+    if(t.toFov!=null){camera.fov=THREE.MathUtils.lerp(t.fromFov,t.toFov,ease);camera.updateProjectionMatrix();}
     if(t.toAngle){
      camera.quaternion.copy(t.fromAngle).slerp(t.toAngle,ease);
      camera.rotation.reorder('YXZ');
@@ -482,6 +493,16 @@ function CinemaEffectPump({active}){
  },[active,invalidate]);
  return null;
 }
+function WebGLContextGuard({onLost}){
+ const gl=useThree(state=>state.gl);
+ useEffect(()=>{
+  const lose=event=>{event.preventDefault();onLost();};
+  const canvas=gl.domElement;
+  canvas.addEventListener('webglcontextlost',lose);
+  return()=>canvas.removeEventListener('webglcontextlost',lose);
+ },[gl,onLost]);
+ return null;
+}
 function CameraResizeSync(){
  const {camera,gl,invalidate}=useThree();
  useEffect(()=>{
@@ -528,7 +549,7 @@ function Room({template,exhibits,onSelect,selectedId,onTeleport,schoolEdition=fa
   </group>):<>{renderArtwork(exhibits)}{focusRig}</>}
  </>;
 }
-export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelect,selectedId='',quality='auto',language='vi',schoolEdition=false,cinemaEdition=false,focus=FOCUS_IDLE,focusBoard,onFocusBack,onFocusStep,focusIndex=0,onFocusPhaseChange,editorial=false,roomNumber,roomTitle,onRoomGuide,roomGuideOpen=false,roomGuideLabel,editorialViewpoint,collections,collectionIndex=0,onCollectionGuide}) {
+export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelect,selectedId='',quality='auto',language='vi',schoolEdition=false,cinemaEdition=false,focus=FOCUS_IDLE,focusBoard,onFocusBack,onFocusStep,focusIndex=0,onFocusPhaseChange,editorial=false,roomNumber,roomTitle,onRoomGuide,roomGuideOpen=false,roomGuideLabel,editorialViewpoint,collections,collectionIndex=0,onCollectionGuide,onUse2D,onWebGLStatus}) {
  const held=useRef(new Set());
  const collectionCount=collections?.length??0;
  const hall=useMemo(()=>collectionCount>1?buildCollectionHall(collectionCount):null,[collectionCount]);
@@ -536,13 +557,20 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
  const startingZ=cinemaEdition?(narrow?2.2:1.3):schoolEdition?(narrow?2.5:-1.6):4.7;
  const [teleport,setTeleport]=useState(null),[viewPreset,setViewPreset]=useState(null),[pos,setPos]=useState([0,startingZ]),[supported,setSupported]=useState(null);
  useEffect(()=>{if(editorialViewpoint)setViewPreset(editorialViewpoint);},[editorialViewpoint]);
+ const [attempt,setAttempt]=useState(0);
  const mode=useLiteQuality(quality);
+ const reportContextLoss=useCallback(()=>setSupported(false),[]);
  useEffect(()=>{
    let ok=false;
-   try {const c=document.createElement('canvas');const ctx=c.getContext('webgl2')||c.getContext('webgl');ok=!!ctx;}
-   catch {ok=false;}
+   try {
+    const canvas=document.createElement('canvas');
+    const context=canvas.getContext('webgl2')||canvas.getContext('webgl');
+    ok=Boolean(context);
+    context?.getExtension('WEBGL_lose_context')?.loseContext();
+   }catch {ok=false;}
    setSupported(ok);
- },[]);
+ },[attempt]);
+ useEffect(()=>{onWebGLStatus?.(supported);},[supported,onWebGLStatus]);
  useEffect(()=>{held.current.clear();},[selectedId,template,focus.phase]);
  const onPosition=(x,z)=>{setPos([+x.toFixed(1),+z.toFixed(1)]);};
  const hold=(key,down)=>{if(down)held.current.add(key);else held.current.delete(key);window.dispatchEvent(new Event('big-gallery-animate'));};
@@ -557,15 +585,22 @@ export default function GalleryCanvasR3F({template='classic',exhibits=[],onSelec
  return <div className={'big-webgl-shell '+(schoolEdition?'big-pek-museum ':'')+(cinemaEdition?'big-pek-v4':'')} data-testid={schoolEdition?'pek-discovery-hall':undefined}
   data-gallery-layout={hall?'four-wall':undefined}
   aria-label={schoolEdition?(language==='en'?'Pétrus Ký-inspired Discovery Museum 3D':'Bảo tàng 3D lấy cảm hứng từ Trường Pétrus Ký'):undefined}>
-  {supported===false?<div role="alert" className="big-canvas-error">{language==='en'?'WebGL unavailable. Use the 2D exhibit list.':'Thiết bị không hỗ trợ WebGL. Hãy sử dụng danh sách hiện vật 2D.'}</div>:supported===null?<div className="big-canvas-loading">Preparing 3D exhibition…</div>:<Suspense fallback={<div className="big-canvas-loading">Loading original 3D art…</div>}>
+  {supported===false?<div className="big-canvas-error bml-room-webgl-recovery">
+   <p role="status">{language==='en'?'3D is unavailable on this device.':'Không thể hiển thị 3D trên thiết bị này.'}</p>
+   {onUse2D?<div>
+    <button type="button" onClick={onUse2D}>{language==='en'?'Continue in 2D':'Tiếp tục ở chế độ 2D'}</button>
+    <button type="button" onClick={()=>{setSupported(null);setAttempt(previous=>previous+1);}}>{language==='en'?'Retry 3D':'Thử lại 3D'}</button>
+   </div>:<p>{language==='en'?'Use the 2D exhibit list.':'Hãy sử dụng danh sách hiện vật 2D.'}</p>}
+  </div>:supported===null?<div className="big-canvas-loading">Preparing 3D exhibition…</div>:<Suspense fallback={<div className="big-canvas-loading">Loading original 3D art…</div>}>
    <Canvas camera={{position:[0,cinemaEdition?1.92:1.77,startingZ],fov:cinemaEdition?55:schoolEdition?59:61,near:0.08,far:hall?Math.max(55,Math.hypot(hall.halfWidth,hall.halfDepth)*2+10):55}} dpr={mode==='lite'?1:mode==='high'?[1,1.75]:[1,1.35]}
     frameloop="demand" gl={{antialias:mode!=='lite',powerPreference:'low-power',alpha:false}} onCreated={({gl})=>{
      gl.setClearColor(cinemaEdition?'#F7F4EC':'#f2f0e9');
      if(cinemaEdition){gl.toneMapping=THREE.ACESFilmicToneMapping;gl.toneMappingExposure=1.22;}
     }}>
     <CameraResizeSync/>
+    {editorial&&<WebGLContextGuard onLost={reportContextLoss}/>}
     {cinemaEdition?<MuseumFocusFramePump phase={focus.phase}/>:null}
-    {cinemaEdition&&!hall?<CinemaEffectPump active={focus.phase==='idle'}/>:null}
+    {cinemaEdition&&!hall&&!editorial?<CinemaEffectPump active={focus.phase==='idle'}/>:null}
     <Room template={template} exhibits={exhibits} onSelect={onSelect} selectedId={selectedId} onTeleport={onTeleport}
      focus={focus} focusBoard={focusBoard} onFocusBack={onFocusBack} onFocusStep={onFocusStep} focusIndex={focusIndex} language={language} onFocusPhaseChange={onFocusPhaseChange}
      schoolEdition={schoolEdition} cinemaEdition={cinemaEdition} editorial={editorial} roomNumber={roomNumber} roomTitle={roomTitle} onRoomGuide={onRoomGuide} roomGuideLabel={roomGuideLabel} lite={mode==='lite'} hall={hall} collections={collections} collectionIndex={collectionIndex} onCollectionGuide={onCollectionGuide}/>

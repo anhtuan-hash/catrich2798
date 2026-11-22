@@ -90,17 +90,17 @@
 .bml .bml-swiss-3d button:hover:not(:disabled):not(.is-active) { background: #1717140d; color: var(--museum-ink) }
 .bml .bml-swiss-3d .bml-cinema-mode-group button.is-active,
 .bml .bml-swiss-3d .bml-swiss-3d-rooms button.is-active,
-.bml .bml-swiss-3d .bml-swiss-3d-viewpoints button:first-child {
+.bml .bml-swiss-3d .bml-swiss-3d-viewpoints button.is-active {
  background: var(--museum-red);
  color: white;
 }
 .bml .bml-swiss-3d button:focus-visible { outline: 2px solid var(--museum-red); outline-offset: -3px }
 .bml .bml-swiss-3d .is-active:focus-visible,
-.bml .bml-swiss-3d .bml-swiss-3d-viewpoints button:first-child:focus-visible { outline-color: white }
+.bml .bml-swiss-3d .bml-swiss-3d-viewpoints button.is-active:focus-visible { outline-color: white }
 
 .bml .bml-museum-cinema.bml-swiss-3d > .bml-3d-stage.bml-cinema-stage {
  display: grid !important;
- grid-template-columns: clamp(170px, 13.5cqw, 248px) minmax(0, 1fr);
+ grid-template-columns: clamp(196px, 16.4cqw, 258px) minmax(0, 1fr);
  grid-template-rows: minmax(0, 1fr);
  height: auto !important;
  border-radius: 0 !important;
@@ -110,10 +110,10 @@
 .bml .bml-swiss-3d-index {
  display: flex;
  flex-direction: column;
- gap: clamp(12px, 2.6dvh, 26px);
+ gap: clamp(14px, 2.2dvh, 22px);
  min-width: 0;
  padding: clamp(16px, 3dvh, 30px) clamp(10px, 1.05cqw, 18px) clamp(12px, 2dvh, 22px);
- background: var(--museum-paper);
+ background: #f8f5ec;
  border-right: var(--museum-line);
  overflow: auto;
 }
@@ -141,12 +141,12 @@
 .bml .bml-swiss-3d-exhibits button {
  display: grid;
  width: 100%;
- grid-template-columns: 2ch minmax(0, 1fr);
- gap: 9px;
- align-items: baseline;
+ grid-template-columns: 2ch 34px minmax(0, 1fr);
+ gap: 8px;
+ align-items: center;
  text-align: left;
- padding: .70em 2px;
- font-size: clamp(13px, 1.1cqw, 17px);
+ padding: .57em 4px;
+ font-size: clamp(12px, 1.03cqw, 16px);
  overflow-wrap: anywhere;
 }
 .bml .bml-swiss-3d-rooms { margin-top: auto }
@@ -207,8 +207,8 @@
  border: var(--museum-line);
  padding: 4px clamp(8px, 1.5cqw, 24px);
 }
-.bml .bml-swiss-3d .bml-swiss-3d-viewpoints button:first-child { border-color: var(--museum-red) }
-.bml .bml-swiss-3d .bml-swiss-3d-viewpoints button:first-child:hover:not(:disabled) { background: #a82118; color: white }
+.bml .bml-swiss-3d .bml-swiss-3d-viewpoints button.is-active { border-color: var(--museum-red) }
+.bml .bml-swiss-3d .bml-swiss-3d-viewpoints button.is-active:hover:not(:disabled) { background: #a82118; color: white }
 .bml .bml-swiss-3d .bml-cinema-room-counter {
  margin: 0 12px;
  font: 800 clamp(12px, 1.3cqw, 21px)/1.15 var(--museum-type);
@@ -340,4 +340,143 @@
   padding: 9px 10px;
  }
  .bml .bml-swiss-3d .bml-v5-plaque-copy .bml-v5-back { padding-inline: 8px; font-size: 11px }
+}
+
+.bml .bml-swiss-3d {
+ --museum-pine: #274337;
+ --museum-muted-ink: #575247;
+}
+.bml .bml-swiss-3d-room-title p {
+ color: var(--museum-pine);
+ letter-spacing: .07em;
+}
+.bml .bml-room-visit {
+ display: grid;
+ gap: 10px;
+}
+.bml .bml-room-visit-progress {
+ display: grid;
+ grid-template-columns: auto minmax(18px,1fr) auto;
+ align-items: center;
+ gap: 8px;
+ color: var(--museum-muted-ink);
+ font: 700 11px/1.15 var(--museum-type);
+ font-variant-numeric: tabular-nums;
+}
+.bml .bml-room-visit-progress progress {
+ appearance: none;
+ width: 100%;
+ height: 4px;
+ border: 0;
+ background: #ddd7c8;
+ color: var(--museum-pine);
+}
+.bml .bml-room-visit-progress progress::-webkit-progress-bar { background: #ddd7c8 }
+.bml .bml-room-visit-progress progress::-webkit-progress-value { background: var(--museum-pine) }
+.bml .bml-room-visit-progress progress::-moz-progress-bar { background: var(--museum-pine) }
+.bml .bml-room-exhibit-index { grid-column: 1; grid-row: 1; color: var(--museum-muted-ink); font-variant-numeric: tabular-nums }
+.bml .bml-room-exhibit-title { grid-column: 3; grid-row: 1 }
+.bml .bml-room-exhibit-thumb {
+ grid-column: 2;
+ grid-row: 1;
+ position: relative;
+ display: grid;
+ place-items: center;
+ aspect-ratio: 1;
+ background: #ede6d7;
+ color: var(--museum-muted-ink);
+}
+.bml .bml-room-exhibit-thumb img {
+ position: absolute;
+ inset: 0;
+ width: 100%;
+ height: 100%;
+ object-fit: cover;
+}
+.bml .bml-room-exhibit-visited { grid-column: 2; grid-row: 1; justify-self: end; align-self: end; z-index: 1; background: var(--museum-pine); color: #fff }
+.bml .bml-swiss-3d button.bml-room-tour {
+ display: flex;
+ align-items: center;
+ gap: 7px;
+ width: 100%;
+ min-height: 43px;
+ padding: 7px 9px;
+ text-align: left;
+ font-weight: 800;
+ font-size: 13px;
+ border: 1px solid var(--museum-pine);
+ background: var(--museum-pine);
+ color: white;
+}
+.bml .bml-swiss-3d button.bml-room-tour svg:last-child { margin-inline-start: auto; flex: none }
+.bml .bml-swiss-3d button.bml-room-tour:hover:not(:disabled) { background: #385748; color: white }
+.bml .bml-swiss-3d .bml-swiss-3d-viewpoints button {
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ gap: 6px;
+}
+.bml .bml-room-controls-hint {
+ color: var(--museum-muted-ink);
+ margin-inline: 10px;
+ font: 650 12px/1.25 var(--museum-type);
+}
+.bml .bml-swiss-3d .bml-room-webgl-recovery {
+ display: grid;
+ place-content: center;
+ justify-items: center;
+ padding: 18px;
+ gap: 12px;
+ text-align: center;
+}
+.bml .bml-room-webgl-recovery p { margin: 0; color: inherit; font-weight: 750 }
+.bml .bml-room-webgl-recovery div { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px }
+.bml .bml-swiss-3d .bml-room-webgl-recovery button {
+ min-height: 42px;
+ padding: 6px 12px;
+ background: var(--museum-paper);
+ border: var(--museum-line);
+ color: var(--museum-ink);
+ font: 750 13px/1.25 var(--museum-type);
+}
+@container (max-width: 940px) {
+ .bml .bml-room-controls-hint { display: none }
+}
+@container (max-width: 700px) {
+ .bml .bml-room-visit { gap: 5px; grid-template-columns: minmax(0,1fr) auto; align-items: center }
+ .bml .bml-room-visit-progress { grid-column: 1; gap: 5px }
+ .bml .bml-swiss-3d button.bml-room-tour { grid-column: 2; grid-row: 1; width: auto; min-height: 34px; font-size: 11px; padding: 4px 6px }
+ .bml .bml-swiss-3d button.bml-room-tour svg:last-child { display: none }
+ .bml .bml-room-visit .bml-swiss-3d-exhibits {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-columns: none;
+  grid-auto-columns: minmax(32%, 122px);
+  overflow-x: auto;
+  scrollbar-width: thin;
+ }
+ .bml .bml-swiss-3d .bml-swiss-3d-exhibits button {
+  grid-template-columns: 28px minmax(0,1fr);
+  grid-template-rows: auto 1fr;
+  align-items: start;
+  min-height: 50px;
+  column-gap: 5px;
+  row-gap: 3px;
+  padding: 5px;
+ }
+ .bml .bml-room-exhibit-index { grid-column: 2; grid-row: 1; font-size: 10px }
+ .bml .bml-room-exhibit-title { grid-column: 2; grid-row: 2; line-height: 1.16 }
+ .bml .bml-room-exhibit-thumb { grid-column: 1; grid-row: 1 / 3; width: 28px; align-self: center }
+ .bml .bml-room-exhibit-visited { grid-column: 1; grid-row: 1 / 3; align-self: end; width: 12px; height: 12px }
+
+}
+@container (max-width: 460px) {
+ .bml .bml-swiss-3d-viewpoints { flex: 1; }
+ .bml .bml-swiss-3d .bml-swiss-3d-viewpoints button {
+  flex: 1;
+  min-height: 40px;
+  padding-inline: 7px;
+ }
+ .bml .bml-swiss-3d-viewpoints svg { display: none }
 }
