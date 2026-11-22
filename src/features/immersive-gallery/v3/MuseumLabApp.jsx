@@ -41,7 +41,7 @@ const TAB_TO_NAV={home:'overview',lessons:'lessons',submissions:'submissions',
  gallery:'exhibitions',wizard:'lessons',templates:'teaching-plan',
  live:'teacher-live',evidence:'competition-dossier',settings:'settings'};
 
-export default function MuseumLabApp({currentUser,language='en',transport,publicReadOnly=false,standalone=false}){
+export default function MuseumLabApp({currentUser,language='en',transport,publicReadOnly=false,standalone=false,onDisplaySettings}){
  const staffTransport=transport||(publicReadOnly?publicStaffRequest:staffRequest);
  const liveTransport=publicReadOnly?publicLiveStaff:liveStaff;
  const [uiLanguage,setUiLanguage]=useState(()=>{
@@ -126,6 +126,7 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
      {verifiedAdmin?<button type="button" className="bml-primary" onClick={create}><Plus size={17} aria-hidden="true"/>{tr(uiLanguage,'Tạo bài học mới','New lesson')}</button>:null}
      <button type="button" className="bml-outline" onClick={()=>navigate('lessons')}>{verifiedAdmin?tr(uiLanguage,'Quản lý bài học','Manage lessons'):tr(uiLanguage,'Bài học của tôi','My lessons')}</button>
      <button type="button" className="bml-outline" onClick={()=>navigate('submissions')}>{tr(uiLanguage,'Xem bài nộp','View submissions')}</button>
+     {verifiedAdmin&&onDisplaySettings?<button type="button" className="bml-outline" onClick={()=>onDisplaySettings(uiLanguage)}>{tr(uiLanguage,'Hiển thị','Appearance')}</button>:null}
     </div>
    </section>:null}
    {loading?<div className="bml-empty bml-surface" role="status"><RefreshCw size={27}/>{tr(uiLanguage,'Đang tải bài học và phân quyền…','Loading lessons and permissions…')}</div>:
@@ -139,7 +140,7 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
    tab==='templates'?<TeachingPlanScreen {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate}/>:
    tab==='evidence'?(isAsean(lessonTemplate)?<AseanDossier data={matchingData} language={uiLanguage}
     transport={staffTransport} readOnly={readOnly} onOpenGallery={id=>navigate('gallery',id)} onOpenReview={id=>navigate('submissions',id)}/>:<DossierScreen {...sharedScreenProps} data={matchingData} transport={liveTransport}/>):
-   tab==='settings'?<SettingsScreen {...sharedScreenProps}/>:
+   tab==='settings'?<SettingsScreen {...sharedScreenProps} onDisplaySettings={verifiedAdmin ? onDisplaySettings : undefined}/>:
    overview}
   </div>
   {help?<div className="bml-modal-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)setHelp(false);}}>

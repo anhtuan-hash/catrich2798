@@ -20,7 +20,7 @@ function SettingControl({icon:Icon, title, description, state, enabled, children
     </div>
   );
 }
-export default function SettingsScreen({language='en', data, staff, onRefresh, transport=defaultTransport}) {
+export default function SettingsScreen({language='en', data, staff, onRefresh, transport=defaultTransport, onDisplaySettings}) {
   const payload = data || staff || {};
   const isAdmin = payload?.profile?.role === 'admin' && !payload?.offlineReadOnly && !payload?.publicReadOnly;
   const creator = payload?.creatorSettings || {};
@@ -94,6 +94,20 @@ export default function SettingsScreen({language='en', data, staff, onRefresh, t
 
       {error && <div className="ig-settings-feedback ig-settings-feedback-error" role="alert"><ShieldAlert size={18} aria-hidden="true"/> {error}</div>}
       {message && <div className="ig-settings-feedback" role="status"><CheckCircle2 size={18} aria-hidden="true"/> {message}</div>}
+
+      {onDisplaySettings && (
+        <div className="ig-settings-layout">
+          <section className="ig-settings-access" aria-labelledby="ig-settings-display-title">
+            <header className="ig-settings-panel-heading">
+              <h2 id="ig-settings-display-title"><Image aria-hidden="true"/>{t('Hiển thị toàn website', 'Site appearance')}</h2>
+              <p>{t('Chỉnh nền trống đồng và độ tương phản cho mọi người truy cập.', 'Adjust the bronze drum background and contrast for everyone.')}</p>
+            </header>
+            <button className="bml-outline" type="button" onClick={() => onDisplaySettings(language)}>
+              {t('Cấu hình hiển thị', 'Configure appearance')}
+            </button>
+          </section>
+        </div>
+      )}
 
       <div className="ig-settings-layout">
         <section className="ig-settings-access" aria-labelledby="ig-settings-access-title">
