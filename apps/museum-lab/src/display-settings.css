@@ -1,0 +1,162 @@
+.museum-display-frame {
+  --museum-wallpaper: url("./assets/dong-son-drum.webp");
+  --museum-panel-alpha: .32;
+  min-height: 100dvh;
+  isolation: isolate;
+}
+.museum-display-frame[data-high-contrast="true"] {
+  --museum-panel-alpha: .66;
+}
+.museum-display-frame[data-wallpaper="true"]:has(> .igv2) {
+  background: #faf9f6;
+}
+.museum-display-frame[data-wallpaper="true"]:has(> .bml-student-shell) {
+  background: #f6f2e9;
+}
+.museum-display-wallpaper {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+}
+@media screen and (forced-colors: none) {
+  .museum-display-frame[data-wallpaper="true"] .museum-display-wallpaper {
+    background: var(--museum-wallpaper) center / min(112vw, 112dvh) no-repeat;
+    opacity: var(--museum-wallpaper-opacity);
+  }
+  .museum-display-frame[data-wallpaper="true"] > .igv2,
+  .museum-display-frame[data-wallpaper="true"] > .bml.bml-student-shell {
+    background: transparent !important;
+  }
+  .museum-display-frame[data-wallpaper="true"] :is(
+    .cmast.cmast-plate,
+    .igv2 .bml .swiss-editorial-lessons,
+    .igv2 .bml .swiss-editorial-submissions,
+    .igv2 .bml .swiss-editorial-dossier
+  ) {
+    background-color: rgb(246 242 233 / var(--museum-panel-alpha));
+  }
+  .museum-display-frame[data-wallpaper="true"] .cmast .cmast-layout {
+    background-color: rgb(246 242 233 / var(--museum-panel-alpha));
+    background-image: none;
+  }
+  .museum-display-frame[data-wallpaper="true"] .bml.bml-student-shell .bml-student-primary {
+    background: rgb(255 253 248 / var(--museum-panel-alpha)) !important;
+  }
+}
+.museum-display-dialog {
+  box-sizing: border-box;
+  width: min(100% - 1.5rem, 32rem);
+  max-height: calc(100dvh - 1.5rem);
+  padding: 0;
+  color: #172023;
+  background: #fffcf7;
+  border: 1px solid #172023;
+  border-top: 4px solid #c90828;
+  font: 1rem/1.45 "Museum Banner Inter", system-ui, sans-serif;
+  box-shadow: 0 12px 50px #17202330;
+}
+.museum-display-dialog::backdrop {
+  background: #1720233b;
+}
+.museum-display-dialog form {
+  display: grid;
+  gap: .75rem;
+  padding: clamp(1rem, 4vw, 1.75rem);
+}
+.museum-display-dialog h2,
+.museum-display-dialog p {
+  margin: 0;
+}
+.museum-display-dialog h2 {
+  font-size: clamp(1.35rem, 5vw, 1.8rem);
+  line-height: 1.15;
+  letter-spacing: -.035em;
+}
+.museum-display-preview {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  align-items: end;
+  min-height: clamp(6rem, 29dvh, 12rem);
+  padding: .8rem;
+  background: #faf7ef;
+  border: 1px solid #d6d1c5;
+}
+.museum-display-preview-wallpaper {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: var(--museum-wallpaper) center / auto 120% no-repeat;
+  opacity: var(--museum-wallpaper-opacity);
+}
+.museum-display-preview-copy {
+  display: grid;
+  gap: .2rem;
+  width: fit-content;
+  padding: .35rem .55rem;
+  background: #fffcf752;
+}
+.museum-display-preview[data-high-contrast="true"] .museum-display-preview-copy {
+  background: #fffcf7c9;
+}
+.museum-display-range {
+  display: grid;
+  gap: .35rem;
+  font-weight: 650;
+}
+.museum-display-range span {
+  display: flex;
+  justify-content: space-between;
+}
+.museum-display-range output {
+  font-variant-numeric: tabular-nums;
+}
+.museum-display-range input {
+  width: 100%;
+  min-height: 1.6rem;
+  margin: 0;
+}
+.museum-display-dialog input {
+  accent-color: #c90828;
+}
+.museum-display-check {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+}
+.museum-display-dialog .museum-display-hint {
+  color: #4d5357;
+  font-size: .84rem;
+}
+.museum-display-dialog [role="alert"] {
+  color: #9b1e18;
+}
+.museum-display-dialog footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  padding-top: .85rem;
+  border-top: 1px solid #d6d1c5;
+}
+.museum-display-dialog button {
+  padding: .55rem .75rem;
+  background: transparent;
+  color: inherit;
+  border: 1px solid currentColor;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+.museum-display-dialog button:disabled {
+  opacity: .55;
+  cursor: default;
+}
+.museum-display-dialog .museum-display-reset {
+  margin-inline-end: auto;
+}
+.museum-display-dialog button[type="submit"] {
+  color: #fff;
+  background: #b51029;
+  border-color: #b51029;
+}

@@ -2,6 +2,7 @@ import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { supabase } from '../../../src/utils/supabase.js';
 import './standalone.css';
+import { DisplayFrame, DisplaySettings, useMuseumDisplay } from './DisplaySettings.jsx';
 
 const MuseumLab = lazy(() => import('../../../src/features/immersive-gallery/v3/MuseumLabApp.jsx'));
 const StudentWorkshop = lazy(() => import('../../../src/features/immersive-gallery/v3/MuseumLabStudent.jsx'));
@@ -64,6 +65,12 @@ function App() {
   const hash = useHash();
   const [session, setSession] = useState(() => supabase ? undefined : null);
   const [signOutError, setSignOutError] = useState('');
+  const [settingsLanguage, setSettingsLanguage] = useState('vi');
+  const { saved, draft, setDraft, save } = useMuseumDisplay(session?.access_token);
+  const openDisplaySettings = language => {
+    setSettingsLanguage(language);
+    setDraft(saved);
+  };
   useEffect(() => {
     if (!supabase) return;
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -84,13 +91,18 @@ function App() {
       return;
     }
     setSession(null);
+    setDraft(null);
     window.location.hash = home;
   };
   if (route === '#/gallery-create') {
-    return <Suspense fallback={<p role="status">Đang mở bài nộp…</p>}><StudentWorkshop /></Suspense>;
+    return (
+      <DisplayFrame display={saved}>
+        <Suspense fallback={<p role="status">Đang mở bài nộp…</p>}><StudentWorkshop /></Suspense>
+      </DisplayFrame>
+    );
   }
   return (
-    <>
+    <DisplayFrame display={draft ?? saved}>
       <header className="museum-site-bar">
         <a className="museum-site-title" href={home}>{siteName}</a>
         {session === undefined ? <span role="status">Đang kiểm tra phiên đăng nhập…</span> : session ? (
@@ -106,10 +118,12 @@ function App() {
       ) : (
         <Suspense fallback={<p className="museum-site-loading" role="status">Đang tải {siteName}…</p>}>
           <MuseumLab key={session?.user.id ?? 'guest'} currentUser={session?.user}
-            publicReadOnly={!session} language="vi" standalone />
+            publicReadOnly={!session} language="vi" standalone onDisplaySettings={openDisplaySettings} />
         </Suspense>
       )}
-    </>
+      {draft && <DisplaySettings draft={draft} onChange={setDraft} onSave={save}
+        onClose={() => setDraft(null)} language={settingsLanguage} />}
+    </DisplayFrame>
   );
 }
 
