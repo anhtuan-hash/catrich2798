@@ -41,13 +41,6 @@
   --asean-stage-number: clamp(24px, 2.55vw, 41px);
   --asean-stage-label: clamp(12px, 1.23vw, 20px);
 
-  & #bml-workshop-heading {
-    padding: 0 0 3px 3px;
-    font: 860 clamp(22px, 2.15vw, 34px)/1.08 var(--workshop-font);
-    letter-spacing: -.045em;
-  }
-  & #bml-workshop-heading span { color: var(--asean-stage-red); }
-
   & .bml-student-steps {
     grid-template-columns: repeat(5, minmax(0, 1fr));
     padding-block: 3px;
@@ -96,7 +89,6 @@
   .bml.bml-student-canvas16.bml-student-editorial[data-workshop-activity] [data-banner-expanded="false"] .bml-student-focus {
     grid-template-columns: minmax(0, 1fr) !important;
     gap: 2px;
-    & #bml-workshop-heading { font-size: clamp(18px, 1.7vw, 26px); }
     & .bml-student-steps { border-top: 1px solid var(--workshop-rule); }
   }
 }
