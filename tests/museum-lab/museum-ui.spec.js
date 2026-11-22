@@ -1885,6 +1885,8 @@ test('published ASEAN student workshop uses two panes on desktop and stacks on m
  const workshop=page.getByTestId('asean-student-lesson');
  await expect(workshop).toHaveAttribute('data-public-workshop','true');
  await expect(workshop.getByText('Lesson complete · View only')).toBeVisible();
+ await expect(workshop.getByText('Your museum workshop.')).toHaveCount(0);
+ await expect(workshop.getByRole('navigation',{name:'Lesson groups'}).getByRole('button')).toHaveCount(5);
  const layout=await workshop.evaluate(el=>{
   const lesson=el.querySelector('.bml-student-lesson-panel').getBoundingClientRect();
   const project=el.querySelector('.bml-student-project-panel').getBoundingClientRect();
@@ -1900,6 +1902,9 @@ test('published ASEAN student workshop uses two panes on desktop and stacks on m
   expect(layout.lessonTop).toBeCloseTo(layout.projectTop,0);
   expect(layout.projectBottom).toBeLessThanOrEqual(layout.viewportHeight);
  }
+ await workshop.getByRole('button',{name:'VI',exact:true}).click();
+ await expect(workshop.getByText('Xưởng bảo tàng của em.')).toHaveCount(0);
+ await expect(workshop.getByRole('navigation',{name:'Các mục của bài học'}).getByRole('button')).toHaveCount(5);
 });
 
 test('ASEAN student workshop renders all six editorial activities',async({page,isMobile},testInfo)=>{

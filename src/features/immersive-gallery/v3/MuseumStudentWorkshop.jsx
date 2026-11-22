@@ -44,8 +44,10 @@ export default function MuseumStudentWorkshop({language,onLanguageChange,onLogou
      </button>
     </div>
    </div>
-   <section className="bml-student-focus" data-testid="student-focus-switch" aria-labelledby="bml-workshop-heading">
-    <h1 id="bml-workshop-heading">{T(language,'Xưởng bảo tàng của em','Your museum workshop')}<span aria-hidden="true">.</span></h1>
+   <section className="bml-student-focus" data-testid="student-focus-switch"
+    aria-label={activity?T(language,'Tiến trình bài học','Lesson progress'):undefined}
+    aria-labelledby={activity?undefined:'bml-workshop-heading'}>
+    {!activity&&<h1 id="bml-workshop-heading">{T(language,'Xưởng bảo tàng của em','Your museum workshop')}<span aria-hidden="true">.</span></h1>}
     {navigation}
    </section>
   </div>
