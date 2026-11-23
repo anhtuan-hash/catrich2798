@@ -106,6 +106,7 @@
     function unlock() {
       if (closed) return;
       closed = true;
+      surface.classList.remove('bu-dragging');
       if (frame) cancelAnimationFrame(frame);
       surface.style.setProperty('--bu-progress', '1');
       try { if (!preview) sessionStorage.setItem(KEY, '1'); } catch { /* optional */ }
@@ -128,7 +129,7 @@
     surface.addEventListener('pointerdown', (event) => {
       if (closed || event.button !== 0) return;
       startY = event.clientY; pointerId = event.pointerId;
-      try { surface.setPointerCapture(pointerId); } catch { /* optional */ }
+      surface.classList.add('bu-dragging');
     });
     surface.addEventListener('pointermove', (event) => {
       if (closed || startY === null || pointerId !== event.pointerId) return;
@@ -138,11 +139,12 @@
       if (closed || startY === null || pointerId !== event.pointerId) return;
       const delta = startY - event.clientY;
       startY = null; pointerId = null;
+      surface.classList.remove('bu-dragging');
       if (delta >= 64) unlock();
       else updateProgress(0);
     });
     surface.addEventListener('pointercancel', () => {
-      startY = null; pointerId = null; updateProgress(0);
+      startY = null; pointerId = null; surface.classList.remove('bu-dragging'); updateProgress(0);
     });
     surface.addEventListener('wheel', (event) => {
       if (closed || event.deltaY <= 0) return;
