@@ -1,0 +1,126 @@
+/* BRIANVERSE · VIET NAM — cinematic Swiss Editorial unlock, isolated from website UI. */
+#bes-unlock {
+  --bu-progress:0;
+  position:fixed;inset:0;z-index:2147483500;isolation:isolate;
+  display:block;width:100vw;height:100vh;height:100dvh;overflow:hidden;
+  margin:0;padding:0;background:#0b354b;color:#fff;
+  font-family:Arial,"Helvetica Neue","Segoe UI",system-ui,sans-serif;
+  font-kerning:normal;text-rendering:optimizeLegibility;
+  touch-action:none;overscroll-behavior:contain;user-select:none;-webkit-user-select:none;
+  box-sizing:border-box;visibility:visible;opacity:1;clip-path:inset(0 0 0 0);
+}
+#bes-unlock *,#bes-unlock *::before,#bes-unlock *::after{box-sizing:border-box}
+#bes-unlock .bu-landscape {
+  position:absolute;inset:-3% -3% -5%;z-index:0;overflow:hidden;
+  pointer-events:none;transform:translate3d(0,0,0);will-change:transform;
+}
+#bes-unlock .bu-scene {
+  position:absolute;inset:0;
+  background:#0b3e60 url("/brianverse-vietnam-scene.avif?v=2") center 54% / cover no-repeat;
+  transform:scale(calc(1.085 + var(--bu-progress) * .27)) translate3d(0,calc(var(--bu-progress) * -4%),0);
+  transform-origin:50% 54%;will-change:transform,filter;
+  animation:bu-drift 15s ease-in-out infinite alternate;
+}
+#bes-unlock .bu-tonal {
+  position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(0,29,48,.22),transparent 26%,transparent 60%,rgba(0,24,39,.44) 100%),
+    linear-gradient(90deg,rgba(0,24,48,.40),transparent 60%);
+}
+#bes-unlock .bu-shimmer {
+  position:absolute;inset:-25%;pointer-events:none;opacity:.58;
+  background:linear-gradient(109deg,transparent 29%,rgba(255,235,193,.06) 45%,transparent 58%);
+  transform:translateX(-35%);animation:bu-shimmer 9s ease-in-out infinite alternate;
+}
+#bes-unlock.bu-dragging .bu-scene{animation:none!important;transform:scale(calc(1.08 + var(--bu-progress) * .56)) translate3d(0,calc(var(--bu-progress) * -5%),0)}
+#bes-unlock.bu-dragging .bu-layout{transform:translateY(calc(var(--bu-progress) * -6vh))}
+#bes-unlock .bu-layout {
+  position:relative;z-index:2;height:100%;min-height:0;
+  display:grid;grid-template-rows:auto 1fr auto;
+  padding:max(30px,env(safe-area-inset-top)) clamp(24px,5vw,80px) max(26px,env(safe-area-inset-bottom));
+  transform:translateY(calc(var(--bu-progress) * -3vh));will-change:transform,opacity;
+}
+#bes-unlock .bu-top {display:flex;justify-content:space-between;align-items:start;gap:16px}
+#bes-unlock .bu-time {display:block;font-size:clamp(64px,10vw,158px);font-weight:300;letter-spacing:-.072em;line-height:.84;
+  font-variant-numeric:tabular-nums;text-shadow:0 2px 28px rgba(0,26,55,.18)}
+#bes-unlock .bu-date {margin:14px 0 0 6px;font-size:clamp(14px,1.7vw,24px);font-weight:400;line-height:1.3;
+  letter-spacing:-.012em;text-shadow:0 1px 14px rgba(0,0,0,.25)}
+#bes-unlock .bu-vietnam {display:flex;flex-direction:column;align-items:flex-end;gap:12px;padding-top:4px;
+  font-size:clamp(13px,1.25vw,18px);font-weight:750;letter-spacing:.24em;text-transform:uppercase;
+  text-shadow:0 1px 16px rgba(10,27,38,.22)}
+#bes-unlock .bu-vietnam::after{content:"";height:1px;width:29px;background:rgba(255,255,255,.9);order:1}
+#bes-unlock .bu-place {order:2;font-size:10px;line-height:1.5;font-weight:650;letter-spacing:.14em;white-space:nowrap}
+#bes-unlock .bu-brandzone {align-self:center;width:max-content;max-width:85%;margin-top:-3vh;position:relative}
+#bes-unlock .bu-brand {display:flex;align-items:center;gap:17px;font-size:clamp(28px,4vw,66px);letter-spacing:-.065em;
+  line-height:1.05;font-weight:800;text-shadow:0 2px 24px rgba(0,22,37,.2)}
+#bes-unlock .bu-brand img {width:clamp(39px,5vw,74px);height:clamp(39px,5vw,74px);object-fit:contain;
+  filter:invert(1) grayscale(1) contrast(1.75);mix-blend-mode:screen}
+#bes-unlock .bu-brand-name{display:block;white-space:nowrap}
+#bes-unlock .bu-redline{display:block;width:clamp(70px,8vw,118px);height:7px;background:#e52227;margin:28px 0 0 1px;
+ box-shadow:0 5px 22px rgba(50,5,9,.11)}
+#bes-unlock .bu-footer{display:flex;align-items:flex-end;justify-content:space-between;gap:18px}
+#bes-unlock .bu-issue{display:flex;align-items:center;gap:16px;font-size:10px;font-weight:800;letter-spacing:.19em;
+  color:rgba(255,255,255,.86);text-transform:uppercase}
+#bes-unlock .bu-issue::before{content:"";width:28px;height:1px;background:rgba(255,255,255,.9)}
+#bes-unlock .bu-gesture {position:absolute;left:50%;bottom:max(55px,calc(env(safe-area-inset-bottom) + 35px));transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:15px;min-width:240px;text-align:center}
+#bes-unlock .bu-enter{display:grid;place-items:center;width:76px;height:76px;border:1px solid rgba(255,255,255,.78);
+  border-radius:50%;background:rgba(255,255,255,.08);color:#fff;
+  box-shadow:0 0 0 6px rgba(255,255,255,.045),0 0 28px rgba(255,255,255,.48),
+    inset 0 1px 12px rgba(255,255,255,.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  cursor:pointer;transition:transform .25s ease,background .25s ease;animation:bu-bounce 2.8s ease-in-out infinite}
+#bes-unlock .bu-enter svg{width:29px;height:29px;fill:none;stroke:currentColor;stroke-width:3.2;stroke-linecap:square;stroke-linejoin:miter}
+#bes-unlock .bu-enter:hover{background:rgba(255,255,255,.22);transform:scale(1.08)}
+#bes-unlock .bu-enter:focus-visible,#bes-unlock .bu-skip:focus-visible,
+#bes-unlock #bes-unlock-replay:focus-visible{outline:3px solid #fff;outline-offset:4px}
+#bes-unlock .bu-label{display:block;font-size:clamp(13px,1.7vw,21px);font-weight:500;
+  letter-spacing:-.026em;white-space:nowrap;text-shadow:0 2px 14px rgba(0,0,0,.45)}
+#bes-unlock .bu-progress{display:block;width:130px;height:3px;margin-top:2px;border-radius:999px;
+  overflow:hidden;background:rgba(255,255,255,.4)}
+#bes-unlock .bu-progress span{display:block;width:100%;height:100%;background:#fff;
+  transform:scaleX(var(--bu-progress));transform-origin:left}
+#bes-unlock .bu-skip {margin:0 0 0 auto;background:rgba(5,34,49,.16);color:#fff;border:1px solid rgba(255,255,255,.5);
+  padding:10px 13px;font-size:11px;font-weight:750;letter-spacing:.05em;cursor:pointer;
+  backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+#bes-unlock.bu-leaving{pointer-events:none;animation:bu-curtain 1.28s cubic-bezier(.66,.03,.22,1) forwards}
+#bes-unlock.bu-leaving .bu-scene{animation:bu-zoom-open 1.23s cubic-bezier(.12,.85,.17,1) forwards}
+#bes-unlock.bu-leaving .bu-layout{animation:bu-interface-away .9s cubic-bezier(.17,.78,.17,1) forwards}
+#bes-unlock.bu-leaving .bu-shimmer{opacity:0;animation:none}
+@keyframes bu-drift{from{transform:scale(1.08) translate3d(-.6%,.3%,0)}to{transform:scale(1.14) translate3d(.8%,-.5%,0)}}
+@keyframes bu-shimmer{from{transform:translateX(-38%)}to{transform:translateX(25%)}}
+@keyframes bu-bounce{0%,100%{box-shadow:0 0 0 6px rgba(255,255,255,.045),0 0 22px rgba(255,255,255,.29)}50%{box-shadow:0 0 0 13px rgba(255,255,255,.07),0 0 42px rgba(255,255,255,.58)}}
+@keyframes bu-zoom-open{0%{transform:scale(1.09) translate3d(0,0,0);filter:blur(0)}
+  65%{transform:scale(1.75) translate3d(0,-5%,0);filter:blur(0)}
+  100%{transform:scale(2.3) translate3d(0,-10%,0);filter:blur(11px)}}
+@keyframes bu-interface-away{0%{opacity:1;transform:translateY(0)}75%{opacity:.2;transform:translateY(-21vh)}100%{opacity:0;transform:translateY(-35vh)}}
+@keyframes bu-curtain{0%{clip-path:inset(0 0 0 0);opacity:1}
+  60%{clip-path:inset(0 0 0 0);opacity:1}100%{clip-path:inset(0 0 100% 0);opacity:0;visibility:hidden}}
+@media (max-width:760px) {
+  #bes-unlock .bu-layout{padding:calc(env(safe-area-inset-top) + 36px) 26px calc(env(safe-area-inset-bottom) + 29px)}
+  #bes-unlock .bu-scene{background-position:58% center}
+  #bes-unlock .bu-tonal{background:linear-gradient(180deg,rgba(0,34,54,.32),transparent 31%,transparent 50%,rgba(0,23,42,.40))}
+  #bes-unlock .bu-time{font-size:clamp(63px,13.8vw,96px)}
+  #bes-unlock .bu-date{font-size:clamp(14px,3.5vw,18px);margin:14px 0 0 4px}
+  #bes-unlock .bu-vietnam{gap:10px;font-size:clamp(10px,3vw,15px);letter-spacing:.15em}
+  #bes-unlock .bu-place{font-size:9px;letter-spacing:.1em}
+  #bes-unlock .bu-brandzone{margin-top:-4vh;max-width:100%}
+  #bes-unlock .bu-brand{font-size:clamp(26px,7.1vw,41px);gap:12px;letter-spacing:-.045em}
+  #bes-unlock .bu-brand img{width:39px;height:39px}
+  #bes-unlock .bu-redline{margin-top:26px;height:7px;width:91px}
+  #bes-unlock .bu-issue{display:none}
+  #bes-unlock .bu-gesture{bottom:max(58px,calc(env(safe-area-inset-bottom) + 50px));gap:13px}
+  #bes-unlock .bu-enter{width:70px;height:70px}
+  #bes-unlock .bu-label{font-size:16px}
+  #bes-unlock .bu-skip{margin-bottom:6px}
+}
+@media(max-width:360px){#bes-unlock .bu-layout{padding-left:17px;padding-right:17px}
+  #bes-unlock .bu-brand{font-size:27px}#bes-unlock .bu-vietnam{font-size:10px}}
+@media(max-height:670px){#bes-unlock .bu-gesture{bottom:calc(env(safe-area-inset-bottom) + 20px)}
+  #bes-unlock .bu-brandzone{margin-top:1vh}#bes-unlock .bu-enter{height:56px;width:56px}
+  #bes-unlock .bu-label{font-size:14px}#bes-unlock .bu-progress{display:none}}
+@media(prefers-reduced-motion:reduce){
+  #bes-unlock .bu-scene,#bes-unlock .bu-shimmer,#bes-unlock .bu-enter{animation:none!important}
+  #bes-unlock .bu-scene{transform:scale(1.06)!important}
+  #bes-unlock.bu-leaving{animation:bu-reduced-away .05s linear forwards!important}
+  #bes-unlock.bu-leaving .bu-scene,#bes-unlock.bu-leaving .bu-layout{animation:none!important}
+  @keyframes bu-reduced-away{to{opacity:0;visibility:hidden}}
+}
