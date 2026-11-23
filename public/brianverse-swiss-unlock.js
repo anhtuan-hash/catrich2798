@@ -1,158 +1,157 @@
-/* Brianverse immersive pre-entry. Decorative gate only; never an auth boundary. */
+/* BRIANVERSE / VIET NAM. Visual introduction only; never an authentication gate. */
 (() => {
   'use strict';
-  const KEY = 'bes-swiss-editorial-unlock-seen-v1';
-  const hash = window.location.hash.toLowerCase();
-  const landing = !hash || hash === '#' || hash === '#/' || hash === '#/home';
-  const pathname = window.location.pathname;
-  const homePath = pathname === '/' || pathname.endsWith('/index.html');
-  const search = new URLSearchParams(window.location.search);
-  const override = search.get('unlock');
-  const preview = override === 'preview';
-  if ((!landing || !homePath) && !preview) return;
-  if (override === 'off') return;
-  try {
-    if (!preview && window.sessionStorage.getItem(KEY) === '1') return;
-  } catch { /* Storage may be disabled; access still works. */ }
+  const KEY = 'bes-vietnam-unlock-seen-v2';
+  const params = new URLSearchParams(window.location.search);
+  const mode = params.get('unlock');
+  const preview = mode === 'preview' || mode === 'replay';
+  const hash = String(window.location.hash || '').toLowerCase();
+  const landing = ['', '#', '#/', '#/home'].includes(hash);
+  const path = window.location.pathname;
+  const rootPath = path === '/' || path.endsWith('/index.html');
+
+  if (!preview && (!landing || !rootPath || mode === 'off')) return;
+  if (mode === 'off') return;
+  try { if (!preview && sessionStorage.getItem(KEY) === '1') return; }
+  catch { /* Privacy modes may deny storage. The entrance can still be skipped. */ }
 
   function mount() {
     if (!document.body || document.getElementById('bes-unlock')) return;
-    const root = document.getElementById('root');
     document.getElementById('bes-unlock-replay')?.remove();
-    const rootWasInert = root?.inert || false;
-    const previousFocus = document.activeElement;
-    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || false;
+    const app = document.getElementById('root');
+    const oldInert = app ? app.inert : false;
+    const oldFocus = document.activeElement;
+    const reduced = !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    let closed = false, startY = null, pointerId = null, wheelSum = 0, lastWheel = 0;
+    let frame = 0, exitTimer = null;
 
     const surface = document.createElement('section');
     surface.id = 'bes-unlock';
     surface.setAttribute('role', 'dialog');
     surface.setAttribute('aria-modal', 'true');
-    surface.setAttribute('aria-label', 'Brianverse — màn hình chào mở khóa');
-    surface.setAttribute('tabindex', '-1');
+    surface.setAttribute('aria-label', 'Màn hình chào Brianverse - Việt Nam');
+    surface.tabIndex = -1;
     surface.innerHTML = [
-      '<div class="bu-frame">',
-      '  <div class="bu-masthead">',
-      '    <div class="bu-brand"><img src="/brian-english-brand-mark.png" alt="" width="32" height="32" decoding="async"><span>BRIANVERSE</span></div>',
-      '    <div class="bu-meta"><span class="bu-edition">THE LEARNING UNIVERSE&nbsp; / &nbsp;01</span><time class="bu-clock" aria-label="Thời gian hiện tại"></time></div>',
-      '  </div>',
-      '  <div class="bu-body">',
-      '    <div class="bu-editorial">',
-      '      <div class="bu-index">01 &nbsp;/&nbsp; SPECIAL ENTRANCE</div>',
-      '      <h1><span>BRIAN</span><span>VERSE<span class="bu-mark" aria-hidden="true">✦</span></span></h1>',
-      '      <div class="bu-description"><span class="bu-number">01 —</span><p>Unlock the<br>learning universe.</p></div>',
-      '    </div>',
-      '    <div class="bu-visual" aria-hidden="true"><div class="bu-rings"><i class="bu-ring bu-ring-a"></i><i class="bu-ring bu-ring-b"></i><i class="bu-ripple"></i><i class="bu-ripple bu-ripple-b"></i></div><div class="bu-orbit"><div class="bu-glint"></div><div class="bu-core"><span class="bu-cross">✦</span></div></div></div>',
-      '  </div>',
-      '  <div class="bu-foot">',
-      '    <div class="bu-footleft"><span>FLYME-INSPIRED MOTION</span><span>SWISS EDITORIAL / BRIANVERSE</span></div>',
-      '    <div class="bu-gesture-cta"><button class="bu-enter" type="button" data-bu-enter><span class="bu-arrow" aria-hidden="true">↑</span><span>Swipe up to enter</span></button><span class="bu-gesture" aria-hidden="true"><span class="bu-gesture-fill"></span></span></div>',
-      '    <button class="bu-skip" type="button" data-bu-skip aria-label="Bỏ qua màn hình chào">Skip intro</button>',
-      '  </div>',
+      '<div class="bu-landscape" aria-hidden="true">',
+      '  <div class="bu-scene"></div><div class="bu-shimmer"></div><div class="bu-tonal"></div>',
       '</div>',
+      '<div class="bu-layout">',
+      '  <header class="bu-top">',
+      '    <div class="bu-clockgroup"><time class="bu-time"></time><p class="bu-date"></p></div>',
+      '    <div class="bu-vietnam"><span>VIỆT NAM</span><span class="bu-place">HẠ LONG / VIỆT NAM</span></div>',
+      '  </header>',
+      '  <div class="bu-brandzone">',
+      '    <div class="bu-brand">',
+      '      <img src="/brian-english-brand-mark.png" alt="" width="60" height="60" decoding="async">',
+      '      <span class="bu-brand-name">Brianverse</span>',
+      '    </div>',
+      '    <span class="bu-redline" aria-hidden="true"></span>',
+      '  </div>',
+      '  <footer class="bu-footer">',
+      '    <span class="bu-issue">BRIANVERSE / VIỆT NAM / 2026</span>',
+      '    <div class="bu-gesture">',
+      '      <button class="bu-enter" type="button" aria-label="Vuốt lên hoặc nhấn để mở Brianverse">',
+      '        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 21L16 9 28 21" /></svg>',
+      '      </button>',
+      '      <span class="bu-label">Vuốt lên để vào Brianverse</span>',
+      '      <span class="bu-progress" aria-hidden="true"><span></span></span>',
+      '    </div>',
+      '    <button class="bu-skip" type="button">Bỏ qua</button>',
+      '  </footer>',
+      '</div>'
     ].join('');
-
-    const clock = surface.querySelector('.bu-clock');
-    const tick = () => {
+    const timeEl = surface.querySelector('.bu-time');
+    const dateEl = surface.querySelector('.bu-date');
+    const fmtTime = new Intl.DateTimeFormat('vi-VN', { hour:'2-digit',minute:'2-digit',hour12:false });
+    const fmtDate = new Intl.DateTimeFormat('vi-VN', { weekday:'long',day:'numeric',month:'long' });
+    function tick() {
       const now = new Date();
-      clock.textContent = new Intl.DateTimeFormat(undefined, {
-        hour: '2-digit', minute: '2-digit', hour12: false,
-      }).format(now);
-      clock.dateTime = now.toISOString();
-    };
+      timeEl.textContent = fmtTime.format(now);
+      dateEl.textContent = fmtDate.format(now);
+      timeEl.dateTime = now.toISOString();
+    }
     tick();
-    const interval = window.setInterval(tick, 60_000);
-
-    let finished = false;
-    let pointerStart = null;
-    let completionTimer = null;
-    if (root) root.inert = true;
+    const clockInterval = window.setInterval(tick, 30_000);
+    if (app) app.inert = true;
     document.body.appendChild(surface);
-    surface.focus({ preventScroll: true });
-    window.requestAnimationFrame(() => window.requestAnimationFrame(() => surface.classList.add('bu-arrived')));
+    surface.focus({preventScroll:true});
 
-    function cleanup() {
-      window.clearInterval(interval);
-      window.clearTimeout(completionTimer);
-      window.removeEventListener('keydown', onKey);
-      window.removeEventListener('hashchange', onHash);
-      if (root) root.inert = rootWasInert;
+    function updateProgress(value) {
+      if (closed) return;
+      const v = Math.max(0, Math.min(1, value));
+      if (frame) cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => surface.style.setProperty('--bu-progress', v.toFixed(3)));
+    }
+    function finish() {
+      window.clearInterval(clockInterval);
+      window.clearTimeout(exitTimer);
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener('keydown', onKey, true);
+      window.removeEventListener('hashchange', onRoute);
+      if (app) app.inert = oldInert;
       surface.remove();
-      if (previousFocus?.isConnected && previousFocus !== document.body) {
-        previousFocus.focus?.({ preventScroll: true });
-      }
+      if (oldFocus?.isConnected && oldFocus !== document.body) oldFocus.focus?.({preventScroll:true});
       if (preview && !document.getElementById('bes-unlock-replay')) {
-        const replay = document.createElement('button');
-        replay.type = 'button';
-        replay.id = 'bes-unlock-replay';
-        replay.textContent = '↻ REPLAY UNLOCK';
-        replay.setAttribute('aria-label', 'Xem lại hiệu ứng mở khóa');
-        replay.style.cssText = 'position:fixed;bottom:max(20px,env(safe-area-inset-bottom));right:20px;z-index:2147483400;padding:12px 16px;border:1px solid #e7dbc3;background:#15282c;color:#f6ecda;box-shadow:0 6px 25px #0004;font:700 11px Arial;letter-spacing:.12em;cursor:pointer';
-        replay.addEventListener('click', () => { replay.remove(); mount(); });
-        document.body.appendChild(replay);
+        const btn = document.createElement('button');
+        btn.id = 'bes-unlock-replay';
+        btn.type = 'button';
+        btn.textContent = '↻ Xem lại mở khóa';
+        btn.setAttribute('aria-label', 'Xem lại hiệu ứng mở khóa Brianverse');
+        btn.style.cssText = 'position:fixed;bottom:max(18px,env(safe-area-inset-bottom));right:18px;z-index:2147483400;border:1px solid #fff7;background:#0b3348ed;padding:12px 15px;color:white;font:700 12px Arial;letter-spacing:.02em;cursor:pointer;box-shadow:0 6px 30px #0005';
+        btn.addEventListener('click', () => { btn.remove(); mount(); });
+        document.body.appendChild(btn);
       }
       window.dispatchEvent(new CustomEvent('bes-unlock-complete'));
     }
-
     function unlock() {
-      if (finished) return;
-      finished = true;
-      try { if (!preview) window.sessionStorage.setItem(KEY, '1'); } catch { /* optional */ }
+      if (closed) return;
+      closed = true;
+      if (frame) cancelAnimationFrame(frame);
+      surface.style.setProperty('--bu-progress', '1');
+      try { if (!preview) sessionStorage.setItem(KEY, '1'); } catch { /* optional */ }
       surface.classList.add('bu-leaving');
-      completionTimer = window.setTimeout(cleanup, reduced ? 30 : 1330);
+      exitTimer = window.setTimeout(finish, reduced ? 70 : 1290);
     }
-
-    function onHash() {
-      if (!['', '#', '#/', '#/home'].includes(window.location.hash.toLowerCase())) unlock();
-    }
-
     function onKey(event) {
-      if (finished || event.altKey || event.ctrlKey || event.metaKey) return;
+      if (closed || event.altKey || event.ctrlKey || event.metaKey) return;
       if (['Enter', ' ', 'ArrowUp', 'Escape'].includes(event.key)) {
-        event.preventDefault();
-        unlock();
+        event.preventDefault(); unlock();
       }
     }
-    window.addEventListener('keydown', onKey);
-    window.addEventListener('hashchange', onHash);
-    surface.querySelector('[data-bu-enter]').addEventListener('click', unlock);
-    surface.querySelector('[data-bu-skip]').addEventListener('click', unlock);
+    function onRoute() {
+      if (!['', '#', '#/', '#/home'].includes(String(window.location.hash).toLowerCase())) unlock();
+    }
+    window.addEventListener('keydown', onKey, true);
+    window.addEventListener('hashchange', onRoute);
+    surface.querySelector('.bu-enter').addEventListener('click', unlock);
+    surface.querySelector('.bu-skip').addEventListener('click', unlock);
     surface.addEventListener('pointerdown', (event) => {
-      if (finished || event.button !== 0) return;
-      pointerStart = { id: event.pointerId, y: event.clientY };
-      try { surface.setPointerCapture(event.pointerId); } catch { /* optional */ }
+      if (closed || event.button !== 0) return;
+      startY = event.clientY; pointerId = event.pointerId;
+      try { surface.setPointerCapture(pointerId); } catch { /* optional */ }
     });
     surface.addEventListener('pointermove', (event) => {
-      if (!pointerStart || pointerStart.id !== event.pointerId || finished) return;
-      const upwards = Math.max(0, pointerStart.y - event.clientY);
-      surface.style.setProperty('--bu-drag', String(Math.min(1, upwards / 190)));
-      surface.style.setProperty('--bu-shift-x', `${Math.max(-15,Math.min(15,event.movementX||0))}px`);
+      if (closed || startY === null || pointerId !== event.pointerId) return;
+      updateProgress(Math.max(0, startY - event.clientY)/180);
     });
     surface.addEventListener('pointerup', (event) => {
-      if (!pointerStart || pointerStart.id !== event.pointerId) return;
-      const distance = pointerStart.y - event.clientY;
-      pointerStart = null;
-      if (distance > 58) unlock();
-      else {
-        surface.style.setProperty('--bu-drag', '0');
-        surface.style.setProperty('--bu-shift-x', '0px');
-      }
+      if (closed || startY === null || pointerId !== event.pointerId) return;
+      const delta = startY - event.clientY;
+      startY = null; pointerId = null;
+      if (delta >= 64) unlock();
+      else updateProgress(0);
     });
-    surface.addEventListener('pointercancel', () => { pointerStart = null; surface.style.setProperty('--bu-drag','0');surface.style.setProperty('--bu-shift-x','0px'); });
-    surface.querySelector('.bu-visual')?.addEventListener('click', unlock);
-    let wheelTotal = 0;
-    let wheelAt = 0;
+    surface.addEventListener('pointercancel', () => {
+      startY = null; pointerId = null; updateProgress(0);
+    });
     surface.addEventListener('wheel', (event) => {
-      if (event.deltaY <= 0) return;
-      if (Date.now() - wheelAt > 550) wheelTotal = 0;
-      wheelAt = Date.now();
-      wheelTotal += event.deltaY;
-      if (wheelTotal > 64) unlock();
-    }, { passive: true });
+      if (closed || event.deltaY <= 0) return;
+      const now = performance.now();
+      if (now - lastWheel > 600) wheelSum = 0;
+      lastWheel = now; wheelSum += event.deltaY;
+      if (wheelSum > 75) unlock();
+    }, {passive:true});
   }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', mount, { once: true });
-  } else {
-    mount();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount, {once:true});
+  else mount();
 })();
