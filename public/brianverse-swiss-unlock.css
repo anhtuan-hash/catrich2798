@@ -53,7 +53,7 @@
 #bes-unlock .bu-brand {display:flex;align-items:center;gap:17px;font-size:clamp(28px,4vw,66px);letter-spacing:-.065em;
   line-height:1.05;font-weight:800;text-shadow:0 2px 24px rgba(0,22,37,.2)}
 #bes-unlock .bu-brand img {width:clamp(39px,5vw,74px);height:clamp(39px,5vw,74px);object-fit:contain;
-  filter:drop-shadow(0 3px 16px rgba(0,10,32,.18))}
+  filter:invert(1) grayscale(1) contrast(1.75);mix-blend-mode:screen}
 #bes-unlock .bu-brand-name{display:block;white-space:nowrap}
 #bes-unlock .bu-redline{display:block;width:clamp(70px,8vw,118px);height:7px;background:#e52227;margin:28px 0 0 1px;
  box-shadow:0 5px 22px rgba(50,5,9,.11)}
