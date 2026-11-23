@@ -151,6 +151,25 @@
     <link rel="stylesheet" href="/attendance-history-final-polish-v6-1.css?v=1" />
     <link rel="stylesheet" href="/attendance-history-perfect-polish-v6-2.css?v=1" />
     <link rel="stylesheet" href="/attendance-card-size-sync-v1.css?v=1" />
+    <script id="museum-gallery-unlock-loader">
+      (() => {
+        // This repository builds two separate apps. Load this only for the Museum Lab domain.
+        const h = window.location.hostname.toLowerCase();
+        const museum = /^brian-museum(?:-lab)?(?:-[a-z0-9-]+)?\.vercel\.app$/.test(h);
+        const localPreview = ['localhost','127.0.0.1'].includes(h)
+          && new URLSearchParams(window.location.search).get('museumIntro') === 'preview';
+        if (!museum && !localPreview) return;
+        const style = document.createElement('link');
+        style.id = 'museum-gallery-unlock-styles';
+        style.rel = 'stylesheet';
+        style.href = '/museum-gallery-unlock.css?v=2';
+        document.head.appendChild(style);
+        const script = document.createElement('script');
+        script.src = '/museum-gallery-unlock.js?v=2';
+        script.defer = true;
+        document.head.appendChild(script);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
@@ -192,20 +211,6 @@
     <script src="/attendance-history-mockup-v4.js?v=2" defer></script>
     <script src="/attendance-history-v5.js?v=3" defer></script>
     <script src="/attendance-history-pixel-v6.js?v=1" defer></script>
-    <script id="museum-gallery-unlock-loader">
-      (() => {
-        // This repository builds two separate apps. Load this only for the Museum Lab domain.
-        const h = window.location.hostname.toLowerCase();
-        const museum = /^brian-museum(?:-lab)?(?:-[a-z0-9-]+)?\.vercel\.app$/.test(h);
-        const localPreview = ['localhost','127.0.0.1'].includes(h)
-          && new URLSearchParams(window.location.search).get('museumIntro') === 'preview';
-        if (!museum && !localPreview) return;
-        const script = document.createElement('script');
-        script.src = '/museum-gallery-unlock.js?v=1';
-        script.defer = true;
-        document.head.appendChild(script);
-      })();
-    </script>
     <script type="module" src="/src/supplementalLearningRouteBootstrap.js"></script>
     <script type="module" src="/src/applicationBootstrap.jsx"></script>
   </body>
