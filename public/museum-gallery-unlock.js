@@ -39,7 +39,10 @@
     el.setAttribute('aria-modal','true');
     el.setAttribute('aria-label','Mở cửa phòng triển lãm Brian Museum Lab');
     el.innerHTML=[
-      '<div class="mg-scene" aria-hidden="true"></div>',
+      '<div class="mg-scene" aria-hidden="true"><picture>',
+      '  <source media="(max-width:720px)" srcset="https://images.unsplash.com/photo-1748102289451-da1109f5c3bd?auto=format&amp;fit=crop&amp;w=1400&amp;q=82">',
+      '  <img class="mg-photo" src="https://images.unsplash.com/photo-1748102289451-da1109f5c3bd?auto=format&amp;fit=crop&amp;w=3200&amp;q=85" alt="" decoding="async" fetchpriority="high">',
+      '</picture></div>',
       '<div class="mg-red" aria-hidden="true"></div>',
       drum(),
       '<div class="mg-watermark" aria-hidden="true">B</div>',
@@ -52,6 +55,13 @@
     ].join('');
     document.body.appendChild(el);
     active=el;
+    const photograph=el.querySelector('.mg-photo');
+    if(photograph){
+      const reveal=()=>{ if(photograph.isConnected && photograph.naturalWidth>0) photograph.classList.add('mg-loaded'); };
+      if(photograph.decode) photograph.decode().then(reveal).catch(reveal);
+      else if(photograph.complete) reveal();
+      else photograph.addEventListener('load',reveal,{once:true});
+    }
     el.focus({preventScroll:true});
 
     let finished=false,pointer=null,lastY=0,raf=0,cleanupTimer=0,wheel=0,wheelTime=0;
