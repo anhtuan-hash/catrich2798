@@ -46,7 +46,7 @@ test('main features and protected embedded preview remain intact', () => {
   assert.match(app, /useGlobalChromeSettings\(currentUser\)/);
   assert.match(app, /chromeSettings\.showActionDock/);
   assert.match(lesson, /function ActivityCardPreview\(/);
-  assert.match(lesson, /<ActivityFrame embed=\{embed\}/);
+  assert.match(lesson, /<ActivityFrame embed=\{(?:embed|teachingEmbed)\}/);
   assert.ok(lesson.includes('listLessonCheckActivities()'));
 
 });
