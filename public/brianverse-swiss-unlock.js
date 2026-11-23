@@ -15,6 +15,8 @@
     || /^catrich2798(?:-[a-z0-9-]+)?\.vercel\.app$/.test(hostname)
     || ['localhost', '127.0.0.1'].includes(hostname);
   if (!brianverseHost) return;
+  // Keep local development and existing E2E suites unobstructed; use ?unlock=preview to test the intro there.
+  if (['localhost', '127.0.0.1'].includes(hostname) && !preview) return;
 
   if (!preview && (!landing || !rootPath || mode === 'off')) return;
   if (mode === 'off') return;
