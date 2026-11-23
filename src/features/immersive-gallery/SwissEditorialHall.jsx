@@ -41,9 +41,9 @@ export function SwissArtworkLabel({title,index,width,position}){
 export function useEditorialWallTexture(light=false){
  return useCanvasTexture((ctx,w,h)=>{
   const wall=ctx.createLinearGradient(0,0,0,h);
-  wall.addColorStop(0,light?'#c1b39f':'#a99d8d');wall.addColorStop(.34,light?'#e7d9c3':'#c3b7a7');wall.addColorStop(1,light?'#c5b8a4':'#a99c8c');
+  wall.addColorStop(0,light?'#c1b39f':'#d2c6b1');wall.addColorStop(.34,light?'#e7d9c3':'#ebe0cb');wall.addColorStop(1,light?'#c5b8a4':'#c3b59e');
   ctx.fillStyle=wall;ctx.fillRect(0,0,w,h);
-  for(const x of [.10,.27,.53,.79]){
+  for(const x of light?[.10,.27,.53,.79]:[.267,.532,.795]){
    ctx.save();ctx.translate(w*x,h*.14);ctx.scale(1,1.55);
    const beam=ctx.createRadialGradient(0,0,0,0,0,w*.155);
    beam.addColorStop(0,'rgba(255,239,208,.89)');beam.addColorStop(.46,'rgba(255,237,206,.32)');
@@ -57,7 +57,7 @@ export function useEditorialWallTexture(light=false){
 function useEditorialFloorTexture(){
  return useCanvasTexture((ctx,w,h)=>{
   const floor=ctx.createLinearGradient(0,0,0,h);
-  floor.addColorStop(0,'#665d50');floor.addColorStop(.14,'#b1a697');floor.addColorStop(.45,'#918779');floor.addColorStop(1,'#6b6358');
+  floor.addColorStop(0,'#8c806e');floor.addColorStop(.16,'#bdb19b');floor.addColorStop(.52,'#a69a88');floor.addColorStop(1,'#837969');
   ctx.fillStyle=floor;ctx.fillRect(0,0,w,h);
   for(const x of [.15,.36,.55,.74,.89]){
    ctx.save();ctx.translate(x*w,h*.13);ctx.scale(1,2);
@@ -65,7 +65,7 @@ function useEditorialFloorTexture(){
    gloss.addColorStop(0,'rgba(255,234,194,.44)');gloss.addColorStop(1,'rgba(255,234,194,0)');
    ctx.fillStyle=gloss;ctx.fillRect(-w*.1,-w*.1,w*.2,w*.2);ctx.restore();
   }
-  grain(ctx,w,h,23);
+  grain(ctx,w,h,12);
  },[768,768],[]);
 }
 
@@ -79,21 +79,26 @@ export default function SwissEditorialHall({roomNumber,roomTitle,exhibits,onTele
  return <group name="SwissEditorialHall">
   <mesh position={[0,-.08,0]} rotation={[-Math.PI/2,0,0]} onClick={event=>{
    event.stopPropagation();
-   onTeleport?.([THREE.MathUtils.clamp(event.point.x,-5.9,5.9),event.point.z]);
+   if(event.delta<=6)onTeleport?.([THREE.MathUtils.clamp(event.point.x,-5.9,5.9),event.point.z]);
   }}>
    <planeGeometry args={[14,18]}/><meshBasicMaterial map={concrete} toneMapped={false}/>
   </mesh>
   <mesh position={[0,4.85,0]} rotation={[Math.PI/2,0,0]}>
-   <planeGeometry args={[14,18]}/><meshStandardMaterial color="#9c9082" roughness={.93}/>
+   <planeGeometry args={[14,18]}/><meshStandardMaterial color="#e6dfd0" roughness={.94}/>
   </mesh>
   <mesh position={[0,2.38,-9]}><boxGeometry args={[14,4.88,.12]}/><meshStandardMaterial color="#c6baaa" roughness={.94}/></mesh>
   {[-7,7].map(x=><mesh key={x} position={[x,2.38,0]}>
    <boxGeometry args={[.12,4.88,18]}/><meshStandardMaterial color="#c6bbad" roughness={.94}/>
   </mesh>)}
+  {[-6.85,6.85].map(x=><group key={x} position={[x,0,0]}>
+   <mesh position={[0,.045,0]}><boxGeometry args={[.065,.22,17.8]}/><meshStandardMaterial color="#463d32" roughness={.83}/></mesh>
+   <mesh position={[0,4.57,0]}><boxGeometry args={[.19,.16,17.6]}/><meshStandardMaterial color="#d3c9b7" roughness={.9}/></mesh>
+   <mesh position={[0,4.481,0]}><boxGeometry args={[.056,.012,17.5]}/><meshBasicMaterial color="#f6e9cc" toneMapped={false}/></mesh>
+  </group>)}
   <MetalWallLettering name="PetrusKyWallCourtesy" lines={[PEK_COURTESY_MOTTO]}
-   maxWidth={9.2} size={.57} position={[6.925,3.83,-3.1]} rotation={[0,-Math.PI/2,0]}/>
+   maxWidth={6.2} size={.33} position={[6.925,3.44,-3.1]} rotation={[0,-Math.PI/2,0]}/>
   <MetalWallLettering name="PetrusKyWallTeacher" lines={PEK_TEACHER_MOTTO_LINES}
-   maxWidth={7.6} size={.46} lineStep={.47} position={[-6.925,3.45,-3.1]} rotation={[0,Math.PI/2,0]}/>
+   maxWidth={6.2} size={.33} lineStep={.41} position={[-6.925,3.44,-3.1]} rotation={[0,Math.PI/2,0]}/>
   <mesh position={[0,2.17,-8.26]}><boxGeometry args={[10.7,4.48,.65]}/><meshStandardMaterial color="#9d9081" roughness={.94}/></mesh>
   <mesh position={[0,2.17,-7.934]}><planeGeometry args={[10.7,4.48]}/><meshBasicMaterial map={plaster} toneMapped={false}/></mesh>
   <mesh position={[-3.55,4.09,-7.925]}><planeGeometry args={[.85,.58]}/><meshBasicMaterial map={number} transparent toneMapped={false}/></mesh>
@@ -102,8 +107,9 @@ export default function SwissEditorialHall({roomNumber,roomTitle,exhibits,onTele
   <mesh position={[.58,3.89,-7.918]}>
    <boxGeometry args={[6.84,.014,.012]}/><meshBasicMaterial color="#a5833c" toneMapped={false}/>
   </mesh>
-  <mesh position={[0,4.50,-6.73]}><boxGeometry args={[12.8,.54,.48]}/><meshStandardMaterial color="#a89d8e" roughness={.94}/></mesh>
-  <mesh position={[0,4.34,-6.47]}><boxGeometry args={[11.7,.045,.058]}/><meshStandardMaterial color={ink}/></mesh>
+  <mesh position={[0,4.49,-6.71]}><boxGeometry args={[11.45,.13,.43]}/><meshStandardMaterial color="#d6ccbb" roughness={.92}/></mesh>
+  <mesh position={[0,4.415,-6.82]}><boxGeometry args={[11,.018,.07]}/><meshBasicMaterial color="#fbebcb" toneMapped={false}/></mesh>
+  <mesh position={[0,4.39,-6.48]}><boxGeometry args={[11.05,.042,.056]}/><meshStandardMaterial color={ink}/></mesh>
   {trackPositions.map(x=><group key={x} position={[x,4.19,-6.44]} rotation={[-.26,0,.07]}>
    <mesh><cylinderGeometry args={[.074,.092,.22,16]}/><meshStandardMaterial color={ink} roughness={.63}/></mesh>
    <mesh position={[0,-.111,0]} rotation={[Math.PI/2,0,0]}><circleGeometry args={[.069,16]}/><meshBasicMaterial color="#fff2d6" toneMapped={false}/></mesh>
