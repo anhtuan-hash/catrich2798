@@ -9,6 +9,12 @@
   const landing = ['', '#', '#/', '#/home'].includes(hash);
   const path = window.location.pathname;
   const rootPath = path === '/' || path.endsWith('/index.html');
+  // The same repository builds Brian Museum Lab. Keep this entrance strictly on Brianverse hosts.
+  const hostname = window.location.hostname.toLowerCase();
+  const brianverseHost = /^(esl-brian|esl-pek)\.vercel\.app$/.test(hostname)
+    || /^catrich2798(?:-[a-z0-9-]+)?\.vercel\.app$/.test(hostname)
+    || ['localhost', '127.0.0.1'].includes(hostname);
+  if (!brianverseHost) return;
 
   if (!preview && (!landing || !rootPath || mode === 'off')) return;
   if (mode === 'off') return;
