@@ -11,14 +11,20 @@
 }
 #museum-gallery-unlock *,#museum-gallery-unlock *::before,#museum-gallery-unlock *::after{box-sizing:border-box}
 #museum-gallery-unlock .mg-scene{
- position:absolute;inset:0;
- background-image:
-  linear-gradient(90deg,rgba(0,24,43,.45) 0%,rgba(0,28,44,.20) 43%,rgba(0,19,35,.12) 100%),
-  linear-gradient(180deg,rgba(6,36,58,.17) 0%,transparent 43%,rgba(0,18,31,.40) 100%),
-  url("https://images.unsplash.com/photo-1748102289451-da1109f5c3bd?auto=format&fit=crop&w=3200&q=85");
- background-size:cover; background-position:center;
+ position:absolute;inset:0;overflow:hidden;
+ background:linear-gradient(135deg,#12485e,#287879 60%,#a76b52);
  transform:translate3d(0,0,0) scale(1.01);transform-origin:50% 50%;
  transition:transform .68s cubic-bezier(.16,.82,.19,1);
+}
+#museum-gallery-unlock .mg-scene picture,#museum-gallery-unlock .mg-photo{display:block;width:100%;height:100%}
+#museum-gallery-unlock .mg-photo{
+ object-fit:cover;object-position:center;opacity:0;transition:opacity .3s ease;
+}
+#museum-gallery-unlock .mg-photo.mg-loaded{opacity:1}
+#museum-gallery-unlock .mg-scene::after{
+ content:"";position:absolute;inset:0;pointer-events:none;
+ background:linear-gradient(90deg,rgba(0,24,43,.45),rgba(0,28,44,.20) 43%,rgba(0,19,35,.12)),
+            linear-gradient(180deg,rgba(6,36,58,.17),transparent 43%,rgba(0,18,31,.42));
 }
 #museum-gallery-unlock .mg-red{position:absolute;right:0;top:0;bottom:0;width:clamp(18%,27vw,30%);background:linear-gradient(170deg,#ba111e 0%,rgba(178,19,30,.89) 42%,rgba(117,13,24,.48) 100%);clip-path:polygon(15% 0,100% 0,100% 100%,87% 100%,0 0);opacity:.95}
 #museum-gallery-unlock .mg-glyph{position:absolute;inset:4% 4% auto auto;width:min(36vw,390px);height:min(36vw,390px);opacity:.95;pointer-events:none}
@@ -53,13 +59,7 @@
 #museum-gallery-unlock .mg-drag-hint::before{content:"";display:block;width:100%;height:100%;background:#f4dcaf;transform:scaleX(var(--mg-progress,0));transform-origin:left}
 @media(max-width:720px){
  #museum-gallery-unlock .mg-grid{padding:calc(env(safe-area-inset-top) + 24px) 23px calc(env(safe-area-inset-bottom) + 24px)}
- #museum-gallery-unlock .mg-scene{
-  background-position:55% center;
-  background-image:
-    linear-gradient(90deg,rgba(0,24,43,.45),rgba(0,28,44,.13) 65%),
-    linear-gradient(180deg,rgba(6,36,58,.17),transparent 43%,rgba(0,18,31,.40)),
-    url("https://images.unsplash.com/photo-1748102289451-da1109f5c3bd?auto=format&fit=crop&w=1400&q=82");
- }
+ #museum-gallery-unlock .mg-photo{object-position:55% center}
  #museum-gallery-unlock .mg-red{width:45%;opacity:.78}
  #museum-gallery-unlock .mg-drum{width:110vw;top:0;left:-24vw;opacity:.37}
  #museum-gallery-unlock .mg-watermark{top:23%;right:-38%;font-size:78vw}
