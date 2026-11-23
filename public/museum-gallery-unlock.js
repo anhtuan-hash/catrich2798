@@ -87,11 +87,10 @@
       finished=true;pointer=null;
       if(raf)cancelAnimationFrame(raf);
       el.classList.remove('mg-dragging');
-      el.style.transform='';
-      el.style.removeProperty('--mg-progress');
-      // Force one style/layout checkpoint so release animation starts from current swipe position.
+      // Preserve the current swipe position; animate only the overlay transform to -102%.
       void el.offsetHeight;
       el.classList.add('mg-unlocking');
+      el.style.transform='translate3d(0,-102%,0)';
       cleanupTimer=setTimeout(cleanup,reduced?30:740);
     }
     function onKey(e){
