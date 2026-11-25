@@ -58,7 +58,7 @@ export async function digest(text){
 export const safeJson=value=>JSON.stringify(value).replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
 export function buildOfflineHtml(runtime,snapshot,snapshotHash,extra={}){
  const compact=extra.compact?compactSnapshot(snapshot):null;
- const payload=safeJson({... (compact?{...compact,compactVersion:COMPACT_PAYLOAD_VERSION}:{snapshot}),snapshotHash,mode:extra.mode||'teacher',groupId:extra.groupId||''});
+ const payload=safeJson({... (compact?{...compact,compactVersion:COMPACT_PAYLOAD_VERSION}:{snapshot}),snapshotHash,mode:extra.mode||'teacher',groupId:extra.groupId||'',...(extra.archiveInfo?{archiveInfo:extra.archiveInfo}:{})});
  const code=runtime.script.replace(/<\/script/gi,'<\\/script');
  const css=runtime.css.replace(/<\/style/gi,'<\\/style');
  const title=extra.title||'Pétrus Ký School System · Frozen evidence';
