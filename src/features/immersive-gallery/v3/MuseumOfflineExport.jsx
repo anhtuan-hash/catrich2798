@@ -48,6 +48,7 @@ export default function MuseumOfflineExport({language='en',data,transport,render
   }catch(e){
    abort.current?.abort();
    if(e.name==='AbortError')setError(tr('Đã hủy xuất.','Export cancelled.'));
+   else if(e.code==='OFFLINE_CONTEST_LIMIT')setError(tr('Hồ sơ vượt ngưỡng an toàn 45 MB; không xuất tệp vượt giới hạn.','Contest pack exceeds the 45 MB safety limit; oversized download blocked.'));
    else if(e.code==='OFFLINE_ARTWORK_LIMIT')setError(tr(
     'Ảnh vẫn vượt giới hạn 180 MB sau khi tối ưu để xuất ngoại tuyến.',
     'The optimized artwork still exceeds the 180 MB offline export limit.',
@@ -66,7 +67,7 @@ export default function MuseumOfflineExport({language='en',data,transport,render
     {busy
      ? tr('Đang tạo gói ZIP…','Preparing the ZIP…')
      : renderLayout
-     ? tr('Xem gói hội thi (.zip)','Preview contest pack (.zip)')
+     ? tr('Xem gói hội thi (.zip ≤ 45 MB)','Preview contest pack (.zip ≤ 45 MB)')
      : tr('Xem gói hội thi · giáo viên + '+rows.length+' bài học sinh','Preview contest pack · teacher + '+rows.length+' student workshops')}
   </button>
  );
@@ -84,7 +85,8 @@ export default function MuseumOfflineExport({language='en',data,transport,render
   {error?<p role="alert" className="bml-banner bml-danger-banner">{error}</p>:null}
   {report?<div role="status" className="bml-banner bml-info-banner"><PackageCheck size={20}/><div>
    <strong>{tr('Gói ZIP đã sẵn sàng','ZIP ready')} · 100%</strong>
-   <p>{report.counts.lessons} lessons · {report.counts.groups} groups · {report.counts.studentWorkshops||0} student workshops · {report.counts.exhibitions} exhibitions · {(report.bytes/1048576).toFixed(1)} MB</p>
+   <p>{report.counts.lessons} lessons · {report.counts.groups} groups · {report.counts.studentWorkshops||0} student workshops · {report.counts.exhibitions} exhibitions · {(report.bytes/1000000).toFixed(2)} MB ZIP</p>
+   <p>{tr('Tổng sau giải nén','Total extracted size')}: {(report.totalUncompressedBytes/1000000).toFixed(2)} MB / 45 MB</p>
    <p>{tr('Giải nén ZIP. Mở PetrusKy_Museum_Offline.html cho bản giáo viên, hoặc hoc-sinh/index.html để xem bài của các nhóm.','Extract the ZIP. Open PetrusKy_Museum_Offline.html for the teacher app, or hoc-sinh/index.html to view the student workshops.')}</p>
    <button type="button" className="bml-outline" onClick={previewArchive}>
     <Eye size={16} aria-hidden="true"/>{tr('Xem lại tệp ZIP','Preview the ZIP again')}

@@ -1,4 +1,38 @@
 export const SNAPSHOT_FORMAT='brian-museum-offline-v1';
+export const CONTEST_MAX_BYTES=45_000_000;
+export const COMPACT_PAYLOAD_VERSION=1;
+// Deduplicate identical embedded images without changing their bytes or the logical snapshot.
+export function compactSnapshot(snapshot){
+ const images=[],index=new Map();
+ const walk=value=>{
+  if(typeof value==='string'&&/^data:image\//i.test(value)){
+   if(!index.has(value)){index.set(value,images.length);images.push(value);}
+   return {__museumImageRef:index.get(value)};
+  }
+  if(Array.isArray(value))return value.map(walk);
+  if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,walk(v)]));
+  return value;
+ };
+ return {snapshot:walk(snapshot),images};
+}
+export function expandCompactSnapshot(snapshot,images){
+ const walk=value=>{
+  if(Array.isArray(value))return value.map(walk);
+  if(value&&typeof value==='object'){
+   if(Object.keys(value).length===1&&Object.hasOwn(value,'__museumImageRef')){
+    const i=value.__museumImageRef;
+    if(!Number.isInteger(i)||i<0||i>=images.length||typeof images[i]!=='string'||!/^data:image\//i.test(images[i]))throw new Error('Invalid archive image reference.');
+    return images[i];
+   }
+   return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,walk(v)]));
+  }
+  return value;
+ };
+ return walk(snapshot);
+}
+export function assertContestBudget(bytes){
+ if(bytes>CONTEST_MAX_BYTES)throw Object.assign(new Error('The contest pack exceeds the 45 MB safety limit. No oversized file was released.'),{code:'OFFLINE_CONTEST_LIMIT'});
+}
 export const BLOCKED_WRITE='This is a frozen evidence archive. Adding, editing, deleting and submitting are disabled.';
 const privateKey=/(?:secret|password|passcode|token|authorization|csrf|cookie|invitation|invite_handle|storage_path|session_cookie)/i;
 export function sanitizeSnapshot(value){
@@ -23,7 +57,8 @@ export async function digest(text){
 }
 export const safeJson=value=>JSON.stringify(value).replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
 export function buildOfflineHtml(runtime,snapshot,snapshotHash,extra={}){
- const payload=safeJson({snapshot,snapshotHash,mode:extra.mode||'teacher',groupId:extra.groupId||''});
+ const compact=extra.compact?compactSnapshot(snapshot):null;
+ const payload=safeJson({... (compact?{...compact,compactVersion:COMPACT_PAYLOAD_VERSION}:{snapshot}),snapshotHash,mode:extra.mode||'teacher',groupId:extra.groupId||''});
  const code=runtime.script.replace(/<\/script/gi,'<\\/script');
  const css=runtime.css.replace(/<\/style/gi,'<\\/style');
  const title=extra.title||'Pétrus Ký School System · Frozen evidence';

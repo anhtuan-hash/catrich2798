@@ -2,7 +2,7 @@ import {staffRequest} from '../museumApi.js';
 import {liveStaff,artStaff} from '../museumLiveApi.js';
 import {isAsean} from '../aseanLesson.js';
 import {aseanStudentRecords} from './aseanRecords.js';
-import {SNAPSHOT_FORMAT,sanitizeSnapshot,digest,buildOfflineHtml} from './snapshot.js';
+import {SNAPSHOT_FORMAT,sanitizeSnapshot,digest,buildOfflineHtml,COMPACT_PAYLOAD_VERSION,CONTEST_MAX_BYTES,assertContestBudget} from './snapshot.js';
 import {groupWorkshopRows} from './workshopRows.js';
 import {prepareOfflineArtwork} from './prepareArtwork.js';
 
@@ -174,8 +174,10 @@ export async function exportMuseumOffline(options={}){
  const snapshot=await captureMuseum(options);
  report('packaging',84);
  const snapshotHash=await digest(JSON.stringify(snapshot));
- const html=buildOfflineHtml(runtime,snapshot,snapshotHash);
- const board=await studentBoardHtml(runtime,snapshot);
+ if(runtime.compactPayloadVersion!==COMPACT_PAYLOAD_VERSION)throw new Error('Refresh the online app to use the new compact contest export.');
+ const html=buildOfflineHtml(runtime,snapshot,snapshotHash,{compact:true});
+ const groups=groupWorkshopRows(snapshot);
+ const board={groups,html:'<!doctype html><html lang="en"><meta charset="utf-8"><title>Student workshops</title><h1>Student workshops</h1><p><a href="../PetrusKy_Museum_Offline.html#student-workshops">Open all '+groups.length+' student workshops</a></p></html>'};
  const {default:JSZip}=await import('jszip');const zip=new JSZip();
  const manifest={format:SNAPSHOT_FORMAT,startedAt:snapshot.startedAt,completedAt:snapshot.completedAt,
   applicationBuild:runtime.build,scope:'Authorized Museum Lab staff catalogue at export; unrelated Brian modules are excluded.',
@@ -183,12 +185,10 @@ export async function exportMuseumOffline(options={}){
   counts:{lessons:snapshot.staff.assignments.length,groups:snapshot.staff.groups.length,
    submissions:snapshot.staff.reviews.length,exhibitions:snapshot.galleries.length,embeddedImages:snapshot.media.length,
    studentWorkshops:board.groups.length},
-  students:board.groups,warnings:snapshot.warnings,media:snapshot.media,readOnly:true};
+  students:board.groups,warnings:snapshot.warnings,media:snapshot.media,readOnly:true,packaging:'single-html-deduplicated-images',maxTotalBytes:CONTEST_MAX_BYTES,snapshotLocation:'PetrusKy_Museum_Offline.html (embedded, logical SHA-256 after expansion)'};
  zip.file('PetrusKy_Museum_Offline.html',html);
  zip.file('hoc-sinh/index.html',board.html);
- zip.file('snapshot.json',JSON.stringify(snapshot));
- zip.file('manifest.json',JSON.stringify(manifest,null,2));
- zip.file('README_VI.txt',[
+ const readme=[
   'PÉTRUS KÝ SCHOOL SYSTEM — BẢN MINH CHỨNG OFFLINE CHỈ ĐỌC',
   '1. Giải nén ZIP. Mở PetrusKy_Museum_Offline.html bằng Chrome hoặc Edge trên máy tính.',
   '2. Có thể tắt Wi-Fi trước khi mở. Không cần cài đặt, máy chủ hay đăng nhập.',
@@ -198,15 +198,21 @@ export async function exportMuseumOffline(options={}){
   '6. YouTube và trang ngoài không được tải kèm. Giọng đọc cần giọng en-US cài sẵn trên hệ điều hành.',
   '7. Đây là bản sao dữ liệu mà tài khoản xuất có quyền đọc. Người có tệp có thể xem nội dung này.',
   '8. Dữ liệu được thu thập từ '+snapshot.startedAt+' đến '+snapshot.completedAt+'. Dừng thao tác cập nhật trong lúc xuất để có bản nhất quán.',
-  '9. manifest.json ghi SHA-256 và các mục không có dữ liệu. Giữ nguyên bản ZIP gốc khi nộp.',
+  '9. manifest.json ghi SHA-256 của dữ liệu nhúng và các mục không có dữ liệu. Giữ nguyên bản ZIP khi nộp.',
   '10. SHA-256 phát hiện thay đổi so với bản kê; không phải chữ ký số hoặc xác nhận của cơ quan tổ chức.',
   '11. Kiểm tra nguồn gốc minh chứng, quyền sử dụng ảnh và giới hạn dung lượng hồ sơ trước khi nộp.',
-  '12. Một số ảnh trong ZIP là bản tối ưu dung lượng để xem ngoại tuyến. Bản gốc nằm trên Museum Lab.',
- ].join('\n'));
+  '12. Ảnh trùng được lưu một lần; một số ảnh là bản tối ưu để xem ngoại tuyến. Dữ liệu gốc hoặc bản phục hồi được lưu trên Museum Lab.',
+ ].join('\n');
+ const manifestText=JSON.stringify(manifest,null,2);
+ const encoder=new TextEncoder();
+ const totalBytes=[html,board.html,manifestText,readme].reduce((sum,item)=>sum+encoder.encode(item).byteLength,0);
+ assertContestBudget(totalBytes);
+ zip.file('manifest.json',manifestText);
+ zip.file('README_VI.txt',readme);
  report('compression',90);
  let lastPercent=90;
  const blob=await zip.generateAsync(
-  {type:'blob',compression:'DEFLATE',compressionOptions:{level:6}},
+  {type:'blob',compression:'DEFLATE',compressionOptions:{level:9}},
   ({percent})=>{
    if(options.signal?.aborted)return;
    const wholePercent=90+Math.floor(percent*9/100);
@@ -217,15 +223,10 @@ export async function exportMuseumOffline(options={}){
   },
  );
  options.signal?.throwIfAborted();
+ assertContestBudget(blob.size);
  report('ready',100);
  const entries=Object.values(zip.files).filter(entry=>!entry.dir).map(entry=>entry.name);
- return {blob,manifest,filename:'PetrusKy_Museum_Offline_'+snapshot.completedAt.slice(0,10)+'.zip',runtime,snapshot,entries};
-}
-async function studentBoardHtml(runtime,snapshot){
- const sliced=sanitizeSnapshot({...snapshot,galleries:[],media:[]});
- const hash=await digest(JSON.stringify(sliced));
- const groups=groupWorkshopRows(snapshot);
- return {groups,html:buildOfflineHtml(runtime,sliced,hash,{mode:'student-board',title:groups.length+' student workshops'})};
+ return {blob,manifest:{...manifest,totalUncompressedBytes:totalBytes},filename:'PetrusKy_Museum_Offline_'+snapshot.completedAt.slice(0,10)+'.zip',runtime,snapshot,entries};
 }
 export async function buildStudentWorkshopHtml(runtime,snapshot,groupId){
  const rows=groupWorkshopRows(snapshot);
