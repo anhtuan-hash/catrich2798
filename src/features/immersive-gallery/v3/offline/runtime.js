@@ -72,6 +72,13 @@ export function createOfflineRuntime(input){
    return deny();
   },
   artStaff:async id=>clone(snapshot.artworks[id]||[]),
+  publicWorkshop:async(id,section)=>{
+   if(section&&section!=='first')return deny();
+   const workshop=snapshot.publicWorkshops?.[id];
+   const value=section==='first'?workshop?.first:workshop?.main;
+   if(!value)throw new Error('Published mobile workshop unavailable in this archive.');
+   return clone(value);
+  },
   useStudent(id){studentGroupId=id;},
   guest:async(action,method)=>{
    if(!studentGroupId)return deny();
