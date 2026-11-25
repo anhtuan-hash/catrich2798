@@ -2,15 +2,36 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
   "installCommand": "npm --prefix ../.. ci --no-audit --no-fund",
-  "buildCommand": "../../node_modules/.bin/vite build && (cd ../.. && node scripts/build-museum-offline.mjs apps/museum-lab/dist)",
+  "buildCommand": "../../node_modules/.bin/vite build && (cd ../.. && python3 -m pip install --quiet --disable-pip-version-check --target /tmp/museum-dossier-python 'pymupdf==2.1' 'pymupdf-fonts==1.0.5' && PYTHONPATH=/tmp/museum-dossier-python python3 scripts/build-museum-standalone-dossier.py apps/museum-lab/dist && node scripts/build-museum-offline.mjs apps/museum-lab/dist)",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/api/gallery-guest/live", "destination": "/api/gateway?handler=museum-live" },
-    { "source": "/api/gallery-guest/artwork", "destination": "/api/gateway?handler=museum-artwork" },
-    { "source": "/api/gallery-guest", "destination": "/api/gateway?handler=gallery-guest" },
-    { "source": "/api/gallery-staff", "destination": "/api/gateway?handler=gallery-staff" },
-    { "source": "/api/museum-live", "destination": "/api/gateway?handler=museum-live" },
-    { "source": "/api/museum-artwork", "destination": "/api/gateway?handler=museum-artwork" },
-    { "source": "/api/youtube-search", "destination": "/api/gateway?handler=youtube-search" }
+    {
+      "source": "/api/gallery-guest/live",
+      "destination": "/api/gateway?handler=museum-live"
+    },
+    {
+      "source": "/api/gallery-guest/artwork",
+      "destination": "/api/gateway?handler=museum-artwork"
+    },
+    {
+      "source": "/api/gallery-guest",
+      "destination": "/api/gateway?handler=gallery-guest"
+    },
+    {
+      "source": "/api/gallery-staff",
+      "destination": "/api/gateway?handler=gallery-staff"
+    },
+    {
+      "source": "/api/museum-live",
+      "destination": "/api/gateway?handler=museum-live"
+    },
+    {
+      "source": "/api/museum-artwork",
+      "destination": "/api/gateway?handler=museum-artwork"
+    },
+    {
+      "source": "/api/youtube-search",
+      "destination": "/api/gateway?handler=youtube-search"
+    }
   ]
 }
