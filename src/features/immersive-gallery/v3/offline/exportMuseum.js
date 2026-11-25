@@ -1,4 +1,5 @@
-import {staffRequest} from '../museumApi.js';
+import {staffRequest,readPublicWorkshop} from '../museumApi.js';
+import {MOBILE_WORKSHOP_VERSION,mobileEligible,captureMobileWorkshop,mobileLauncherEntries} from './mobileWorkshops.js';
 import {liveStaff,artStaff} from '../museumLiveApi.js';
 import {isAsean} from '../aseanLesson.js';
 import {aseanStudentRecords} from './aseanRecords.js';
@@ -11,7 +12,7 @@ const imageHash=async bytes=>
 
 // Read only existing, permission-checked staff endpoints. Never export the
 // session token, Creator Pass, signed access URL or service-role credentials.
-export async function captureMuseum({onProgress=()=>{},signal,assignmentIds,staff=staffRequest,live=liveStaff,art=artStaff,fetcher=fetch}={}){
+export async function captureMuseum({onProgress=()=>{},signal,assignmentIds,staff=staffRequest,live=liveStaff,art=artStaff,fetcher=fetch,publicRead=readPublicWorkshop,includeMobile=Boolean(import.meta.env.MUSEUM_LAB_STANDALONE)}={}){
  const startedAt=new Date().toISOString(),warnings=[],media=[],cache=new Map(),imageContent=new Map(),activeImages=new Set();let totalBytes=0;
  const LIMIT=180*1024*1024;
  const check=()=>{if(signal?.aborted)throw new DOMException('Export cancelled.','AbortError');};
@@ -89,7 +90,7 @@ export async function captureMuseum({onProgress=()=>{},signal,assignmentIds,staf
    archivedGalleries:(catalogue.archivedGalleries||[]).filter(belongsToLesson)};
  }
  const snapshot={format:SNAPSHOT_FORMAT,startedAt,completedAt:null,source:'Pétrus Ký School System',
-  staff:staffData,showcase,galleries:[],artworks:{},groupDrafts:{},live:{},evidence:{},comparisons:{},warnings,media};
+  staff:staffData,showcase,galleries:[],artworks:{},groupDrafts:{},live:{},evidence:{},comparisons:{},publicWorkshops:{},warnings,media};
  const galleries=showcase.publishedGalleries||staffData.publishedGalleries||[];
  const groupTotal=staffData.groups.length;
  const units=galleries.length+staffData.assignments.length+groupTotal;
@@ -126,14 +127,16 @@ export async function captureMuseum({onProgress=()=>{},signal,assignmentIds,staf
     }
     check();
     if(state.session?.id)comparison=await embed(await live('checkpoint-compare',null,{assignmentId:a.id,groupId:g.id}));
+    const mobile=includeMobile&&mobileEligible(a,g)?await captureMobileWorkshop(g,a,publicRead,embed):null;
     check();
     finished++;groupsDone++;
     reportCapture('groups',groupsDone,groupTotal);
-    return {g,assets,draft,comparison,warning};
+    return {g,assets,draft,comparison,warning,mobile};
    }));
    for(const item of batch){
     if(item.status==='rejected')throw item.reason;
-    const {g,assets,draft,comparison,warning}=item.value;
+    const {g,assets,draft,comparison,warning,mobile}=item.value;
+    if(mobile)snapshot.publicWorkshops[g.id]=mobile;
     snapshot.artworks[g.id]=assets;
     if(draft!==undefined)snapshot.groupDrafts[g.id]=draft;
     if(comparison!==undefined)snapshot.comparisons[g.id]=comparison;
@@ -171,12 +174,16 @@ export async function exportMuseumOffline(options={}){
  if(!r.ok)throw new Error('Offline application is not available in this release. Refresh the online app and retry.');
  const runtime=await r.json();
  if(runtime.format!==SNAPSHOT_FORMAT||!runtime.script||!runtime.css)throw new Error('Invalid offline application package.');
- const snapshot=await captureMuseum(options);
+ const includeMobile=Boolean(import.meta.env.MUSEUM_LAB_STANDALONE);
+ if(includeMobile&&runtime.mobileWorkshopVersion!==MOBILE_WORKSHOP_VERSION)throw new Error('Refresh Museum Lab to load the mobile offline export runtime.');
+ const snapshot=await captureMuseum({...options,includeMobile});
  report('packaging',84);
  const snapshotHash=await digest(JSON.stringify(snapshot));
  if(runtime.compactPayloadVersion!==COMPACT_PAYLOAD_VERSION)throw new Error('Refresh the online app to use the new compact contest export.');
  const html=buildOfflineHtml(runtime,snapshot,snapshotHash,{compact:true});
  const groups=groupWorkshopRows(snapshot);
+ const mobileFiles=includeMobile?mobileLauncherEntries(groups,snapshot.publicWorkshops):{};
+ const mobileCount=Object.keys(snapshot.publicWorkshops).length;
  const board={groups,html:'<!doctype html><html lang="en"><meta charset="utf-8"><title>Student workshops</title><h1>Student workshops</h1><p><a href="../PetrusKy_Museum_Offline.html#student-workshops">Open all '+groups.length+' student workshops</a></p></html>'};
  const {default:JSZip}=await import('jszip');const zip=new JSZip();
  const manifest={format:SNAPSHOT_FORMAT,startedAt:snapshot.startedAt,completedAt:snapshot.completedAt,
@@ -184,16 +191,18 @@ export async function exportMuseumOffline(options={}){
   snapshotSha256:snapshotHash,htmlSha256:await digest(html),
   counts:{lessons:snapshot.staff.assignments.length,groups:snapshot.staff.groups.length,
    submissions:snapshot.staff.reviews.length,exhibitions:snapshot.galleries.length,embeddedImages:snapshot.media.length,
-   studentWorkshops:board.groups.length},
-  students:board.groups,warnings:snapshot.warnings,media:snapshot.media,readOnly:true,packaging:'single-html-deduplicated-images',maxTotalBytes:CONTEST_MAX_BYTES,snapshotLocation:'PetrusKy_Museum_Offline.html (embedded, logical SHA-256 after expansion)'};
+   studentWorkshops:board.groups.length,mobileWorkshops:mobileCount},
+  students:board.groups.map(g=>({...g,...(snapshot.publicWorkshops[g.id]?{mobileFile:'mobile/'+g.filename}:{})})),warnings:snapshot.warnings,media:snapshot.media,readOnly:true,packaging:'single-html-deduplicated-images',maxTotalBytes:CONTEST_MAX_BYTES,snapshotLocation:'PetrusKy_Museum_Offline.html (embedded, logical SHA-256 after expansion)'};
  zip.file('PetrusKy_Museum_Offline.html',html);
  zip.file('hoc-sinh/index.html',board.html);
+ for(const [name,content] of Object.entries(mobileFiles))zip.file(name,content);
  const readme=[
   'PÉTRUS KÝ SCHOOL SYSTEM — BẢN MINH CHỨNG OFFLINE CHỈ ĐỌC',
   '1. Giải nén ZIP. Mở PetrusKy_Museum_Offline.html bằng Chrome hoặc Edge trên máy tính.',
   '2. Có thể tắt Wi-Fi trước khi mở. Không cần cài đặt, máy chủ hay đăng nhập.',
   '3. Xem bài học, bài nộp, tác phẩm, phản hồi đã lưu, triển lãm 2D/3D và trình chiếu theo bài học.',
   '4. Mở hoc-sinh/index.html để xem '+board.groups.length+' bài thực hành. Chọn một nhóm để mở đúng bài của nhóm đó. Chỉ xem.',
+  '4a. Bản mobile: mở mobile/index.html (nếu có), chọn nhóm và VI/EN. Dùng cùng ứng dụng và ảnh ngoại tuyến; giữ nguyên thư mục sau giải nén.',
   '5. Nút chuyển hoạt động/hiện đáp án chỉ đổi cách xem. Không thêm, sửa, xóa, chấm điểm hay gửi dữ liệu.',
   '6. YouTube và trang ngoài không được tải kèm. Giọng đọc cần giọng en-US cài sẵn trên hệ điều hành.',
   '7. Đây là bản sao dữ liệu mà tài khoản xuất có quyền đọc. Người có tệp có thể xem nội dung này.',
@@ -205,7 +214,7 @@ export async function exportMuseumOffline(options={}){
  ].join('\n');
  const manifestText=JSON.stringify(manifest,null,2);
  const encoder=new TextEncoder();
- const totalBytes=[html,board.html,manifestText,readme].reduce((sum,item)=>sum+encoder.encode(item).byteLength,0);
+ const totalBytes=[html,board.html,manifestText,readme,...Object.values(mobileFiles)].reduce((sum,item)=>sum+encoder.encode(item).byteLength,0);
  assertContestBudget(totalBytes);
  zip.file('manifest.json',manifestText);
  zip.file('README_VI.txt',readme);
@@ -235,7 +244,7 @@ export async function buildStudentWorkshopHtml(runtime,snapshot,groupId){
  if(!runtime?.script||!row||!group)throw new Error('This group is not in the frozen archive.');
  const sliced=studentSnapshot(snapshot,group);
  const hash=await digest(JSON.stringify(sliced));
- const html=buildOfflineHtml(runtime,sliced,hash,{mode:'student',groupId,title:row.label+' · Student workshop'});
+ const html=buildOfflineHtml(runtime,sliced,hash,{mode:sliced.publicWorkshops?.[groupId]?'mobile':'student',groupId,title:row.label+' · Student workshop',compact:true});
  return {filename:row.filename,blob:new Blob([html],{type:'text/html'})};
 }
 function studentSnapshot(full,group){
@@ -257,7 +266,7 @@ function studentSnapshot(full,group){
   responses:(evidence.responses||[]).filter(item=>item.group_id===group.id),
   feedback:(evidence.feedback||[]).filter(item=>item.from_group===group.id||item.to_group===group.id),
   microResponses:(evidence.microResponses||[]).filter(item=>item.group_id===group.id)}:null;
- return sanitizeSnapshot({...full,staff,galleries:[],media:[],showcase:{publishedGalleries:[]},
+ return sanitizeSnapshot({...full,staff,galleries:[],media:[],publicWorkshops:full.publicWorkshops?.[group.id]?{[group.id]:full.publicWorkshops[group.id]}:{},showcase:{publishedGalleries:[]},
   warnings:(full.warnings||[]).filter(item=>(!item.group||item.group===group.label)&&(!item.lesson||item.lesson===assignment?.title)),
   artworks:{[group.id]:full.artworks[group.id]||[]},
   groupDrafts:{[group.id]:full.groupDrafts[group.id]||null},

@@ -1,7 +1,9 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import MuseumLabApp from '../MuseumLabApp.jsx';
-import MuseumLabStudent from '../MuseumLabStudent.jsx';
+import MuseumLabStudent,{PublicAseanWorkshop} from '../MuseumLabStudent.jsx';
+import {publicWorkshopHref} from '../aseanPublicWorkshop.js';
+import {mobileRoute} from './mobileWorkshops.js';
 import MuseumScene from '../MuseumScene.jsx';
 import MuseumExhibitionDetail from '../MuseumExhibitionDetail.jsx';
 import {isAsean} from '../aseanLesson.js';
@@ -47,7 +49,7 @@ function OfflineApp({runtime,hash}){
     <button type="button" onClick={()=>setView('app')} aria-current={view==='app'?'page':undefined}>Museum Lab</button>
     <button type="button" onClick={()=>setView('work')} aria-current={view==='work'?'page':undefined}>Saved student work</button>
    </nav>
-   <a href="#student-workshops">{groups.length} student workshops</a>
+   <a href="#student-workshops">{groups.length} student workshops · Mobile</a>
    <details><summary>Archive details</summary><p>Viewing controls do not change this snapshot.</p>
     <p>Snapshot SHA-256: <code>{hash}</code></p><p>Checksums detect changes relative to this manifest; they are not a digital signature.</p>
     <ul>{snapshot.warnings.map((w,i)=><li key={i}>{w.lesson||w.group||''} {w.message}</li>)}</ul>
@@ -87,20 +89,22 @@ function StudentBoard({runtime,legacy=false}){
   <h1>{groups.length} student workshops</h1>
   <p>Each row opens that group’s saved practice. Nothing can be added, edited or deleted.</p>
   <p><a href={legacy?"../PetrusKy_Museum_Offline.html":"#teacher"}>Open the teacher archive</a></p>
-  <div className="bml-frozen-table-wrap"><table className="bml-frozen-table"><thead><tr><th>#</th><th>Group</th><th>Class</th><th>Museum</th><th>{writingHeading}</th><th></th></tr></thead>
+  <div className="bml-frozen-table-wrap"><table className="bml-frozen-table"><thead><tr><th>#</th><th>Group</th><th>Class</th><th>Museum</th><th>{writingHeading}</th><th>Workshop</th><th>Mobile · VI / EN</th></tr></thead>
    <tbody>{groups.map((group,index)=><tr key={group.id}><td>{String(index+1).padStart(2,'0')}</td><td>{group.label}</td><td>{group.classScope}</td><td>{group.state}</td>
     <td>{group.transfer===null?(group.exit?'Submitted':'None'):(group.transfer?'On file':'No saved writing')}</td>
-    <td><button type="button" onClick={()=>open(group.id)}>Open</button></td></tr>)}</tbody></table></div>
+    <td><button type="button" onClick={()=>open(group.id)}>Open</button></td><td>{runtime.snapshot.publicWorkshops?.[group.id]?<><a href={publicWorkshopHref(group.id,'vi')}>VI</a> · <a href={publicWorkshopHref(group.id,'en')}>EN</a></>:'—'}</td></tr>)}</tbody></table></div>
  </main>;
 }
 function SharedArchive({runtime,hash}){
- const [student,setStudent]=useState(()=>location.hash==='#student-workshops');
+ const [route,setRoute]=useState(()=>location.hash);
  useEffect(()=>{
-  const change=()=>{runtime.useStudent('');setStudent(location.hash==='#student-workshops');};
+  const change=()=>{runtime.useStudent('');setRoute(location.hash);};
   window.addEventListener('hashchange',change);
   return ()=>window.removeEventListener('hashchange',change);
  },[runtime]);
- return student?<StudentBoard runtime={runtime}/>:<OfflineApp runtime={runtime} hash={hash}/>;
+ const mobile=mobileRoute(route);
+ if(mobile)return <PublicAseanWorkshop key={mobile.id+mobile.language} groupId={mobile.id} language={mobile.language}/>;
+ return route==='#student-workshops'?<StudentBoard runtime={runtime}/>:<OfflineApp runtime={runtime} hash={hash}/>;
 }
 async function boot(){
  const payload=JSON.parse(document.getElementById('museum-frozen-payload').textContent);
@@ -113,6 +117,10 @@ async function boot(){
  const runtime=createOfflineRuntime(payload.snapshot);installMuseumOffline(runtime);
  if(payload.mode==='student-board'){
   createRoot(document.getElementById('root')).render(<StudentBoard runtime={runtime} legacy/>);
+  return;
+ }
+ if(payload.mode==='mobile'){
+  createRoot(document.getElementById('root')).render(<PublicAseanWorkshop groupId={payload.groupId} language="vi"/>);
   return;
  }
  if(payload.mode==='student'){

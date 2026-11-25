@@ -68,6 +68,8 @@ export async function getMuseumInviteInfo(handle){
  return value;
 }
 export async function readPublicWorkshop(groupId, {section,signal}={}){
+ const offline=getMuseumOffline();
+ if(offline)return offline.publicWorkshop(groupId,section);
  const params=new URLSearchParams({operation:PUBLIC_WORKSHOP_OPERATION,groupId});
  if(section)params.set('section',section);
  const response=await fetch('/api/gallery-staff?'+params,{

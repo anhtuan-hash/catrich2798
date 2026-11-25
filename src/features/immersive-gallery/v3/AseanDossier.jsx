@@ -5,6 +5,7 @@ import MuseumWorkshopBoard from './MuseumWorkshopBoard.jsx';
 import { groupWorkshopRows } from './offline/workshopRows.js';
 import { englishSystemGroupLabel } from './museumApi.js';
 import { MuseumFileLink, useMuseumFilePreview } from './MuseumFilePreview.jsx';
+import { getMuseumOffline } from './offlineAccess.js';
 import { ASEAN_TITLE } from './aseanLesson.js';
 import { isPublicWorkshopGroup, publicWorkshopHref } from './aseanPublicWorkshop.js';
 import { ASEAN_EVIDENCE_PDF, ASEAN_PROJECT_OVERVIEW, getAseanPaperPlan } from './aseanPaperPlan.js';
@@ -24,7 +25,8 @@ export function AseanDossier({ data, language, transport, readOnly, onOpenGaller
     return isPublicWorkshopGroup(assignment, group) && publishedReviewGroups.has(group.id) &&
       gallery?.destinations?.some(destination => destination.groupLabel === group.label);
   }).map(group => group.id));
-  const mobileAction = !data?.offlineReadOnly && mobileGroups.size > 0 ? {
+  if(data?.offlineReadOnly){mobileGroups.clear();for(const id of Object.keys(getMuseumOffline()?.snapshot?.publicWorkshops||{}))mobileGroups.add(id);}
+  const mobileAction = mobileGroups.size > 0 ? {
     label: tr('Bản mobile', 'Mobile view'),
     render: row => mobileGroups.has(row.id)
       ? <a className="bml-outline asean-dossier-mobile-link" href={publicWorkshopHref(row.id, language)}
@@ -143,7 +145,7 @@ export function AseanDossier({ data, language, transport, readOnly, onOpenGaller
       {data?.profile?.id && !readOnly
         ? <MuseumOfflineExport data={data} language={language} transport={transport} renderLayout={renderLayout} mobileAction={mobileAction}/>
         : <div className="asean-dossier-layout">{renderLayout({
-          board: data?.publicReadOnly && groups.length > 0 && (
+          board: (data?.publicReadOnly||data?.offlineReadOnly) && groups.length > 0 && (
             <MuseumWorkshopBoard rows={groupWorkshopRows({ staff: data })} language={language} editorial asean mobileAction={mobileAction}
               action={{
                 label: tr('Bài nộp', 'Submission'),
