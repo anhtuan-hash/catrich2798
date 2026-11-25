@@ -261,7 +261,16 @@ export default async function museumLive(req,res){
     const evidenceDocs=[...checkpoints,...(p2Worksheets?.rows||[]).flatMap(row=>row.snapshot?[row.snapshot]:[])];
     const assetIds=[...new Set(evidenceDocs.flatMap(c=>(c.doc?.rooms||[]).flatMap(r=>(r.exhibits||[]).map(e=>e.asset_id))).filter(Boolean))];
     const assets=assetIds.length?await query(admin.from('museum_artwork_assets').select('id,group_id,storage_path,original_name,bytes,sha256').eq('assignment_id',assignment.id).in('id',assetIds)):[];
-    const media=await Promise.all(assets.map(async({storage_path,...a})=>{const {data,error}=await admin.storage.from('museum-artwork-private').createSignedUrl(storage_path,600);if(error)throw fail(503,'Không thể xuất ảnh.');return {...a,url:data.signedUrl};}));
+    // The standalone Museum Lab migration preserved recovered WebP display copies.
+     // Resolve artwork using the same private-bucket fallback as gallery viewing.
+     // Original byte counts and checksums remain provenance, not checksums of the display copy.
+     const media=await Promise.all(assets.map(async({storage_path,...a})=>{
+      const url=await signGalleryDisplayImage(admin,{id:a.id,path:storage_path},'artwork',600);
+      if(!url)throw fail(503,'A referenced evidence image is unavailable. Export stopped.');
+      const recovered=url.includes('/recovered/asean-11-3/artwork/');
+      return {...a,url,assetVariant:recovered?'recovered-display-copy':'original',
+       ...(recovered?{originalBytes:a.bytes,originalSha256:a.sha256}: {})};
+     }));
     // Teacher-only provenance is exported privately to distinguish prepared presentation
     // content from observations. It is never added to student UI or public gallery cards.
     const provenance=await query(admin.from('museum_presentation_data_provenance')
