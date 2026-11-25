@@ -50,7 +50,7 @@ function OfflineApp({runtime,hash}){
     <button type="button" onClick={()=>setView('app')} aria-current={view==='app'?'page':undefined}>Museum Lab</button>
     <button type="button" onClick={()=>setView('work')} aria-current={view==='work'?'page':undefined}>Saved student work</button>
    </nav>
-   <a href="#archive-home">Hồ sơ offline</a><a href="#student-workshops">{groups.length} student workshops · Mobile</a>
+   <a href="#archive-home">Archive home</a><a href="#student-workshops">{groups.length} student workshops · Mobile</a>
    <details><summary>Archive details</summary><p>Viewing controls do not change this snapshot.</p>
     <p>Snapshot SHA-256: <code>{hash}</code></p><p>Checksums detect changes relative to this manifest; they are not a digital signature.</p>
     <ul>{snapshot.warnings.map((w,i)=><li key={i}>{w.lesson||w.group||''} {w.message}</li>)}</ul>
@@ -89,13 +89,16 @@ function StudentBoard({runtime,legacy=false}){
   <p>PÉTRUS KÝ · FROZEN · READ ONLY</p>
   <h1>{groups.length} student workshops</h1>
   <p>Each row opens that group’s saved practice. Nothing can be added, edited or deleted.</p>
-  <p>{!legacy&&<><a href="#archive-home">Hồ sơ offline</a> · </>}<a href={legacy?"../PetrusKy_Museum_Offline.html":"#teacher"}>Open the teacher archive</a></p>
+  <p>{!legacy&&<><a href="#archive-home">Archive home</a> · </>}<a href={legacy?"../PetrusKy_Museum_Offline.html":"#teacher"}>Open the teacher archive</a></p>
   <div className="bml-frozen-table-wrap"><table className="bml-frozen-table"><thead><tr><th>#</th><th>Group</th><th>Class</th><th>Museum</th><th>{writingHeading}</th><th>Workshop</th><th>Mobile · VI / EN</th></tr></thead>
    <tbody>{groups.map((group,index)=><tr key={group.id}><td>{String(index+1).padStart(2,'0')}</td><td>{group.label}</td><td>{group.classScope}</td><td>{group.state}</td>
     <td>{group.transfer===null?(group.exit?'Submitted':'None'):(group.transfer?'On file':'No saved writing')}</td>
     <td><button type="button" onClick={()=>open(group.id)}>Open</button></td><td>{runtime.snapshot.publicWorkshops?.[group.id]?<><a href={publicWorkshopHref(group.id,'vi')}>VI</a> · <a href={publicWorkshopHref(group.id,'en')}>EN</a></>:'—'}</td></tr>)}</tbody></table></div>
  </main>;
 }
+// Official school and author names are preserved in both interface languages.
+const ARCHIVE_BRAND='PÉTRUS KÝ SCHOOL SYSTEM · @brian.universe';
+const ARCHIVE_CREDIT='© PÉTRUS KÝ SCHOOL SYSTEM · Nguyễn Anh Tuấn · Museum Lab';
 function ArchiveHome({runtime,hash,info}){
  const [language,setLanguage]=useState('vi');
  const T=(vi,en)=>language==='vi'?vi:en;
@@ -105,7 +108,7 @@ function ArchiveHome({runtime,hash,info}){
  const catalogue=snapshot.galleries.find(g=>String(g.id).startsWith('asean-'));
  const count=mobile.length;
  return <main className="museum-onefile" lang={language}>
-  <header className="museum-onefile-mast"><strong>PÉTRUS KÝ SCHOOL SYSTEM · @brian.universe</strong><span>OFFLINE / READ ONLY</span><div><button type="button" aria-pressed={language==='vi'} onClick={()=>setLanguage('vi')}>VI</button><button type="button" aria-pressed={language==='en'} onClick={()=>setLanguage('en')}>EN</button></div></header>
+  <header className="museum-onefile-mast"><strong>{ARCHIVE_BRAND}</strong><span>OFFLINE / READ ONLY</span><div><button type="button" aria-pressed={language==='vi'} onClick={()=>setLanguage('vi')}>VI</button><button type="button" aria-pressed={language==='en'} onClick={()=>setLanguage('en')}>EN</button></div></header>
   <div className="museum-onefile-hero"><p>{T('HỒ SƠ DỰ THI CẤP THÀNH PHỐ · 2026–2027','CITY-LEVEL COMPETITION DOSSIER · 2026–2027')}</p><h1>ASEAN IN<br/>THREE FRAMES.</h1><p>{T('Một tệp duy nhất · Tiếng Anh 11 · Lớp 11.3','One file · Grade 11 English · Class 11.3')}</p></div>
   <div className="museum-onefile-kpis"><div><strong>{groups.length}</strong>{T('Nhóm học sinh','Student groups')}</div><div><strong>{count}</strong>{T('Bản mobile','Mobile views')}</div><div><strong>06</strong>{T('Hoạt động học tập','Learning activities')}</div></div>
   <section className="museum-onefile-section"><h2>01 / {T('Bài dạy và minh chứng','Lesson and evidence')}</h2><div className="museum-onefile-actions">
@@ -116,7 +119,7 @@ function ArchiveHome({runtime,hash,info}){
   <section className="museum-onefile-section"><h2>02 / {T('Bản mobile theo nhóm','Mobile views by group')}</h2><div className="museum-onefile-groups">{mobile.map((g,i)=><a key={g.id} href={publicWorkshopHref(g.id,language)}><span>{String(i+1).padStart(2,'0')}</span><strong>{language==='vi'?g.label:g.label.replace(/^Nhóm/,'Group')}</strong><small>{g.classScope} · {T('Mở','Open')} ↗</small></a>)}</div></section>
   <section className="museum-onefile-section"><h2>03 / {T('Tài liệu đính kèm','Attached documents')}</h2><div className="museum-onefile-actions">{docs.map(doc=><a key={doc.filename} href={doc.href} download={doc.filename}>{doc.label}<span>{doc.filename.endsWith('.docx')?'DOCX':'PDF'} ↓</span></a>)}</div><p>{T('Tài liệu Word/PDF được nhúng trong HTML này; chỉ tải riêng khi cần.','Word/PDF documents are embedded in this HTML; extract only if needed.')}</p></section>
   <section className="museum-onefile-section"><h2>04 / {T('Hướng dẫn và xác thực','Help and verification')}</h2><p>{T('Mở HTML bằng Chrome hoặc Edge. Không cần mạng, máy chủ hoặc đăng nhập. Nội dung đã khóa; các nút chuyển hoạt động chỉ thay đổi cách xem. YouTube và trang ngoài cần mạng; giọng đọc cần giọng en-US cài sẵn.','Open this HTML in Chrome or Edge. No network, server or sign-in required. Records are frozen; navigation only changes the view. YouTube and external sites require internet; narration requires an installed en-US voice.')}</p><details><summary>{T('Thông tin bản lưu và SHA-256','Archive details and SHA-256')}</summary><p>{snapshot.startedAt} — {snapshot.completedAt}</p><p>Build: {info?.applicationBuild||'—'}</p><p>Snapshot SHA-256: <code>{hash}</code></p><p>{T('Mã kiểm tra phát hiện thay đổi dữ liệu, không phải chữ ký số. Người có tệp có thể đọc dữ liệu được nhúng.','Checksum detects data changes; it is not a digital signature. Anyone holding this file can read its embedded records.')}</p><ul>{(snapshot.warnings||[]).map((w,i)=><li key={i}>{w.lesson||w.group||''} {w.message}</li>)}</ul></details></section>
-  <footer>© PÉTRUS KÝ SCHOOL SYSTEM · Nguyễn Anh Tuấn · Museum Lab</footer>
+  <footer>{ARCHIVE_CREDIT}</footer>
  </main>;
 }
 function SharedArchive({runtime,hash,single=false,info}){
