@@ -7,7 +7,9 @@ import {mobileRoute} from './mobileWorkshops.js';
 import {ASEAN_PROJECT_OVERVIEW,ASEAN_EVIDENCE_PDF,getAseanPaperPlan} from '../aseanPaperPlan.js';
 import MuseumScene from '../MuseumScene.jsx';
 import MuseumExhibitionDetail from '../MuseumExhibitionDetail.jsx';
-import {isAsean} from '../aseanLesson.js';
+import {isAsean,ASEAN_TEMPLATE,aseanDestination} from '../aseanLesson.js';
+import ContestMasthead from '../../contest/ContestMasthead.jsx';
+import {Presentation,BookOpen,Box,FileText,Monitor,LockKeyhole,WifiOff,Globe,ArrowUpRight,ArrowRight} from 'lucide-react';
 import {installMuseumOffline} from '../offlineAccess.js';
 import {createOfflineRuntime} from './runtime.js';
 import {digest,expandCompactSnapshot,COMPACT_PAYLOAD_VERSION} from './snapshot.js';
@@ -104,22 +106,46 @@ function ArchiveHome({runtime,hash,info}){
  const T=(vi,en)=>language==='vi'?vi:en;
  const snapshot=runtime.snapshot,groups=groupWorkshopRows(snapshot),mobile=groups.filter(g=>snapshot.publicWorkshops?.[g.id]);
  const plan=getAseanPaperPlan(language);
- const docs=[{...ASEAN_PROJECT_OVERVIEW,label:T('Phần 1 · Tổng quan dự án','Part 1 · Project overview')},{href:plan.href,filename:plan.filename,label:T('Phần 2 · Kế hoạch bài dạy và phụ lục','Part 2 · Teaching plan and appendices')},{href:ASEAN_EVIDENCE_PDF,filename:'ASEAN_11_3_Evidence.pdf',label:T('Minh chứng lớp 11.3 · Angkor','Class 11.3 evidence · Angkor')}];
+ const docs=[{...ASEAN_PROJECT_OVERVIEW,label:T('Phần 1 · Tổng quan dự án','Part 1 · Project overview')},{href:plan.href,filename:plan.filename,label:T('Phần 2 · Kế hoạch bài dạy và phụ lục','Part 2 · Teaching plan and appendices')},{href:ASEAN_EVIDENCE_PDF,filename:'ASEAN_11_3_Evidence.pdf',label:T('Minh chứng lớp 11.3 · Đối chiếu Angkor','Class 11.3 evidence · Angkor comparison')}];
  const catalogue=snapshot.galleries.find(g=>String(g.id).startsWith('asean-'));
- const count=mobile.length;
- return <main className="museum-onefile" lang={language}>
+ const imageFor=g=>{
+  const w=snapshot.publicWorkshops?.[g?.id]?.main;
+  if(!w)return '';
+  const exhibits=(w.draft?.rooms||[]).flatMap(r=>r.exhibits||[]);
+  const assetId=exhibits.find(e=>e.kind==='image'&&e.asset_id)?.asset_id||Object.values(w.draft?.artworks||{}).find(Boolean);
+  return w.assets?.find(a=>a.id===assetId)?.image_url||w.assets?.find(a=>a.image_url?.startsWith('data:image/'))?.image_url||'';
+ };
+ const angkor=mobile.find(g=>aseanDestination(g.label)?.name==='Angkor');
+ const coverGroup=angkor||mobile[0],cover=imageFor(coverGroup);
+ const actions=[
+  {Icon:Presentation,href:'#/tool/immersive-gallery?dossier=1',title:T('Mở bản giáo viên','Open teacher archive'),desc:T('Bài dạy, tiến trình, học liệu và rubric','Lesson, teaching sequence, materials and rubric')},
+  {Icon:BookOpen,href:'#student-workshops',title:T('Bài thực hành học sinh','Student workshops'),desc:T('6 hoạt động theo mô hình STEM/STEAM','Six STEM/STEAM learning activities')},
+  ...(catalogue?[{Icon:Box,href:'#/tool/immersive-gallery?exhibition='+encodeURIComponent(catalogue.id),title:T('Triển lãm 2D / 3D','2D / 3D exhibition'),desc:T('Không gian trưng bày sản phẩm các nhóm','Gallery of group learning products')}]:[])
+ ];
+ const guides=[
+  {Icon:Monitor,title:T('Mở offline','Open offline'),desc:T('Mở HTML bằng Chrome hoặc Edge.','Open HTML in Chrome or Edge.')},
+  {Icon:LockKeyhole,title:T('Chỉ đọc','Read only'),desc:T('Không chỉnh sửa hoặc nộp dữ liệu.','No editing or submitting.')},
+  {Icon:WifiOff,title:T('Không cần mạng','No network needed'),desc:T('Bài làm và học liệu đã được lưu.','Saved work and embedded materials.')},
+  {Icon:Globe,title:T('Lưu ý','Note'),desc:T('YouTube và trang ngoài cần Internet; giọng đọc cần giọng en-US có sẵn.','YouTube and external sites need internet; narration needs an installed en-US voice.')}
+ ];
+ const heading=(num,label)=><h2 className="museum-editorial-heading"><span>{num} /</span>{label}</h2>;
+ return <main className="museum-onefile museum-editorial-home" lang={language}>
   <header className="museum-onefile-mast"><strong>{ARCHIVE_BRAND}</strong><span>OFFLINE / READ ONLY</span><div><button type="button" aria-pressed={language==='vi'} onClick={()=>setLanguage('vi')}>VI</button><button type="button" aria-pressed={language==='en'} onClick={()=>setLanguage('en')}>EN</button></div></header>
-  <div className="museum-onefile-hero"><p>{T('HỒ SƠ DỰ THI CẤP THÀNH PHỐ · 2026–2027','CITY-LEVEL COMPETITION DOSSIER · 2026–2027')}</p><h1>ASEAN IN<br/>THREE FRAMES.</h1><p>{T('Một tệp duy nhất · Tiếng Anh 11 · Lớp 11.3','One file · Grade 11 English · Class 11.3')}</p></div>
-  <div className="museum-onefile-kpis"><div><strong>{groups.length}</strong>{T('Nhóm học sinh','Student groups')}</div><div><strong>{count}</strong>{T('Bản mobile','Mobile views')}</div><div><strong>06</strong>{T('Hoạt động học tập','Learning activities')}</div></div>
-  <section className="museum-onefile-section"><h2>01 / {T('Bài dạy và minh chứng','Lesson and evidence')}</h2><div className="museum-onefile-actions">
-   <a href="#/tool/immersive-gallery?dossier=1">{T('Mở bản giáo viên','Open teacher archive')} <span>↗</span></a>
-   <a href="#student-workshops">{T('Bài thực hành học sinh','Student workshops')} <span>↗</span></a>
-   {catalogue&&<a href={'#/tool/immersive-gallery?exhibition='+encodeURIComponent(catalogue.id)}>{T('Triển lãm 2D/3D','2D/3D exhibition')} <span>↗</span></a>}
-  </div></section>
-  <section className="museum-onefile-section"><h2>02 / {T('Bản mobile theo nhóm','Mobile views by group')}</h2><div className="museum-onefile-groups">{mobile.map((g,i)=><a key={g.id} href={publicWorkshopHref(g.id,language)}><span>{String(i+1).padStart(2,'0')}</span><strong>{language==='vi'?g.label:g.label.replace(/^Nhóm/,'Group')}</strong><small>{g.classScope} · {T('Mở','Open')} ↗</small></a>)}</div></section>
-  <section className="museum-onefile-section"><h2>03 / {T('Tài liệu đính kèm','Attached documents')}</h2><div className="museum-onefile-actions">{docs.map(doc=><a key={doc.filename} href={doc.href} download={doc.filename}>{doc.label}<span>{doc.filename.endsWith('.docx')?'DOCX':'PDF'} ↓</span></a>)}</div><p>{T('Tài liệu Word/PDF được nhúng trong HTML này; chỉ tải riêng khi cần.','Word/PDF documents are embedded in this HTML; extract only if needed.')}</p></section>
-  <section className="museum-onefile-section"><h2>04 / {T('Hướng dẫn và xác thực','Help and verification')}</h2><p>{T('Mở HTML bằng Chrome hoặc Edge. Không cần mạng, máy chủ hoặc đăng nhập. Nội dung đã khóa; các nút chuyển hoạt động chỉ thay đổi cách xem. YouTube và trang ngoài cần mạng; giọng đọc cần giọng en-US cài sẵn.','Open this HTML in Chrome or Edge. No network, server or sign-in required. Records are frozen; navigation only changes the view. YouTube and external sites require internet; narration requires an installed en-US voice.')}</p><details><summary>{T('Thông tin bản lưu và SHA-256','Archive details and SHA-256')}</summary><p>{snapshot.startedAt} — {snapshot.completedAt}</p><p>Build: {info?.applicationBuild||'—'}</p><p>Snapshot SHA-256: <code>{hash}</code></p><p>{T('Mã kiểm tra phát hiện thay đổi dữ liệu, không phải chữ ký số. Người có tệp có thể đọc dữ liệu được nhúng.','Checksum detects data changes; it is not a digital signature. Anyone holding this file can read its embedded records.')}</p><ul>{(snapshot.warnings||[]).map((w,i)=><li key={i}>{w.lesson||w.group||''} {w.message}</li>)}</ul></details></section>
-  <footer>{ARCHIVE_CREDIT}</footer>
+  <div className="museum-editorial-banner"><ContestMasthead language={language} lessonTemplate={ASEAN_TEMPLATE}/></div>
+  <div className="museum-onefile-kpis"><div><strong>{String(groups.length).padStart(2,'0')}</strong><span>{T('Nhóm học sinh','Student groups')}</span></div><div><strong>{String(mobile.length).padStart(2,'0')}</strong><span>{T('Bản thực hành trực tuyến','Online student workshops')}</span></div><div><strong>06</strong><span>{T('Hoạt động học tập','Learning activities')}</span></div></div>
+  <section className="museum-onefile-section museum-editorial-intro">
+   <div className="museum-editorial-intro-copy">{heading('01',T('Bài dạy và minh chứng','Lesson and evidence'))}<p>{T('Kế hoạch bài dạy, học liệu, minh chứng triển khai và sản phẩm học tập của lớp 11.3.','Teaching plan, materials, classroom evidence and learning products of class 11.3.')}</p></div>
+   <div className="museum-onefile-actions">{actions.map(({Icon,href,title,desc})=><a key={href} href={href}><Icon size={24} aria-hidden="true"/><div><strong>{title}</strong><small>{desc}</small></div><ArrowUpRight size={18} aria-hidden="true"/></a>)}</div>
+   {cover&&<figure className="museum-editorial-cover"><img src={cover} alt={aseanDestination(coverGroup.label)?.name||coverGroup.label}/><figcaption>{aseanDestination(coverGroup.label)?.name} · {coverGroup.label}</figcaption></figure>}
+  </section>
+  <section className="museum-onefile-section museum-editorial-workshops"><div className="museum-editorial-sectionbar"><div>{heading('02',T('Bản thực hành trực tuyến của học sinh','Online student workshops'))}<p>{T('Xem bản lưu ngoại tuyến của bài thực hành, kết quả và sản phẩm từng nhóm.','View the offline copies of each group’s published workshop, results and products.')}</p></div><a className="museum-editorial-all" href="#student-workshops">{T('Xem toàn bộ '+mobile.length+' nhóm','View all '+mobile.length+' groups')} <ArrowRight size={18}/></a></div>
+   <div className="museum-onefile-groups">{mobile.map((g,i)=>{const dest=aseanDestination(g.label),photo=imageFor(g);return <article key={g.id} className="museum-editorial-group"><div className="museum-editorial-group-copy"><span className="museum-editorial-number">{String(i+1).padStart(2,'0')}</span><strong>{language==='vi'?g.label:g.label.replace(/^Nhóm/,'Group')}</strong><small>{g.classScope} · {dest?.name}</small><div className="museum-editorial-langs"><a href={publicWorkshopHref(g.id,'vi')} aria-label={g.label+' · Vietnamese'}>VI</a><a href={publicWorkshopHref(g.id,'en')} aria-label={g.label+' · English'}>EN</a></div></div>{photo&&<a className="museum-editorial-thumb" href={publicWorkshopHref(g.id,language)} aria-label={g.label+' · '+(dest?.name||'Workshop')}><img src={photo} alt={dest?.name||g.label}/></a>}</article>})}</div>
+  </section>
+  <div className="museum-editorial-bottom">
+   <section className="museum-onefile-section">{heading('03',T('Tài liệu đính kèm','Attached documents'))}<div className="museum-editorial-docs">{docs.map(doc=><a key={doc.filename} href={doc.href} download={doc.filename}><FileText size={20}/><strong>{doc.label}</strong><small>{doc.filename.endsWith('.docx')?'DOCX':'PDF'}</small><ArrowRight size={17}/></a>)}</div></section>
+   <section className="museum-onefile-section">{heading('04',T('Hướng dẫn sử dụng','User guide'))}<div className="museum-editorial-guide">{guides.map(({Icon,title,desc})=><div key={title}><Icon size={28}/><strong>{title}</strong><small>{desc}</small></div>)}</div><details><summary>{T('Thông tin bản lưu và SHA-256','Archive details and SHA-256')}</summary><p>{snapshot.startedAt} — {snapshot.completedAt}</p><p>Build: {info?.applicationBuild||'—'}</p><p>Snapshot SHA-256: <code>{hash}</code></p><p>{T('Mã kiểm tra phát hiện thay đổi dữ liệu, không phải chữ ký số. Người có tệp có thể đọc dữ liệu được nhúng.','Checksum detects changes; it is not a digital signature. Anyone holding this file can read its embedded records.')}</p><ul>{(snapshot.warnings||[]).map((w,i)=><li key={i}>{w.lesson||w.group||''} {w.message}</li>)}</ul></details></section>
+  </div>
+  <footer><span>{ARCHIVE_CREDIT}</span><span className="museum-editorial-mark" aria-hidden="true">///</span></footer>
  </main>;
 }
 function SharedArchive({runtime,hash,single=false,info}){
