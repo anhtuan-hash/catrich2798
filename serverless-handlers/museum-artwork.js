@@ -1,5 +1,5 @@
 // Server-only, group-scoped artwork API. Never grants direct anon Storage access.
-import {db,fail,send,handleError,guardBody,guestContext,assertActiveMuseumLesson,staffContext,assertStaff,query,clean,uid,requireMethod} from './_galleryCreator.js';
+import {db,fail,send,handleError,guardBody,guestContext,assertActiveMuseumLesson,staffContext,assertStaff,query,clean,uid,requireMethod,signGalleryDisplayImage} from './_galleryCreator.js';
 import {canonicalArtworkImage} from './_museumArtworkImage.js';
 import {randomUUID} from 'node:crypto';
 import {canSaveMuseumDraft} from '../src/features/immersive-gallery/v3/museumSubmissionPolicy.js';
@@ -32,15 +32,19 @@ async function list(ctx){
 }
 async function signed(ctx,assets){
  if(!assets.length)return [];
- const {data,error}=await ctx.admin.storage.from(BUCKET).createSignedUrls(
-  assets.map(asset=>asset.storage_path),SIGNED_URL_TTL);
- if(error||!data)throw fail(503,'Could not open the private image.');
- const urls=new Map(data.map(row=>[row.path,row.signedUrl]));
- return assets.map(({storage_path,...asset})=>{
-  const url=urls.get(storage_path);
-  if(!url)throw fail(503,'Could not open the private image.');
-  return {...asset,image_url:url};
- });
+ const ttl=ctx.isStaff?600:SIGNED_URL_TTL;
+ // Keep the efficient original-bucket batch for normal groups. Missing
+ // paths in the standalone archive must use the authorized recovery resolver.
+ const {data}=await ctx.admin.storage.from(BUCKET).createSignedUrls(
+  assets.map(asset=>asset.storage_path),ttl);
+ const urls=new Map((data||[]).filter(row=>row.signedUrl).map(row=>[row.path,row.signedUrl]));
+ return Promise.all(assets.map(async({storage_path,...asset})=>{
+  const url=urls.get(storage_path)||await signGalleryDisplayImage(
+   ctx.admin,{id:asset.id,path:storage_path},'artwork',ttl);
+  if(!url)throw fail(503,'Could not open a referenced private image for '+ctx.group.label+'.');
+  return {...asset,image_url:url,
+   ...(url.includes('/recovered/asean-11-3/artwork/')?{assetVariant:'recovered-display-copy'}:{})};
+ }));
 }
 export default async function museumArtwork(req,res){
  try{
@@ -50,7 +54,7 @@ export default async function museumArtwork(req,res){
   const authorized=performance.now();
   if(op==='list'){
    requireMethod(req,'GET');const assets=await list(ctx);
-   return send(res,200,{assets:await signed(ctx,assets),expiresSeconds:SIGNED_URL_TTL});
+   return send(res,200,{assets:await signed(ctx,assets),expiresSeconds:ctx.isStaff?600:SIGNED_URL_TTL});
   }
   if(ctx.isStaff)throw fail(403,'Only a group can modify its own art.');
   if(!ctx.feature.upload_enabled)throw fail(423,'Tải ảnh chưa được bật cho lớp học.');
