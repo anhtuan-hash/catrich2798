@@ -6,8 +6,9 @@ import {SNAPSHOT_FORMAT,COMPACT_PAYLOAD_VERSION} from '../src/features/immersive
 
 export async function buildMuseumOffline(outDir='dist'){
  const root=process.cwd(),folder=path.join(root,'src/features/immersive-gallery/v3/offline');
+ const standalone=path.resolve(outDir)===path.resolve(root,'apps/museum-lab/dist');
  const result=await build({configFile:false,root,publicDir:false,logLevel:'warn',
-  define:{'process.env.NODE_ENV':JSON.stringify('production')},
+  define:{'process.env.NODE_ENV':JSON.stringify('production'),'import.meta.env.MUSEUM_LAB_STANDALONE':JSON.stringify(standalone)},
   plugins:[{name:'museum-offline-cloud-boundary',enforce:'pre',resolveId(source){
    if(/(?:^|\/)utils\/supabase\.js$/.test(source))return path.join(folder,'cloudStub.js');
    if(source.endsWith('/MuseumOfflineExport.jsx'))return path.join(folder,'exportStub.jsx');
@@ -26,12 +27,13 @@ export async function buildMuseumOffline(outDir='dist'){
  assetPaths.add('/museum-lesson-guide.html');
  assetPaths.add('/museum-lesson-worksheet.html');
  const worksheetAsset='/museum-lesson-worksheet.html';
- const worksheetBytes=await fs.readFile(path.join(root,'public',worksheetAsset));
+ const legacyNotice=Buffer.from('<!doctype html><html lang="en"><meta charset="utf-8"><title>Museum Lab</title><p>This historical Climate Museum teaching resource is not part of the ASEAN in Three Frames contest archive.</p></html>');
+ const worksheetBytes=standalone?legacyNotice:await fs.readFile(path.join(root,'public',worksheetAsset));
  const worksheetData='data:text/html;base64,'+worksheetBytes.toString('base64');
  for(const asset of assetPaths){
-  const absolute=path.join(root,'public',asset);
-  let bytes=asset===worksheetAsset?worksheetBytes:await fs.readFile(absolute);
-  if(asset==='/museum-lesson-guide.html'){
+  const absolute=standalone&&asset.startsWith('/museum/asean/')?path.join(root,outDir,asset):path.join(root,'public',asset);
+  let bytes=asset===worksheetAsset?worksheetBytes:standalone&&asset==='/museum-lesson-guide.html'?legacyNotice:await fs.readFile(absolute);
+  if(asset==='/museum-lesson-guide.html'&&!standalone){
    const heroAsset='/museum/branding/lesson-guide-editorial.webp';
    const heroBytes=await fs.readFile(path.join(root,'public',heroAsset));
    bytes=Buffer.from(bytes.toString('utf8')
