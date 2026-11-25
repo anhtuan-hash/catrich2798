@@ -85,7 +85,8 @@ export default function MuseumOfflineExport({language='en',data,transport,render
   {error?<p role="alert" className="bml-banner bml-danger-banner">{error}</p>:null}
   {report?<div role="status" className="bml-banner bml-info-banner"><PackageCheck size={20}/><div>
    <strong>{tr('Gói ZIP đã sẵn sàng','ZIP ready')} · 100%</strong>
-   <p>{report.counts.lessons} lessons · {report.counts.groups} groups · {report.counts.studentWorkshops||0} student workshops · {report.counts.exhibitions} exhibitions · {(report.bytes/1000000).toFixed(2)} MB ZIP</p>
+   <p>{report.counts.lessons} lessons · {report.counts.groups} groups · {report.counts.studentWorkshops||0} student workshops · {report.counts.mobileWorkshops||0} mobile · {report.counts.exhibitions} exhibitions · {(report.bytes/1000000).toFixed(2)} MB ZIP</p>
+   {report.counts.mobileWorkshops>0?<p>{tr('Bản mobile ngoại tuyến: mở mobile/index.html sau khi giải nén.','Offline mobile views: open mobile/index.html after extracting.')}</p>:null}
    <p>{tr('Tổng sau giải nén','Total extracted size')}: {(report.totalUncompressedBytes/1000000).toFixed(2)} MB / 45 MB</p>
    <p>{tr('Giải nén ZIP. Mở PetrusKy_Museum_Offline.html cho bản giáo viên, hoặc hoc-sinh/index.html để xem bài của các nhóm.','Extract the ZIP. Open PetrusKy_Museum_Offline.html for the teacher app, or hoc-sinh/index.html to view the student workshops.')}</p>
    <button type="button" className="bml-outline" onClick={previewArchive}>
@@ -101,8 +102,8 @@ export default function MuseumOfflineExport({language='en',data,transport,render
      {download}
      {feedback}
      <p>{tr(
-      `Gồm bản giáo viên và ${rows.length} bài thực hành của các nhóm.`,
-      `Includes the teacher app and ${rows.length} student workshops.`,
+      `Gồm bản giáo viên, ${rows.length} bài thực hành và bản mobile của các nhóm đã công bố.`,
+      `Includes the teacher app, ${rows.length} student workshops and published mobile views.`,
      )}</p>
      <p>{tr('Tạm dừng cập nhật dữ liệu trong lúc xuất.','Pause data updates while exporting.')}</p>
     </div>,
