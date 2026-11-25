@@ -1,4 +1,4 @@
-import React,{useRef,useState} from 'react';
+import React,{useEffect,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import MuseumLabApp from '../MuseumLabApp.jsx';
 import MuseumLabStudent from '../MuseumLabStudent.jsx';
@@ -7,7 +7,7 @@ import MuseumExhibitionDetail from '../MuseumExhibitionDetail.jsx';
 import {isAsean} from '../aseanLesson.js';
 import {installMuseumOffline} from '../offlineAccess.js';
 import {createOfflineRuntime} from './runtime.js';
-import {digest} from './snapshot.js';
+import {digest,expandCompactSnapshot,COMPACT_PAYLOAD_VERSION} from './snapshot.js';
 import {groupWorkshopRows} from './workshopRows.js';
 import './offline.css';
 
@@ -47,7 +47,7 @@ function OfflineApp({runtime,hash}){
     <button type="button" onClick={()=>setView('app')} aria-current={view==='app'?'page':undefined}>Museum Lab</button>
     <button type="button" onClick={()=>setView('work')} aria-current={view==='work'?'page':undefined}>Saved student work</button>
    </nav>
-   <a href="hoc-sinh/index.html">{groups.length} student workshops</a>
+   <a href="#student-workshops">{groups.length} student workshops</a>
    <details><summary>Archive details</summary><p>Viewing controls do not change this snapshot.</p>
     <p>Snapshot SHA-256: <code>{hash}</code></p><p>Checksums detect changes relative to this manifest; they are not a digital signature.</p>
     <ul>{snapshot.warnings.map((w,i)=><li key={i}>{w.lesson||w.group||''} {w.message}</li>)}</ul>
@@ -66,7 +66,7 @@ function OfflineApp({runtime,hash}){
   {view==='work'?<footer className="museum-offline-footer">PÉTRUS KÝ SCHOOL SYSTEM · Nguyễn Anh Tuấn · Teach Better Together</footer>:null}
  </div>;
 }
-function StudentBoard({runtime}){
+function StudentBoard({runtime,legacy=false}){
  const [groupId,setGroupId]=useState('');
  const groups=groupWorkshopRows(runtime.snapshot);
  const hasTransfer=groups.some(group=>group.transfer!==null);
@@ -78,7 +78,7 @@ function StudentBoard({runtime}){
   const group=groups.find(item=>item.id===groupId);
   return <div className="museum-offline-root">
    <header className="museum-offline-bar"><strong>Student workshop</strong><span>Frozen · {group?.label||'Group'} · Read only</span>
-    <button type="button" onClick={()=>setGroupId('')}>All workshops</button><a href="../PetrusKy_Museum_Offline.html">Teacher archive</a></header>
+    <button type="button" onClick={()=>setGroupId('')}>All workshops</button><a href={legacy?"../PetrusKy_Museum_Offline.html":"#teacher"}>Teacher archive</a></header>
    <MuseumLabStudent key={groupId} language="en"/>
   </div>;
  }
@@ -86,20 +86,33 @@ function StudentBoard({runtime}){
   <p>PÉTRUS KÝ · FROZEN · READ ONLY</p>
   <h1>{groups.length} student workshops</h1>
   <p>Each row opens that group’s saved practice. Nothing can be added, edited or deleted.</p>
-  <p><a href="../PetrusKy_Museum_Offline.html">Open the teacher archive</a></p>
+  <p><a href={legacy?"../PetrusKy_Museum_Offline.html":"#teacher"}>Open the teacher archive</a></p>
   <div className="bml-frozen-table-wrap"><table className="bml-frozen-table"><thead><tr><th>#</th><th>Group</th><th>Class</th><th>Museum</th><th>{writingHeading}</th><th></th></tr></thead>
    <tbody>{groups.map((group,index)=><tr key={group.id}><td>{String(index+1).padStart(2,'0')}</td><td>{group.label}</td><td>{group.classScope}</td><td>{group.state}</td>
     <td>{group.transfer===null?(group.exit?'Submitted':'None'):(group.transfer?'On file':'No saved writing')}</td>
     <td><button type="button" onClick={()=>open(group.id)}>Open</button></td></tr>)}</tbody></table></div>
  </main>;
 }
+function SharedArchive({runtime,hash}){
+ const [student,setStudent]=useState(()=>location.hash==='#student-workshops');
+ useEffect(()=>{
+  const change=()=>{runtime.useStudent('');setStudent(location.hash==='#student-workshops');};
+  window.addEventListener('hashchange',change);
+  return ()=>window.removeEventListener('hashchange',change);
+ },[runtime]);
+ return student?<StudentBoard runtime={runtime}/>:<OfflineApp runtime={runtime} hash={hash}/>;
+}
 async function boot(){
  const payload=JSON.parse(document.getElementById('museum-frozen-payload').textContent);
+ if(payload.compactVersion!==undefined){
+  if(payload.compactVersion!==COMPACT_PAYLOAD_VERSION||!Array.isArray(payload.images))throw new Error('Unsupported compact archive.');
+  payload.snapshot=expandCompactSnapshot(payload.snapshot,payload.images);
+ }
  const actual=await digest(JSON.stringify(payload.snapshot));
  if(actual!==payload.snapshotHash)throw new Error('The snapshot checksum does not match. Open the original archive again.');
  const runtime=createOfflineRuntime(payload.snapshot);installMuseumOffline(runtime);
  if(payload.mode==='student-board'){
-  createRoot(document.getElementById('root')).render(<StudentBoard runtime={runtime}/>);
+  createRoot(document.getElementById('root')).render(<StudentBoard runtime={runtime} legacy/>);
   return;
  }
  if(payload.mode==='student'){
@@ -111,6 +124,6 @@ async function boot(){
   </div>);
   return;
  }
- createRoot(document.getElementById('root')).render(<OfflineApp runtime={runtime} hash={actual}/>);
+ createRoot(document.getElementById('root')).render(<SharedArchive runtime={runtime} hash={actual}/>);
 }
 boot().catch(error=>{const root=document.getElementById('root');root.textContent='Unable to open this archive: '+error.message;});
