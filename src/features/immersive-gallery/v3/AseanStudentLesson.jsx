@@ -475,7 +475,7 @@ export default function AseanStudentLesson({session,initialStudio,initialVersion
   <textarea rows={3} maxLength={600} disabled={!editable||busy} value={studio.learning[frame.key]} onChange={e=>field(frame.key,e.target.value)}/>
  </label>;
  return <MuseumStudentWorkshop language={language} onLanguageChange={onLanguageChange} onLogout={onLogout}
-  dossierHref={publicView?DOSSIER_ROUTE:undefined}
+  dossierHref={publicView?(globalThis.location?.protocol==='file:'?'#archive-home':DOSSIER_ROUTE):undefined}
   groupLabel={[language==='en'?englishSystemGroupLabel(session.groupLabel):session.groupLabel,session.assignment.class_scope].filter(Boolean).join(' · ')}
   bannerExpanded={bannerExpanded} onBannerChange={setBannerExpanded} lessonTemplate={session.assignment.lesson_template}
   title={ASEAN_TITLE} testId="asean-student-lesson" activity={design.id}
