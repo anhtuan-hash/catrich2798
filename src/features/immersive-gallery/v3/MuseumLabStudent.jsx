@@ -121,7 +121,7 @@ const publicWorkshopLocation=()=>{
  return route==='#/gallery-create'?new URLSearchParams(query).get('viewGroup'):null;
 };
 
-function PublicAseanWorkshop({groupId,language:initialLanguage}){
+export function PublicAseanWorkshop({groupId,language:initialLanguage}){
  const [language,setLanguage]=useState(initialLanguage);
  const [workshop,setWorkshop]=useState(null);
  const [attempt,setAttempt]=useState(0);
