@@ -4,6 +4,7 @@ import {useMuseumFilePreview} from './MuseumFilePreview.jsx';
 import {isAsean} from './aseanLesson.js';
 import {groupWorkshopRows} from './offline/workshopRows.js';
 import MuseumWorkshopBoard from './MuseumWorkshopBoard.jsx';
+import {saveBlob} from './museumDocx.js';
 const exportStages={
  runtime:['Đang tải ứng dụng ngoại tuyến','Loading the offline app'],
  records:['Đang đọc hồ sơ lớp','Reading classroom records'],
@@ -57,17 +58,18 @@ export default function MuseumOfflineExport({language='en',data,transport,render
   }
   finally{setBusy(false);abort.current=null;}
  };
+ const single=Boolean(import.meta.env.MUSEUM_LAB_STANDALONE);
  const board=<MuseumWorkshopBoard rows={rows} language={language} editorial={Boolean(renderLayout)} asean={isAsean(data?.lessonTemplate)} mobileAction={mobileAction}
-  action={{label:tr('Tệp','File'),render:row=>ready
+  action={{label:tr('Tệp','File'),render:row=>ready&&!single
    ?<button type="button" className="bml-outline" onClick={()=>previewGroup(row)}>{tr('Xem tệp','View file')}</button>
-   :tr('Trong gói ZIP','Inside the ZIP')}}/>;
+   :single?tr('Trong tệp HTML','Inside HTML'):tr('Trong gói ZIP','Inside the ZIP')}}/>;
  const download=(
   <button className={renderLayout?'bml-primary asean-dossier-download':'bml-primary'} type="button"
     disabled={busy||!data?.assignments?.length} onClick={start}><Eye size={22} aria-hidden="true"/>
     {busy
      ? tr('Đang tạo gói ZIP…','Preparing the ZIP…')
      : renderLayout
-     ? tr('Xem gói hội thi (.zip ≤ 45 MB)','Preview contest pack (.zip ≤ 45 MB)')
+     ? single?tr('Xuất hồ sơ · 1 tệp HTML (ZIP ≤ 45 MB)','Export dossier · 1 HTML (ZIP ≤ 45 MB)'):tr('Xem gói hội thi (.zip ≤ 45 MB)','Preview contest pack (.zip ≤ 45 MB)')
      : tr('Xem gói hội thi · giáo viên + '+rows.length+' bài học sinh','Preview contest pack · teacher + '+rows.length+' student workshops')}
   </button>
  );
@@ -86,9 +88,10 @@ export default function MuseumOfflineExport({language='en',data,transport,render
   {report?<div role="status" className="bml-banner bml-info-banner"><PackageCheck size={20}/><div>
    <strong>{tr('Gói ZIP đã sẵn sàng','ZIP ready')} · 100%</strong>
    <p>{report.counts.lessons} lessons · {report.counts.groups} groups · {report.counts.studentWorkshops||0} student workshops · {report.counts.mobileWorkshops||0} mobile · {report.counts.exhibitions} exhibitions · {(report.bytes/1000000).toFixed(2)} MB ZIP</p>
-   {report.counts.mobileWorkshops>0?<p>{tr('Bản mobile ngoại tuyến: mở mobile/index.html sau khi giải nén.','Offline mobile views: open mobile/index.html after extracting.')}</p>:null}
+   {report.counts.mobileWorkshops>0&&!single?<p>{tr('Bản mobile ngoại tuyến: mở mobile/index.html sau khi giải nén.','Offline mobile views: open mobile/index.html after extracting.')}</p>:null}
    <p>{tr('Tổng sau giải nén','Total extracted size')}: {(report.totalUncompressedBytes/1000000).toFixed(2)} MB / 45 MB</p>
-   <p>{tr('Giải nén ZIP. Mở PetrusKy_Museum_Offline.html cho bản giáo viên, hoặc hoc-sinh/index.html để xem bài của các nhóm.','Extract the ZIP. Open PetrusKy_Museum_Offline.html for the teacher app, or hoc-sinh/index.html to view the student workshops.')}</p>
+   <p>{single?tr('Giải nén ZIP: chỉ có một tệp HTML. Mở tệp để chọn bản giáo viên, 10 nhóm, mobile và tài liệu.','Extract the ZIP: one HTML file only. Open it to select teacher, groups, mobile and documents.'):tr('Giải nén ZIP. Mở PetrusKy_Museum_Offline.html cho bản giáo viên, hoặc hoc-sinh/index.html để xem bài của các nhóm.','Extract the ZIP. Open PetrusKy_Museum_Offline.html for the teacher app, or hoc-sinh/index.html to view the student workshops.')}</p>
+   {single&&pack.current?.htmlBlob?<button type="button" className="bml-outline" onClick={()=>saveBlob(pack.current.htmlBlob,'PetrusKy_Museum_Offline.html')}>{tr('Tải trực tiếp 1 tệp HTML','Download single HTML directly')}</button>:null}
    <button type="button" className="bml-outline" onClick={previewArchive}>
     <Eye size={16} aria-hidden="true"/>{tr('Xem lại tệp ZIP','Preview the ZIP again')}
    </button>

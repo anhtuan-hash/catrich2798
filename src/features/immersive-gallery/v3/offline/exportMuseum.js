@@ -180,9 +180,11 @@ export async function exportMuseumOffline(options={}){
  report('packaging',84);
  const snapshotHash=await digest(JSON.stringify(snapshot));
  if(runtime.compactPayloadVersion!==COMPACT_PAYLOAD_VERSION)throw new Error('Refresh the online app to use the new compact contest export.');
- const html=buildOfflineHtml(runtime,snapshot,snapshotHash,{compact:true});
+ const single=includeMobile;
+ if(single&&runtime.singleFileVersion!==1)throw new Error('Refresh Museum Lab to load the single-file offline runtime.');
+ const html=buildOfflineHtml(runtime,snapshot,snapshotHash,{compact:true,mode:single?'all-in-one':'teacher',archiveInfo:single?{applicationBuild:runtime.build,source:'https://brian-museum-lab.vercel.app/#/tool/immersive-gallery',maxBytes:CONTEST_MAX_BYTES}:undefined});
  const groups=groupWorkshopRows(snapshot);
- const mobileFiles=includeMobile?mobileLauncherEntries(groups,snapshot.publicWorkshops):{};
+ const mobileFiles=includeMobile&&!single?mobileLauncherEntries(groups,snapshot.publicWorkshops):{};
  const mobileCount=Object.keys(snapshot.publicWorkshops).length;
  const board={groups,html:'<!doctype html><html lang="en"><meta charset="utf-8"><title>Student workshops</title><h1>Student workshops</h1><p><a href="../PetrusKy_Museum_Offline.html#student-workshops">Open all '+groups.length+' student workshops</a></p></html>'};
  const {default:JSZip}=await import('jszip');const zip=new JSZip();
@@ -192,9 +194,9 @@ export async function exportMuseumOffline(options={}){
   counts:{lessons:snapshot.staff.assignments.length,groups:snapshot.staff.groups.length,
    submissions:snapshot.staff.reviews.length,exhibitions:snapshot.galleries.length,embeddedImages:snapshot.media.length,
    studentWorkshops:board.groups.length,mobileWorkshops:mobileCount},
-  students:board.groups.map(g=>({...g,...(snapshot.publicWorkshops[g.id]?{mobileFile:'mobile/'+g.filename}:{})})),warnings:snapshot.warnings,media:snapshot.media,readOnly:true,packaging:'single-html-deduplicated-images',maxTotalBytes:CONTEST_MAX_BYTES,snapshotLocation:'PetrusKy_Museum_Offline.html (embedded, logical SHA-256 after expansion)'};
+  students:board.groups.map(g=>({...g,...(snapshot.publicWorkshops[g.id]?(single?{mobileRoute:'#/gallery-create?viewGroup='+encodeURIComponent(g.id)+'&lang=vi'}:{mobileFile:'mobile/'+g.filename}):{})})),warnings:snapshot.warnings,media:snapshot.media,readOnly:true,packaging:single?'all-in-one-html':'single-html-deduplicated-images',maxTotalBytes:CONTEST_MAX_BYTES,snapshotLocation:'PetrusKy_Museum_Offline.html (embedded, logical SHA-256 after expansion)'};
  zip.file('PetrusKy_Museum_Offline.html',html);
- zip.file('hoc-sinh/index.html',board.html);
+ if(!single)zip.file('hoc-sinh/index.html',board.html);
  for(const [name,content] of Object.entries(mobileFiles))zip.file(name,content);
  const readme=[
   'PÉTRUS KÝ SCHOOL SYSTEM — BẢN MINH CHỨNG OFFLINE CHỈ ĐỌC',
@@ -214,10 +216,9 @@ export async function exportMuseumOffline(options={}){
  ].join('\n');
  const manifestText=JSON.stringify(manifest,null,2);
  const encoder=new TextEncoder();
- const totalBytes=[html,board.html,manifestText,readme,...Object.values(mobileFiles)].reduce((sum,item)=>sum+encoder.encode(item).byteLength,0);
+ const totalBytes=(single?[html]:[html,board.html,manifestText,readme,...Object.values(mobileFiles)]).reduce((sum,item)=>sum+encoder.encode(item).byteLength,0);
  assertContestBudget(totalBytes);
- zip.file('manifest.json',manifestText);
- zip.file('README_VI.txt',readme);
+ if(!single){zip.file('manifest.json',manifestText);zip.file('README_VI.txt',readme);}
  report('compression',90);
  let lastPercent=90;
  const blob=await zip.generateAsync(
@@ -235,7 +236,7 @@ export async function exportMuseumOffline(options={}){
  assertContestBudget(blob.size);
  report('ready',100);
  const entries=Object.values(zip.files).filter(entry=>!entry.dir).map(entry=>entry.name);
- return {blob,manifest:{...manifest,totalUncompressedBytes:totalBytes},filename:'PetrusKy_Museum_Offline_'+snapshot.completedAt.slice(0,10)+'.zip',runtime,snapshot,entries};
+ return {blob,htmlBlob:single?new Blob([html],{type:'text/html;charset=utf-8'}):null,manifest:{...manifest,totalUncompressedBytes:totalBytes},filename:'PetrusKy_Museum_Offline_'+snapshot.completedAt.slice(0,10)+'.zip',runtime,snapshot,entries};
 }
 export async function buildStudentWorkshopHtml(runtime,snapshot,groupId){
  const rows=groupWorkshopRows(snapshot);
