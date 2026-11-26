@@ -128,8 +128,50 @@ def make_evidence():
     save_pdf(d,DEST/name)
     return name,count
 
-files=[make_word(), make_plan("TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2.pdf"),
-       make_plan("TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2_EN_20261119.pdf"), make_evidence()]
+
+# The 26 Nov release is supplied by the contest author. Validate the raw
+# upload digests before using either file. Keep the document content intact:
+# only redirect the five old BRIAN hyperlink targets in P2.
+RELEASE_SOURCE = pathlib.Path(__file__).resolve().parent.parent / "apps/museum-lab/release-docs/2026-11-26"
+RELEASE_DOCS = [
+    ("TiengAnh_THPT_Nguyen-Anh-Tuan_Chu-de-day-hoc-so_P1.docx", "52aaeb022226edb797adf5194851c860fd982fe1c545784f16ea49dde20c218d", 0),
+    ("TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_Chu-de-day-hoc-so_P2.docx", "cd300a9b762a0db9871fcf8cb68d34562c6071e9f97c64d41c624cbf67e543a2", 5),
+]
+def make_author_word(name, expected_hash, expected_links):
+    source = RELEASE_SOURCE / name
+    raw = source.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == expected_hash, name + ": original upload mismatch"
+    target = DEST / name
+    count = 0
+    with zipfile.ZipFile(source) as src:
+        assert src.testzip() is None
+        if expected_links == 0:
+            target.write_bytes(raw)
+        else:
+            with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as dst:
+                for part in src.infolist():
+                    data = src.read(part.filename)
+                    if part.filename.endswith(".rels"):
+                        old = b'Target="https://esl-brian.vercel.app/"'
+                        new = ('Target="' + HOME + '"').encode()
+                        count += data.count(old)
+                        data = data.replace(old, new)
+                    dst.writestr(part, data)
+    assert count == expected_links, (name, count)
+    with zipfile.ZipFile(source) as src, zipfile.ZipFile(target) as dst:
+        assert dst.testzip() is None
+        assert src.namelist() == dst.namelist()
+        for part in src.namelist():
+            a, b = src.read(part), dst.read(part)
+            if part.endswith(".rels"):
+                assert b == a.replace(b'Target="https://esl-brian.vercel.app/"', ('Target="' + HOME + '"').encode())
+            else:
+                assert a == b, part
+            if part.endswith((".xml", ".rels")):
+                assert b"esl-brian.vercel.app" not in b, part
+    return name, count
+
+files=[make_author_word(*item) for item in RELEASE_DOCS] + [make_evidence()]
 manifest={"source":HOME,"assignmentId":"01780705-7e5c-4775-b9b2-1fd955c077fb",
 "verifiedOn":"2026-11-25","lessonFrozenOn":"2026-11-17",
 "groups":[{"group":i,"room":title,"exhibitionId":id,"baseline":2,"transfer":2,"rubric":rubric,"visitor":2,"retest":1} for i,(title,id,rubric) in enumerate(ROWS,1)],
@@ -139,4 +181,7 @@ manifest={"source":HOME,"assignmentId":"01780705-7e5c-4775-b9b2-1fd955c077fb",
 for n,_ in files:
     target=(ROOT/"museum/asean"/n) if n=="asean-class-11-3-evidence.pdf" else SOURCE/n
     target.write_bytes((DEST/n).read_bytes())
+# Legacy P1 attachment URL on the standalone domain also serves the new P1.
+for folder in (DEST, SOURCE):
+    (folder/"TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P1.docx").write_bytes((DEST/RELEASE_DOCS[0][0]).read_bytes())
 print("[museum-dossier]",json.dumps({"files":manifest["files"],"totalBytes":sum(f["bytes"] for f in manifest["files"])},ensure_ascii=False))

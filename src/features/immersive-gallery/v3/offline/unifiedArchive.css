@@ -24,3 +24,25 @@
 .museum-unified-archive .swiss-editorial-review-exhibition [data-museum-mode="inline"]:not(:fullscreen):not(.is-fallback-fullscreen){block-size:auto}
 .museum-unified-archive .swiss-editorial-review-exhibition [data-museum-mode="inline"]:not(:fullscreen):not(.is-fallback-fullscreen) .bml-editorial-viewport{overflow:visible}
 .museum-unified-archive #museum-review-title{scroll-margin-top:calc(var(--archive-nav-height,100px) + 20px)}
+
+/* Approved document plate: oversized Swiss typography, modular rules, red folio. */
+.museum-editorial-documents .museum-unified-title{grid-template-columns:minmax(0,1fr) minmax(170px,20%);gap:26px;border-bottom:7px solid #111;padding:20px 0 24px;margin:0 0 0}
+.museum-editorial-documents .museum-unified-title>div{border-left-width:clamp(12px,2.6vw,42px);padding:0 0 0 clamp(13px,2vw,30px)}
+.museum-editorial-documents .museum-unified-number{font-size:clamp(38px,6.6vw,100px);letter-spacing:-.07em;line-height:.9;margin-bottom:12px}
+.museum-editorial-documents .museum-unified-title h1{font-size:clamp(35px,7.5vw,113px);line-height:.97;letter-spacing:-.065em;font-weight:950;text-wrap:balance}
+.museum-editorial-documents .museum-unified-title aside{padding:10px 0 10px clamp(12px,2.2vw,34px)}
+.museum-editorial-documents .museum-unified-title aside strong{font-size:clamp(65px,12vw,185px);line-height:.85;letter-spacing:-.08em}
+.museum-editorial-documents .museum-unified-title aside span{font-size:clamp(18px,2.6vw,38px);font-weight:950;margin-top:10px}
+.museum-editorial-documents .museum-unified-document-grid{gap:0}
+.museum-editorial-documents .museum-unified-document-grid>section{border-top:0}
+.museum-editorial-documents .museum-unified-document{grid-template-columns:clamp(50px,6.8vw,104px) minmax(0,1fr) clamp(68px,8.5vw,130px) clamp(48px,6.3vw,96px);gap:clamp(8px,1.5vw,24px);padding:clamp(15px,1.6vw,25px) 0;border-bottom:2px solid #171717;min-height:84px;transition:background .15s}
+.museum-editorial-documents .museum-unified-document:hover{background:#efe9df}
+.museum-editorial-documents .museum-unified-document>strong{font-size:clamp(17px,2.15vw,33px);letter-spacing:-.035em;line-height:1.15;font-weight:850}
+.museum-editorial-documents .museum-unified-document .museum-doc-icon,.museum-editorial-documents .museum-unified-document .museum-doc-download{display:flex;align-items:center;justify-content:center;min-height:42px}
+.museum-editorial-documents .museum-doc-icon{color:#141414;border-right:1px solid #141414}
+.museum-editorial-documents .museum-unified-document .museum-doc-icon svg{color:#141414}
+.museum-editorial-documents .museum-unified-document .museum-doc-download{border-left:1px solid #141414;color:var(--mu-red)}
+.museum-editorial-documents .museum-unified-document .museum-doc-format{color:var(--mu-red);font-weight:900;text-align:right;font-size:clamp(15px,1.9vw,28px)}
+.museum-editorial-documents .museum-unified-document-grid>aside.museum-unified-verification{padding:20px 0}
+.museum-editorial-documents .museum-unified-verification summary{font-weight:850;font-size:clamp(14px,1.5vw,22px)}
+@media(max-width:650px){.museum-editorial-documents .museum-unified-title{grid-template-columns:minmax(0,1fr) 77px;gap:10px;border-bottom-width:4px;padding:14px 0}.museum-editorial-documents .museum-unified-title>div{border-left-width:9px;padding-left:10px}.museum-editorial-documents .museum-unified-title h1{font-size:clamp(28px,7.2vw,44px)}.museum-editorial-documents .museum-unified-number{font-size:39px}.museum-editorial-documents .museum-unified-title aside strong{font-size:59px}.museum-editorial-documents .museum-unified-title aside span{font-size:14px}.museum-editorial-documents .museum-unified-document{grid-template-columns:34px minmax(0,1fr) 43px 32px;gap:7px;padding:12px 0;min-height:64px}.museum-editorial-documents .museum-unified-document>strong{font-size:16px}.museum-editorial-documents .museum-unified-document .museum-doc-format{font-size:11px}.museum-editorial-documents .museum-doc-icon svg,.museum-editorial-documents .museum-doc-download svg{width:22px;height:22px}}

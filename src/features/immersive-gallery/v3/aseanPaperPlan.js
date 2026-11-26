@@ -393,8 +393,8 @@ export const ASEAN_PAPER_PLAN = {
 
 const vietnamese = {
   plan: ASEAN_PAPER_PLAN,
-  href: import.meta.env.MUSEUM_LAB_STANDALONE ? '/museum/asean/standalone-2026-11-25/TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2.pdf' : '/museum/asean/dossier-2026-11-19/TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2.pdf',
-  filename: 'TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2.pdf',
+  href: import.meta.env.MUSEUM_LAB_STANDALONE ? '/museum/asean/standalone-2026-11-25/TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_Chu-de-day-hoc-so_P2.docx' : '/museum/asean/dossier-2026-11-19/TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2.pdf',
+  filename: import.meta.env.MUSEUM_LAB_STANDALONE ? 'TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_Chu-de-day-hoc-so_P2.docx' : 'TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2.pdf',
 };
 
 const english = {
@@ -406,13 +406,13 @@ const english = {
       ...ASEAN_PAPER_PLAN_ENGLISH.activities[index],
     })),
   },
-  href: import.meta.env.MUSEUM_LAB_STANDALONE ? '/museum/asean/standalone-2026-11-25/TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2_EN_20261119.pdf' : '/museum/asean/dossier-2026-11-19/TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2_EN_20261119.pdf',
-  filename: 'TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2_EN_20261119.pdf',
+  href: import.meta.env.MUSEUM_LAB_STANDALONE ? '/museum/asean/standalone-2026-11-25/TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_Chu-de-day-hoc-so_P2.docx' : '/museum/asean/dossier-2026-11-19/TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2_EN_20261119.pdf',
+  filename: import.meta.env.MUSEUM_LAB_STANDALONE ? 'TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_Chu-de-day-hoc-so_P2.docx' : 'TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P2_EN_20261119.pdf',
 };
 
 export const ASEAN_PROJECT_OVERVIEW = {
-  href: import.meta.env.MUSEUM_LAB_STANDALONE ? '/museum/asean/standalone-2026-11-25/TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P1.docx' : '/museum/asean/dossier-2026-11-19/TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P1.docx',
-  filename: 'TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P1(20261119-072355).docx',
+  href: import.meta.env.MUSEUM_LAB_STANDALONE ? '/museum/asean/standalone-2026-11-25/TiengAnh_THPT_Nguyen-Anh-Tuan_Chu-de-day-hoc-so_P1.docx' : '/museum/asean/dossier-2026-11-19/TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P1.docx',
+  filename: import.meta.env.MUSEUM_LAB_STANDALONE ? 'TiengAnh_THPT_Nguyen-Anh-Tuan_Chu-de-day-hoc-so_P1.docx' : 'TiengAnh_THPT_Nguyen-Anh-Tuan_STEM_P1(20261119-072355).docx',
 };
 
 export const ASEAN_EVIDENCE_PDF = import.meta.env.MUSEUM_LAB_STANDALONE ? '/museum/asean/standalone-2026-11-25/asean-class-11-3-evidence.pdf' : '/museum/asean/asean-class-11-3-evidence.pdf';
