@@ -46,7 +46,8 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const assignment=assignments.find(a=>a.id===assignmentId);
   const asean=isAsean(assignment);
   const stages=asean?ASEAN_STAGES:LIVE_STAGES;
-  const useToolHub=standalone&&asean;
+  const focusMode=asean&&(standalone||Boolean(import.meta.env.MUSEUM_LAB_STANDALONE));
+  const useToolHub=standalone&&asean&&!focusMode;
   useEffect(()=>{if(assignment)onTemplateChange?.(assignment.lesson_template||'climate');},[assignment,onTemplateChange]);
   const lessonLink=assignmentId?link+'?lesson='+encodeURIComponent(assignmentId):link;
   const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
@@ -309,7 +310,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   ):null;
   const exitResponses=stage?.kind==='exit'&&serverIndex===currentIndex&&Array.isArray(state?.responses)
     ?state.responses.filter(r=>r.stage_index===currentIndex||stage?.kind==='exit').slice(0,30):[];
-  const toolbar=session?<TeacherToolbar hub={useToolHub&&!isFullscreen} offline={!!data?.offlineReadOnly} language={language} readOnly={readOnly} busy={busy} session={session} currentIndex={currentIndex} stageCount={stages.length}
+  const toolbar=session?<TeacherToolbar focusMode={focusMode} onBrowse={readOnly?(index)=>{setBrowseIndex(index);setPreviewReveal(false);setPreviewPresentation(null);setSpotlight(null);}:undefined} hub={useToolHub&&!isFullscreen} offline={!!data?.offlineReadOnly} language={language} readOnly={readOnly} busy={busy} session={session} currentIndex={currentIndex} stageCount={stages.length}
     motionOn={motionOn} activeTool={activeTool} presentationActive={asean&&isFullscreen} showJoinQr={!data?.publicReadOnly}
     onChangeCompletion={canManageLesson&&(historicalSession||contentFrozenAt)?changeCompletion:undefined}
     completed={Boolean(contentFrozenAt)}
@@ -454,7 +455,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
       ):null}
       {session?(
         <>
-          <TeacherLiveStage ref={stageRef}
+          <TeacherLiveStage ref={stageRef} focusMode={focusMode}
             session={session} stage={stage} currentIndex={currentIndex} stageCount={stages.length} language={language}
             readOnly={readOnly} frozenReason={frozenReason}
             spotlight={spotlight} onCloseSpotlight={()=>setSpotlight(null)}
@@ -511,8 +512,8 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
               </details>}
              </div>:null}
             toolHub={useToolHub&&!isFullscreen?toolbar:null} workspaceContent={useToolHub?workspaceContent:null}
-            fullscreenControls={toolbar} fullscreenPanel={fullscreenPanel}/>
-          {!useToolHub&&!isFullscreen&&<div className="adv-live-dock">{toolbar}</div>}
+            focusControls={focusMode&&!isFullscreen?toolbar:null} fullscreenControls={toolbar} fullscreenPanel={fullscreenPanel}/>
+          {!focusMode&&!useToolHub&&!isFullscreen&&<div className="adv-live-dock">{toolbar}</div>}
           {!useToolHub&&workspaceContent}
         </>
       ):null}

@@ -3034,3 +3034,9 @@ html body .igv2.igv2 :not(#igv2-swiss-a#igv2-swiss-b#igv2-swiss-c):is(
 @media (max-width: 860px) {
   .igv2 .adv-plan-periods { grid-template-columns: 1fr; }
 }
+
+/* Same official logo plate in the standalone site and its downloaded HTML. */
+.igv2 .igv2-footer-wrap--competition .footer-col--logos{display:flex;align-items:center;justify-content:center;min-width:0}
+.igv2 .igv2-footer-wrap--competition .footer-logos-row{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:center;justify-items:center;gap:clamp(14px,2vw,28px);max-width:320px}
+.igv2 .igv2-footer-wrap--competition .footer-logos-row img{display:block;width:100%;height:clamp(82px,10vw,132px);max-width:145px;object-fit:contain;object-position:center}
+@media(max-width:520px){.igv2 .igv2-footer-wrap--competition .footer-logos-row{max-width:230px}.igv2 .igv2-footer-wrap--competition .footer-logos-row img{height:94px}}

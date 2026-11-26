@@ -8,7 +8,7 @@ const t=(lang,vi,en)=>lang==='en'?en:vi;
  * in read-only playback (per spec: QR, evidence, playback remain accessible).
  */
 export default function TeacherToolbar({
-  language='vi',
+  language='vi',focusMode=false,onBrowse,
   readOnly=false,busy=false,offline=false,showJoinQr=true,
   session=null,currentIndex=0,stageCount=11,
   motionOn=true,activeTool=null,presentationActive=false,
@@ -60,6 +60,16 @@ export default function TeacherToolbar({
       ?btn('unlock',t(language,'Mở khóa bài dạy','Unlock lesson'),LockOpen,{onClick:onChangeCompletion,disabled:busy})
       :btn('complete',t(language,'Kết thúc bài dạy','End lesson'),Lock,{onClick:onChangeCompletion,disabled:busy,variant:'primary'})),
   };
+  if(focusMode)return (
+    <div className="adv-focus-toolbar" role="group" aria-label={t(language,'Điều khiển trình chiếu','Presentation controls')}>
+      {controls.previous}
+      <div className="adv-focus-steps" aria-label={t(language,'Hoạt động','Activities')}>
+       {Array.from({length:stageCount},(_,i)=>onBrowse?<button type="button" key={i} aria-current={i===currentIndex?'step':undefined} onClick={()=>onBrowse(i)} aria-label={t(language,'Xem hoạt động ','View activity ')+(i+1)}>{String(i+1).padStart(2,'0')}</button>:<span key={i} aria-current={i===currentIndex?'step':undefined}>{String(i+1).padStart(2,'0')}</span>)}
+      </div>
+      {controls.next}{controls.fullscreen}
+      <details className="adv-focus-more"><summary>{t(language,'Công cụ','Tools')}</summary><div className="adv-focus-more-grid">{['task','reveal','qr','notes','resources','voice','video','motion','pause','refresh','completion'].map(key=>controls[key])}</div></details>
+    </div>
+  );
   if(!hub)return (
     <div className="toolbar adv-toolbar" role="toolbar" aria-label={t(language,'Thanh điều khiển giáo viên','Teacher control toolbar')}>
       {Object.values(controls)}
