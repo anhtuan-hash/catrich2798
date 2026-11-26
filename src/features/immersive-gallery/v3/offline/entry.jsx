@@ -15,6 +15,7 @@ import {createOfflineRuntime} from './runtime.js';
 import {digest,expandCompactSnapshot,COMPACT_PAYLOAD_VERSION} from './snapshot.js';
 import {groupWorkshopRows} from './workshopRows.js';
 import './offline.css';
+import UnifiedArchive from './UnifiedArchive.jsx';
 
 function OfflineApp({runtime,hash}){
  const [view,setView]=useState('app'),[groupId,setGroupId]=useState(''),[notice,setNotice]=useState('');
@@ -101,8 +102,10 @@ function StudentBoard({runtime,legacy=false}){
 // Official school and author names are preserved in both interface languages.
 const ARCHIVE_BRAND='PÉTRUS KÝ SCHOOL SYSTEM · @brian.universe';
 const ARCHIVE_CREDIT='© PÉTRUS KÝ SCHOOL SYSTEM · Nguyễn Anh Tuấn · Museum Lab';
-function ArchiveHome({runtime,hash,info}){
- const [language,setLanguage]=useState('vi');
+function ArchiveHome({runtime,hash,info,archiveLanguage,onArchiveLanguageChange}){
+ const [localLanguage,setLocalLanguage]=useState('vi');
+ const language=archiveLanguage||localLanguage;
+ const setLanguage=onArchiveLanguageChange||setLocalLanguage;
  const T=(vi,en)=>language==='vi'?vi:en;
  const snapshot=runtime.snapshot,groups=groupWorkshopRows(snapshot),mobile=groups.filter(g=>snapshot.publicWorkshops?.[g.id]);
  const plan=getAseanPaperPlan(language);
@@ -130,7 +133,7 @@ function ArchiveHome({runtime,hash,info}){
  ];
  const heading=(num,label)=><h2 className="museum-editorial-heading"><span>{num} /</span>{label}</h2>;
  return <main className="museum-onefile museum-editorial-home" lang={language}>
-  <header className="museum-onefile-mast"><strong>{ARCHIVE_BRAND}</strong><span>OFFLINE / READ ONLY</span><div><button type="button" aria-pressed={language==='vi'} onClick={()=>setLanguage('vi')}>VI</button><button type="button" aria-pressed={language==='en'} onClick={()=>setLanguage('en')}>EN</button></div></header>
+  {!archiveLanguage&&<header className="museum-onefile-mast"><strong>{ARCHIVE_BRAND}</strong><span>OFFLINE / READ ONLY</span><div><button type="button" aria-pressed={language==='vi'} onClick={()=>setLanguage('vi')}>VI</button><button type="button" aria-pressed={language==='en'} onClick={()=>setLanguage('en')}>EN</button></div></header>}
   <div className="museum-editorial-banner"><ContestMasthead language={language} lessonTemplate={ASEAN_TEMPLATE}/></div>
   <div className="museum-onefile-kpis"><div><strong>{String(groups.length).padStart(2,'0')}</strong><span>{T('Nhóm học sinh','Student groups')}</span></div><div><strong>{String(mobile.length).padStart(2,'0')}</strong><span>{T('Bản thực hành trực tuyến','Online student workshops')}</span></div><div><strong>06</strong><span>{T('Hoạt động học tập','Learning activities')}</span></div></div>
   <section className="museum-onefile-section museum-editorial-intro">
@@ -186,6 +189,6 @@ async function boot(){
   </div>);
   return;
  }
- createRoot(document.getElementById('root')).render(<SharedArchive runtime={runtime} hash={actual} single={payload.mode==='all-in-one'} info={payload.archiveInfo}/>);
+ createRoot(document.getElementById('root')).render(payload.mode==='all-in-one'&&import.meta.env.MUSEUM_LAB_STANDALONE?<UnifiedArchive runtime={runtime} hash={actual} info={payload.archiveInfo} HomePage={ArchiveHome}/>:<SharedArchive runtime={runtime} hash={actual} single={payload.mode==='all-in-one'} info={payload.archiveInfo}/>);
 }
 boot().catch(error=>{const root=document.getElementById('root');root.textContent='Unable to open this archive: '+error.message;});
