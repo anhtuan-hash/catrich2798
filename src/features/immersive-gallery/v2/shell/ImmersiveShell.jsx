@@ -80,6 +80,7 @@ export default function ImmersiveShell({
   lessonTemplate,
   submissionsCatalogue = false,
   standalone = false,
+  hideTopbar = false,
 }) {
   const payload = data || staff || {};
   const profile = payload?.profile || {};
@@ -130,7 +131,7 @@ export default function ImmersiveShell({
       data-testid="immersive-gallery-v2"
       data-ui-locale={language === 'en' ? 'en-US' : 'vi-VN'}
     >
-      <header className="igv2-topbar" data-testid="igv2-topbar">
+      {!hideTopbar&&<header className="igv2-topbar" data-testid="igv2-topbar">
         <div className="igv2-topbar-inner">
           <button
             type="button"
@@ -359,7 +360,7 @@ export default function ImmersiveShell({
             </div>
           </div>
         </div>
-      </header>
+      </header>}
 
       <div className="igv2-banner-wrap">
         <CompetitionBanner language={language} lessonTemplate={lessonTemplate} />
