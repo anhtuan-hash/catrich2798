@@ -75,8 +75,8 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const [paper,setPaper]=useState(false),[tally,setTally]=useState(['','','','']),[tallyNote,setTallyNote]=useState('');
   const stageRef=useRef(null),inlineToolsRef=useRef(null),activeRef=useRef(true);
   useEffect(()=>{
-    if(useToolHub&&!isFullscreen&&activeTool)inlineToolsRef.current?.scrollIntoView({block:'nearest'});
-  },[useToolHub,isFullscreen,activeTool]);
+    if((useToolHub||focusMode)&&!isFullscreen&&activeTool)inlineToolsRef.current?.scrollIntoView({block:'nearest'});
+  },[useToolHub,focusMode,isFullscreen,activeTool]);
   const refresh=useCallback(async()=>{
     if(!assignmentId)return;
     const sequence=++requestSequence.current;
@@ -377,13 +377,13 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
               assignmentId={assignmentId} groups={groups} readOnly={readOnly}/>:null}
           </details>:null}
           {!useToolHub&&<div className="content-gap" style={{marginTop:20}}/>}
-          {!slideOnly&&(!asean||!data?.publicReadOnly)?<CommandCenter groups={groups} responses={state?.responses||[]} feedback={state?.feedback||[]}
+          {!slideOnly&&(!asean||!data?.publicReadOnly)?<CommandCenter compact={focusMode} groups={groups} responses={state?.responses||[]} feedback={state?.feedback||[]}
             microResults={state?.microResults||[]} helpGroups={state?.helpGroups||[]}
             session={session} busy={busy} onRefresh={refresh} onSpotlight={spotlightGroup} onCompare={compareGroup} language={language} asean={asean}/>:null}
           {!slideOnly&&asean&&currentIndex===4&&displayedStageLoaded&&state?.retestProgress?.length>0&&
             <AseanRetestProgress rows={state.retestProgress} language={language}/>}
-          {asean&&currentIndex===0&&displayedStageLoaded&&!data?.publicReadOnly&&<section className="bml-surface">
-            <h3>{t(language,'Kết quả trắc nghiệm Huế','Huế quiz results')}</h3>
+          {asean&&currentIndex===0&&displayedStageLoaded&&!data?.publicReadOnly&&<details className="bml-surface adv-hue-results" open={focusMode?undefined:true}>
+            <summary>{t(language,'Kết quả trắc nghiệm Huế','Huế quiz results')}</summary>
             <p>{state.hueQuizResults?.length??0}/{groups.length} {t(language,'nhóm đã nộp','groups submitted')}</p>
             {state.hueQuizResults?.map(({group_id,details})=><details key={group_id}>
               <summary>{groups.find(group=>group.id===group_id)?.label} · {details.score}/{ASEAN_HUE_QUESTIONS.length}</summary>
@@ -391,8 +391,8 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
                 {ASEAN_HUE_QUESTIONS[i].options[choice]} · {choice===details.expected[i]?'Correct':'Incorrect'}
               </li>)}</ol>
             </details>)}
-          </section>}
-          {asean&&displayedResponses.length>0&&<AseanSubmissionBoard
+          </details>}
+          {asean&&displayedResponses.length>0&&<AseanSubmissionBoard compact={focusMode}
             key={assignmentId+'-'+currentIndex} language={language} stage={stage} stageIndex={currentIndex}
             groups={groups} responses={displayedResponses} writingScores={writingScores}
             canGrade={canManageLesson&&!readOnly}
@@ -514,7 +514,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
             toolHub={useToolHub&&!isFullscreen?toolbar:null} workspaceContent={useToolHub?workspaceContent:null}
             focusControls={focusMode&&!isFullscreen?toolbar:null} fullscreenControls={toolbar} fullscreenPanel={fullscreenPanel}/>
           {!focusMode&&!useToolHub&&!isFullscreen&&<div className="adv-live-dock">{toolbar}</div>}
-          {!useToolHub&&workspaceContent}
+          {!useToolHub&&<div className={focusMode?'adv-teaching-evidence':undefined}>{workspaceContent}</div>}
         </>
       ):null}
       {onBack?<button type="button" className="adv-toolbtn" style={{marginTop:16}} onClick={onBack}><ArrowLeft size={14}/>{t(language,'Quay lại','Back')}</button>:null}

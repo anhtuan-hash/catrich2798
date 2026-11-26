@@ -6,7 +6,7 @@ import './aseanSubmissionBoard.css';
 const tr=(language,vi,en)=>language==='en'?en:vi;
 
 export default function AseanSubmissionBoard({
- language,stage,stageIndex,groups,responses,writingScores,canGrade,onSaveGrade,
+ language,stage,stageIndex,groups,responses,writingScores,canGrade,onSaveGrade,compact=false,
 }){
  const titleId=useId();
  const [selectedId,setSelectedId]=useState(null);
@@ -22,7 +22,7 @@ export default function AseanSubmissionBoard({
  const groupLabel=label=>language==='en'?englishSystemGroupLabel(label):label;
  const activityNumber=String(stageIndex+1).padStart(2,'0');
 
- return <section className="swiss-editorial-live-submissions" aria-labelledby={titleId} data-testid="asean-live-submissions">
+ return <section className={"swiss-editorial-live-submissions"+(compact?" is-compact":"")} aria-labelledby={titleId} data-testid="asean-live-submissions">
   <header className="asean-submissions-heading">
    <div>
     <p className="asean-submissions-overline">{tr(language,'Hoạt động','Activity')} {activityNumber} · {activity}</p>
@@ -36,7 +36,7 @@ export default function AseanSubmissionBoard({
 
   <div className="asean-submissions-grid">
    <div className="asean-submissions-index">
-    <h4>{tr(language,'Chọn nhóm','Select group')}</h4>
+    <h4>{compact?tr(language,'Trạng thái nhóm','Group status'):tr(language,'Chọn nhóm','Select group')}</h4>
     <div className="asean-submissions-numbers" role="group" aria-label={tr(language,'Chọn nhóm','Select group')}>
      {ordered.map((group,index)=>{
       const number=aseanGroupIndex(group.label)+1;
@@ -59,6 +59,7 @@ export default function AseanSubmissionBoard({
      return <section key={group.id} id={titleId+'-group-'+index} aria-labelledby={groupTitleId} hidden={group.id!==active.id}>
       <header className="asean-submissions-reader-heading">
        <div>
+        {compact&&<span className="asean-compact-selected">{tr(language,'Nhóm được chọn','Selected group')}</span>}
         <h4 id={groupTitleId}>{groupLabel(group.label)}</h4>
         {target&&<p>{groupLabel(target.label)} · {aseanDestination(target.label)?.name}</p>}
        </div>

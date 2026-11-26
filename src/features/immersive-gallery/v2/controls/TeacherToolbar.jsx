@@ -66,8 +66,8 @@ export default function TeacherToolbar({
       <div className="adv-focus-steps" aria-label={t(language,'Hoạt động','Activities')}>
        {Array.from({length:stageCount},(_,i)=>onBrowse?<button type="button" key={i} aria-current={i===currentIndex?'step':undefined} onClick={()=>onBrowse(i)} aria-label={t(language,'Xem hoạt động ','View activity ')+(i+1)}>{String(i+1).padStart(2,'0')}</button>:<span key={i} aria-current={i===currentIndex?'step':undefined}>{String(i+1).padStart(2,'0')}</span>)}
       </div>
-      {controls.next}{controls.fullscreen}
-      <details className="adv-focus-more"><summary>{t(language,'Công cụ','Tools')}</summary><div className="adv-focus-more-grid">{['task','reveal','qr','notes','resources','voice','video','motion','pause','refresh','completion'].map(key=>controls[key])}</div></details>
+      <div className="adv-focus-primary">{isLast&&controls.completion&&!completed?controls.completion:isLast&&readOnly?<span className="adv-focus-finished">{t(language,'Bài học đã kết thúc','Lesson completed')}</span>:controls.next}</div>
+      <details className="adv-focus-more"><summary>{t(language,'Công cụ','Tools')}</summary><div className="adv-focus-more-grid">{['fullscreen','task','reveal','qr','notes','resources','voice','video','motion','pause','refresh','completion'].map(key=>controls[key])}</div></details>
     </div>
   );
   if(!hub)return (
