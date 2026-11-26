@@ -57,6 +57,10 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
   const historicalSession=state?.session?.assignmentId===assignmentId?state.session:null;
   const readOnly=Boolean(data?.publicReadOnly||data?.offlineReadOnly||contentFrozenAt||historicalSession?.status==='ended');
   const [browseIndex,setBrowseIndex]=useState(null);
+  // A fresh competition review starts at activity 1, not the last saved live stage.
+  // Explicit browsing overrides this default; active teaching still follows the server.
+  const reviewDefault=focusMode?0:null;
+  const requestedBrowseIndex=browseIndex??reviewDefault;
   const [jumpIndex,setJumpIndex]=useState(null);
   const [previewReveal,setPreviewReveal]=useState(false);
   const requestSequence=useRef(0);
@@ -81,10 +85,10 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     if(!assignmentId)return;
     const sequence=++requestSequence.current;
     try{
-      const response=await transport('state',null,{assignmentId,...(readOnly&&browseIndex!=null?{viewStage:String(browseIndex)}:{})});
+      const response=await transport('state',null,{assignmentId,...(readOnly&&requestedBrowseIndex!=null?{viewStage:String(requestedBrowseIndex)}:{})});
       if(activeRef.current&&sequence===requestSequence.current){setState(response);setReadError('');}
     }catch(e){if(activeRef.current&&sequence===requestSequence.current)setReadError(e.message);}
-  },[assignmentId,transport,readOnly,browseIndex]);
+  },[assignmentId,transport,readOnly,requestedBrowseIndex]);
   useEffect(()=>{activeRef.current=true;refresh();const id=window.setInterval(()=>{refresh();setTime(Date.now());},readOnly?15000:3000);return()=>{activeRef.current=false;window.clearInterval(id);};},[refresh]);
   useEffect(()=>{
     const sync=()=>{
@@ -105,7 +109,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     ?(readOnly?{...historicalSession,revealed:previewReveal}:historicalSession)
     :(slideOnly?{status:'ended',stageIndex:0,questionVersion:2,revealed:previewReveal}:null);
   const serverIndex=session?.stageIndex??0;
-  const currentIndex=readOnly?(browseIndex??serverIndex):(jumpIndex??serverIndex);
+  const currentIndex=readOnly?(requestedBrowseIndex??serverIndex):(jumpIndex??serverIndex);
   const stage=asean?stages[currentIndex]:(readOnly||jumpIndex!=null)
     ?(currentIndex===1&&session?.questionVersion!==2?LEGACY_LANGUAGE_MINI_LESSON:liveStage(currentIndex))
     :session?.stage;
@@ -175,7 +179,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
     if(readOnly){
       if(action==='next'||action==='previous'){
         setBrowseIndex(i=>{
-          const base=i??(session?.stageIndex??0);
+          const base=i??reviewDefault??(session?.stageIndex??0);
           return Math.max(0,Math.min(stages.length-1,base+(action==='next'?1:-1)));
         });
         setPreviewReveal(false);setSpotlight(null);
@@ -199,7 +203,7 @@ export default function TeacherLiveScreen({language='vi',data,initialReview,onBa
       if(action==='next'||action==='previous'||action==='present')refresh();
       else await refresh();
     }catch(e){setJumpIndex(null);setError(e.message);}finally{setBusy(false);}
-  },[assignmentId,busy,readOnly,session?.version,session?.stageIndex,jumpIndex,transport,refresh,language,stages.length]);
+  },[assignmentId,busy,readOnly,session?.version,session?.stageIndex,jumpIndex,transport,refresh,language,stages.length,reviewDefault]);
   const changeCompletion=async()=>{
     if(!canManageLesson||busy||(!contentFrozenAt&&!historicalSession))return;
     const confirmText=contentFrozenAt
