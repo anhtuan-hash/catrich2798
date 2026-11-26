@@ -80,6 +80,7 @@ export default function AseanLiveSlide({focusMode=false,currentIndex, language, 
  const en = language === 'en';
  const build = slide.id === 'build';
  const phase = aseanPhase(currentIndex);
+ const Plan = focusMode?'details':'div';
  return <article key={slide.id} className={'asean-live-slide asean-live-slide--'+slide.id} data-testid={'asean-slide-'+(currentIndex+1)} lang="en">
   <p className="asean-slide-section-title">{phase.en}</p>
   <h2 className="asean-slide-heading">{slide.title[1]}</h2>
@@ -89,8 +90,8 @@ export default function AseanLiveSlide({focusMode=false,currentIndex, language, 
     {currentIndex===0&&<HueModel key={String(revealed)} en={en} revealed={revealed}/>}
     {contextCard}
    </div>
-   <details className="asean-slide-plan asean-slide-plan-disclosure" open={focusMode?undefined:true}>
-    <summary lang={language}>{en?'Student instructions & teacher pacing':'Hướng dẫn học sinh & tiến trình dạy'}</summary>
+   <Plan className={'asean-slide-plan'+(focusMode?' asean-slide-plan-disclosure':'')}>
+    {focusMode&&<summary lang={language}>{en?'Student instructions & teacher pacing':'Hướng dẫn học sinh & tiến trình dạy'}</summary>}
     <section aria-labelledby="asean-student-task-heading">
     <h3 id="asean-student-task-heading" className="asean-slide-section-title">On the student screen</h3>
     <ol className="asean-slide-student-actions">
@@ -109,7 +110,7 @@ export default function AseanLiveSlide({focusMode=false,currentIndex, language, 
      </ol>
     </details>
     </section>
-   </details>
+   </Plan>
   </div>
   {highlights?.length>0&&<dl className="asean-slide-highlights" lang={language} aria-label={en?'Class progress':'Tiến độ của lớp'}>
    {highlights.map(({label,count,extra})=><div key={label}><dt>{label}</dt><dd>{count}{extra&&<small>{' '}{extra}</small>}</dd></div>)}
