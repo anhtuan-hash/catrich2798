@@ -121,8 +121,10 @@ const publicWorkshopLocation=()=>{
  return route==='#/gallery-create'?new URLSearchParams(query).get('viewGroup'):null;
 };
 
-export function PublicAseanWorkshop({groupId,language:initialLanguage}){
- const [language,setLanguage]=useState(initialLanguage);
+export function PublicAseanWorkshop({groupId,language:initialLanguage,archiveLanguage,onArchiveLanguageChange}){
+ const [localLanguage,setLocalLanguage]=useState(initialLanguage);
+ const language=archiveLanguage||localLanguage;
+ const setLanguage=onArchiveLanguageChange||setLocalLanguage;
  const [workshop,setWorkshop]=useState(null);
  const [attempt,setAttempt]=useState(0);
  const [failed,setFailed]=useState(false);
