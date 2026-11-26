@@ -7,6 +7,7 @@ import {englishSystemGroupLabel,staffRequest} from './museumApi.js';
 import MuseumScene,{reviewMuseum} from './MuseumScene.jsx';
 import MuseumExhibitionDetail from './MuseumExhibitionDetail.jsx';
 import {artStaff} from './museumLiveApi.js';
+import {getMuseumOffline} from './offlineAccess.js';
 const tr=(lang,vi,en)=>lang==='en'?en:vi;
 const AWAITING_REVIEW=['submitted','ttcm_review'];
 const GRADEABLE=[...AWAITING_REVIEW,'approved_locked','published'];
@@ -19,18 +20,31 @@ const NOTES={
  rejected:{label:'Đã từ chối',kind:'red'}
 };
 
-function PublishedSubmissionExhibition({id,transport,language}){
- const [result,setResult]=useState(null);
+export function offlineSubmissionGallery(snapshot,review,group,assignment,collection,roomId){
+ if(!snapshot||!review||!group||review.group_id!==group.id)return null;
+ if(roomId&&collection){
+  const direct=snapshot.galleries?.find(g=>g.id===roomId&&g.rooms?.length===1);
+  if(direct)return direct;
+  const hall=snapshot.galleries?.find(g=>g.id===collection.id);
+  const room=hall?.rooms?.find(r=>r.exhibition_id===roomId);
+  if(room)return {...hall,id:roomId,title:review.snapshot?.title||room.title,rooms:[room]};
+ }
+ return reviewMuseum(review,snapshot.artworks?.[group.id]||[],assignment?.lesson_template);
+}
+
+function PublishedSubmissionExhibition({id,transport,language,offlineGallery}){
+ const [result,setResult]=useState(()=>offlineGallery?{gallery:offlineGallery}:null);
  const [attempt,setAttempt]=useState(0);
  const [previewTrigger,setPreviewTrigger]=useState(null);
  useEffect(()=>{
+  if(offlineGallery)return undefined;
   let active=true;
   transport('showcase-exhibition',{id}).then(({gallery})=>{
    if(!gallery?.rooms?.length)throw new Error('Published exhibition room unavailable');
    if(active)setResult({gallery});
   }).catch(()=>{if(active)setResult({failed:true});});
   return()=>{active=false;};
- },[id,transport,attempt]);
+ },[id,transport,attempt,offlineGallery]);
  return <section className="swiss-editorial-review-exhibition" data-testid="museum-submission-exhibition"
   aria-label={tr(language,'Triển lãm của nhóm','Group exhibition')}>
   {result?.gallery?<>
@@ -66,7 +80,10 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
   .find(gallery=>gallery.assignment_id===assignment?.id):null;
  const publishedRoomId=collection?.destinations?.find(destination=>destination.groupLabel===group?.label)?.id;
  const collectionId=publishedRoomId?collection.id:null;
- const inlineExhibition=catalogue&&Boolean(publishedRoomId);
+ const offlineSnapshot=data?.offlineReadOnly?getMuseumOffline()?.snapshot:null;
+ const autoOffline=Boolean(offlineSnapshot&&import.meta.env.MUSEUM_LAB_STANDALONE);
+ const offlineGallery=useMemo(()=>autoOffline?offlineSubmissionGallery(offlineSnapshot,selected,group,assignment,collection,publishedRoomId):null,[autoOffline,offlineSnapshot,selected,group,assignment,collection,publishedRoomId]);
+ const inlineExhibition=autoOffline?Boolean(offlineGallery):catalogue&&Boolean(publishedRoomId);
  const closePreview=()=>{setPreview(false);setPublishedPreview(null);};
  useEffect(()=>{
   if(editorial&&selected?.id)detailHeading.current?.focus();
@@ -291,7 +308,7 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
   </div>
   {selected?<section className="bml-review-detail bml-surface" id={editorial?'museum-review-detail':undefined} aria-labelledby={editorial?'museum-review-title':undefined}>
    {frozen?<div className="bml-banner bml-success-banner swiss-editorial-review-lock" role="status"><LockKeyhole size={18} aria-hidden="true"/>
-    {tr(catalogue?language:'en','Bài học đã kết thúc · Chỉ xem. Đã khóa chấm điểm, duyệt và xóa bài.','Finalized lesson · Read-only review. Grading, approval and deletion are locked.')}
+    {tr(catalogue||autoOffline?language:'en','Bài học đã kết thúc · Chỉ xem. Đã khóa chấm điểm, duyệt và xóa bài.','Finalized lesson · Read-only review. Grading, approval and deletion are locked.')}
    </div>:null}
     <div className="bml-section-head"><div className="swiss-editorial-review-heading">
      {!catalogue?<span className="bml-overline">{editorial&&groupContext?groupContext:submissionVersion}</span>:null}
@@ -302,8 +319,8 @@ export function Submissions({data,onRefresh,initialReview,onNavigate,transport=s
       <button type="button" className="bml-icon-btn" disabled={busy} onClick={()=>{setSelectedId(null);closePreview();setForm(null);if(editorial)openedCard.current?.focus();}} aria-label={editorial?tr(language,'Đóng chi tiết','Close submission'):'Close'}><ArrowLeft size={21} aria-hidden="true"/></button>
      </div>
     </div>
-    {inlineExhibition?<PublishedSubmissionExhibition key={publishedRoomId} id={publishedRoomId}
-     transport={transport} language={language}/>:null}
+    {inlineExhibition?<PublishedSubmissionExhibition key={selected.id} id={publishedRoomId}
+     transport={transport} language={language} offlineGallery={offlineGallery}/>:null}
     <div className="bml-review-detail-layout">
      <div className="bml-review-preview">
       <div className="bml-review-preview-head"><h3>{tr(language,'Sản phẩm học sinh','Student exhibition')}</h3>
