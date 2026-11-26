@@ -70,9 +70,10 @@ const QUALIFICATION_LINES = [
 export default function Footer({ language = 'vi', standalone = false }) {
   const locale = language === 'en' ? 'en' : 'vi';
   const copy = COPY[locale];
+  const competition = standalone || Boolean(import.meta.env.MUSEUM_LAB_STANDALONE);
 
   return (
-    <footer className={standalone ? 'igv2-footer-wrap igv2-footer-wrap--competition' : 'igv2-footer-wrap'} data-testid="igv2-footer-root" lang={locale}>
+    <footer className={competition ? 'igv2-footer-wrap igv2-footer-wrap--competition' : 'igv2-footer-wrap'} data-testid="igv2-footer-root" lang={locale}>
       <section
         className="profile-footer"
         data-testid="igv2-footer"
@@ -99,7 +100,7 @@ export default function Footer({ language = 'vi', standalone = false }) {
                 decoding="async"
               />
             </div>
-            {!standalone && <p className="footer-logos-motto">{copy.motto}</p>}
+            {!competition && <p className="footer-logos-motto">{copy.motto}</p>}
           </article>
 
           <article className="footer-col footer-col--teacher">
