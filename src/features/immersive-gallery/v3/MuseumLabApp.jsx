@@ -41,13 +41,14 @@ const TAB_TO_NAV={home:'overview',lessons:'lessons',submissions:'submissions',
  gallery:'exhibitions',wizard:'lessons',templates:'teaching-plan',
  live:'teacher-live',evidence:'competition-dossier',settings:'settings'};
 
-export default function MuseumLabApp({currentUser,language='en',transport,publicReadOnly=false,standalone=false,onDisplaySettings}){
+export default function MuseumLabApp({currentUser,language='en',transport,publicReadOnly=false,standalone=false,onDisplaySettings,archiveTab,archiveLanguage,archiveNavigate}){
  const staffTransport=transport||(publicReadOnly?publicStaffRequest:staffRequest);
  const liveTransport=publicReadOnly?publicLiveStaff:liveStaff;
- const [uiLanguage,setUiLanguage]=useState(()=>{
+ const [storedLanguage,setUiLanguage]=useState(()=>{
   try{const saved=sessionStorage.getItem('bml-ui-language');if(saved==='vi'||saved==='en')return saved;}catch{/* ignore */}
   return language==='vi'?'vi':'en';
  });
+ const uiLanguage=archiveLanguage||storedLanguage;
  const chooseLanguage=(next)=>{
   const value=next==='vi'?'vi':'en';
   setUiLanguage(value);
@@ -57,9 +58,9 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
  const offlineArchive=getMuseumOffline();
  const legacyArchive=offlineArchive?.snapshot?.staff?.assignments?.some(assignment=>!isAsean(assignment));
  const lessonTemplate=legacyArchive?'climate':ASEAN_TEMPLATE;
- const [tab,setTab]=useState(initialMuseumTab),[staff,setStaff]=useState(null);
+ const [tab,setTab]=useState(()=>archiveTab||initialMuseumTab()),[staff,setStaff]=useState(null);
  const [loading,setLoading]=useState(true),[error,setError]=useState('');
- const [query,setQuery]=useState(''),[reviewId,setReviewId]=useState(null),[help,setHelp]=useState(false);
+ const [query,setQuery]=useState(''),[reviewId,setReviewId]=useState(()=>archiveTab==='submissions'?new URLSearchParams(location.hash.split('?')[1]||'').get('review'):null),[help,setHelp]=useState(false);
  const refresh=useCallback(async()=>{
   try{const data=await staffTransport('dashboard');setStaff(data);setError('');return data;}
   catch(e){setError(e.message);return null;}finally{setLoading(false);}
@@ -72,6 +73,7 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
  const navigate=(id,extra)=>{
   const nextTab=NAV_TO_TAB[id]||id;
   if(readOnly&&nextTab==='wizard')return;
+  if(archiveNavigate){archiveNavigate(nextTab,extra);return;}
   // The completed competition experience has no demonstration route.
   if(id==='demo'){setTab('gallery');return;}
   if(nextTab==='demo'){setTab('gallery');return;}
@@ -111,7 +113,7 @@ export default function MuseumLabApp({currentUser,language='en',transport,public
  const sharedScreenProps={language:uiLanguage,data:staff,staff,onNavigate:navigate,onRefresh:refresh,transport:staffTransport,onCreate:readOnly?undefined:create,onBack:()=>navigate('home'),initialReview:reviewId};
  const overview=<OverviewScreen {...sharedScreenProps} data={matchingData} lessonTemplate={lessonTemplate} publicReadOnly={visitor} standalone={standalone}/>;
  return <MuseumFilePreviewProvider language={uiLanguage} enabled={!offlineArchive}>
- <ImmersiveShell activeNav={activeNav} onNavigate={shellNavigate} language={uiLanguage} onLanguageChange={chooseLanguage} staff={staff} data={staff} query={query} onQueryChange={setQuery} onRefresh={refresh} onHelp={()=>setHelp(true)} pendingCount={pendingCount} lessonTemplate={lessonTemplate} submissionsCatalogue={standalone&&tab==='submissions'} standalone={standalone}>
+ <ImmersiveShell activeNav={activeNav} onNavigate={shellNavigate} language={uiLanguage} onLanguageChange={chooseLanguage} staff={staff} data={staff} query={query} onQueryChange={setQuery} onRefresh={refresh} onHelp={()=>setHelp(true)} pendingCount={pendingCount} lessonTemplate={lessonTemplate} submissionsCatalogue={standalone&&tab==='submissions'} standalone={standalone} hideTopbar={Boolean(archiveTab)}>
   <div className="bml" data-testid="brian-museum-lab-v3" lang={uiLanguage} data-ui-locale={uiLanguage==='en'?'en-US':'vi-VN'} data-public-readonly={visitor?'true':'false'}>
    {error?<div className="bml-banner bml-danger-banner" role="alert" style={{marginBottom:18}}><ShieldAlert size={19}/>
      <div><strong>{tr(uiLanguage,'Không thể đồng bộ dữ liệu quản lý','Could not load staff data')}</strong><p>{error}</p>
