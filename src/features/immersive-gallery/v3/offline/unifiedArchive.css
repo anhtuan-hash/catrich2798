@@ -17,3 +17,10 @@
 
 /* Compact documents view; verification is retained without promotional copy. */
 .museum-unified-document-grid{grid-template-columns:minmax(0,1fr);gap:14px}.museum-unified-document-grid>aside.museum-unified-verification{background:transparent;border:0;padding:8px 0}.museum-unified-verification summary{cursor:pointer;font-weight:650;font-size:13px}.museum-unified-verification code{overflow-wrap:anywhere}.museum-unified-title>div:not(:has(p)){padding-block:4px}
+
+/* The selected submission owns its embedded single-room exhibition. */
+.museum-unified-archive .swiss-editorial-review-exhibition{min-width:0;margin-block:16px;border:1px solid #8c867b;scroll-margin-top:calc(var(--archive-nav-height,100px) + 16px)}
+.museum-unified-archive .swiss-editorial-review-exhibition-status{display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:16px}
+.museum-unified-archive .swiss-editorial-review-exhibition [data-museum-mode="inline"]:not(:fullscreen):not(.is-fallback-fullscreen){block-size:auto}
+.museum-unified-archive .swiss-editorial-review-exhibition [data-museum-mode="inline"]:not(:fullscreen):not(.is-fallback-fullscreen) .bml-editorial-viewport{overflow:visible}
+.museum-unified-archive #museum-review-title{scroll-margin-top:calc(var(--archive-nav-height,100px) + 20px)}
