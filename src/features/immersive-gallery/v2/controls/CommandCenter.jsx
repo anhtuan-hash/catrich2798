@@ -46,16 +46,18 @@ export default function CommandCenter({asean=false,
     {icon:MessageSquareText,value:model.metrics.reviewed,label:t(language,'Nhóm đã góp ý','Groups reviewed')},
     {icon:Hand,value:model.metrics.needHelp,label:t(language,'Cần hỗ trợ','Need help')}
   ];
+  const DetailPanel=compact?'details':'div';
   const activityNum=String((session?.stageIndex??-1)+1).padStart(2,'0');
   return (
-    <section aria-label={t(language,'Trung tâm điều khiển lớp học trực tiếp','Classroom Live Command Center')} data-testid="igv2-command-center">
-      <div className="section-title"><span>{t(language,'TRUNG TÂM ĐIỀU KHIỂN LỚP HỌC','CLASSROOM COMMAND CENTER')}</span>
+    <section className={compact?'adv-compact-classroom':undefined} aria-label={t(language,'Trung tâm điều khiển lớp học trực tiếp','Classroom Live Command Center')} data-testid="igv2-command-center">
+      <div className="section-title"><span>{compact?t(language,'TỔNG QUAN LỚP HỌC','CLASSROOM OVERVIEW'):t(language,'TRUNG TÂM ĐIỀU KHIỂN LỚP HỌC','CLASSROOM COMMAND CENTER')}</span>
         <span className="right">{model.metrics.responded}/{model.metrics.groups} {t(language,'phản hồi · ','responses · ')}{model.metrics.reviewed} {t(language,'đã xem xét','reviewed')}
           {onRefresh?<button type="button" onClick={onRefresh} disabled={busy} style={{marginLeft:10,background:'none',border:'1px solid var(--adv-divider)',padding:'4px 8px',fontSize:11,cursor:'pointer',borderRadius:2}} aria-label={t(language,'Làm mới tổng quan lớp','Refresh classroom overview')}><RefreshCw size={12}/> {t(language,'Làm mới','Refresh')}</button>:null}
         </span></div>
       <div className="kpi-grid" aria-label={t(language,'Tổng quan lớp học','Classroom summary')}>
         {kpis.map(({icon:Icon,value,label})=><div key={label} className="kpi" style={{display:'flex',flexDirection:'column',gap:2}}><span style={{display:'inline-flex',alignItems:'center',gap:6,fontSize:11,color:'var(--adv-mute)'}}><Icon size={13} aria-hidden="true"/>{label}</span><strong style={{fontSize:26,fontWeight:850}}>{value}</strong></div>)}
       </div>
+      <DetailPanel className={compact?'adv-compact-classroom-detail':undefined}>{compact&&<summary>{t(language,'Tiến độ nhóm và phản hồi chéo','Group progress & peer feedback')}</summary>}
       <p style={{fontSize:11,color:'var(--adv-mute)',margin:'8px 0 12px'}}>{t(language,'Hoạt động','Activity')} {activityNum}/{asean?6:11} · {session?.stage?.title||t(language,'Bài học','Lesson')} · <b>{session?.stageOpen?t(language,'Đang mở','Task open'):t(language,'Đã đóng','Task closed')}</b></p>
       <div className="command-grid" style={{display:'grid',gridTemplateColumns:'1.2fr 1fr',gap:16}}>
         <div className="panel">
@@ -125,6 +127,7 @@ export default function CommandCenter({asean=false,
           <small style={{color:'var(--adv-mute)'}}>{t(language,'Chỉ là gợi ý: xem xét ngữ cảnh trước khi sửa. Không thay đổi điểm hay bài nộp.','Advisory only: review context before editing. No student grade or submission is changed.')}</small>
         </div>
       ):null}
+      </DetailPanel>
       {compareData?(
         <div role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)setCompareData(null);}} style={{position:'fixed',inset:0,background:'rgba(17,35,57,.55)',zIndex:80,display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
           <section role="dialog" aria-modal="true" aria-label={t(language,'So sánh các phiên bản triển lãm đã lưu','Compare saved exhibit revisions')} style={{background:'var(--adv-paper)',maxWidth:900,width:'100%',maxHeight:'90vh',overflow:'auto',padding:18,borderRadius:4}}>

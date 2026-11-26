@@ -74,7 +74,66 @@ function HueModel({en, revealed}) {
  </div>;
 }
 
-export default function AseanLiveSlide({focusMode=false,currentIndex, language, revealed, onJoin, onStudioHelp, draftTools, highlights, contextCard}) {
+function FocusAseanLiveSlide({focusMode=false,currentIndex, language, revealed, onJoin, onStudioHelp, draftTools, highlights, contextCard}) {
+ const slide = ASEAN_ACTIVITY_DESIGN[currentIndex];
+ if (!slide) return null;
+ const en = language === 'en';
+ const build = slide.id === 'build';
+ const phase = aseanPhase(currentIndex);
+ const Plan = focusMode?'details':'div';
+ const Extras=focusMode?'details':'div';
+ return <article key={slide.id} className={'asean-live-slide asean-live-slide--'+slide.id} data-testid={'asean-slide-'+(currentIndex+1)} lang="en">
+  <p className="asean-slide-section-title">{phase.en}</p>
+  <h2 className="asean-slide-heading">{slide.title[1]}</h2>
+  <div className="asean-slide-body">
+   <div className="asean-slide-visual">
+    <AseanPresenterVisual key={slide.id} activity={slide.id} language="en"/>
+    {!focusMode&&currentIndex===0&&<HueModel key={String(revealed)} en={en} revealed={revealed}/>}
+    {!focusMode&&contextCard}
+   </div>
+  </div>
+  <Extras className={focusMode?'asean-teaching-extras':'asean-legacy-extras'} open={focusMode&&revealed?true:undefined}>
+   {focusMode&&<summary lang={language}>{en?'Lesson details & teaching tools':'Chi tiết bài dạy và công cụ'}</summary>}
+   {focusMode&&currentIndex===0&&<HueModel key={String(revealed)} en={en} revealed={revealed}/>}
+   {focusMode&&contextCard}
+   <Plan className={'asean-slide-plan'+(focusMode?' asean-slide-plan-disclosure':'')}>
+    {focusMode&&<summary lang={language}>{en?'Student instructions & teacher pacing':'Hướng dẫn học sinh & tiến trình dạy'}</summary>}
+    <section aria-labelledby="asean-student-task-heading">
+    <h3 id="asean-student-task-heading" className="asean-slide-section-title">On the student screen</h3>
+    <ol className="asean-slide-student-actions">
+     {studentActions[currentIndex].map(([title])=><li key={title}>
+      <strong>{title}</strong>
+     </li>)}
+    </ol>
+    <details className="asean-slide-disclosures asean-slide-instructions">
+     <summary lang={language}>{en?'Student instructions':'Hướng dẫn chi tiết cho học sinh'}</summary>
+     <ol>{studentActions[currentIndex].map(([title,detail])=><li key={title}>{detail}</li>)}</ol>
+    </details>
+    <details className="asean-slide-disclosures">
+     <summary lang={language}>{en?'Teacher pacing':'Phân bổ thời gian cho giáo viên'}</summary>
+     <ol className="asean-slide-timing" aria-label="Activity timing">
+      {slide.steps.map(([minutes, , text])=><li key={text}><strong>{minutes} <span>min</span></strong><span>{text}</span></li>)}
+     </ol>
+    </details>
+    </section>
+   </Plan>
+  {highlights?.length>0&&<dl className="asean-slide-highlights" lang={language} aria-label={en?'Class progress':'Tiến độ của lớp'}>
+   {highlights.map(({label,count,extra})=><div key={label}><dt>{label}</dt><dd>{count}{extra&&<small>{' '}{extra}</small>}</dd></div>)}
+  </dl>}
+  <div className="asean-slide-end">
+   <div className="asean-slide-output"><strong>Group output</strong><p>{slide.output[1]}</p></div>
+   {build&&(onJoin||onStudioHelp||draftTools)&&<div className="asean-slide-actions" lang={language}>
+    {onJoin&&<button className="adv-toolbtn" type="button" onClick={onJoin}><QrCode size={16}/>{en?'Class join QR':'QR vào lớp'}</button>}
+    {onStudioHelp&&<button className="adv-toolbtn" type="button" onClick={onStudioHelp}>{en?'How to open the 3D Studio':'Hướng dẫn mở Xưởng 3D'} <ArrowRight size={15}/></button>}
+    {draftTools&&<div className="asean-slide-drafts">{draftTools}</div>}
+   </div>}
+  </div>
+  {revealed&&currentIndex!==0&&<p className="asean-slide-note" lang="en">{slide.studentTask}</p>}
+  </Extras>
+ </article>;
+}
+
+function LegacyAseanLiveSlide({focusMode=false,currentIndex, language, revealed, onJoin, onStudioHelp, draftTools, highlights, contextCard}) {
  const slide = ASEAN_ACTIVITY_DESIGN[currentIndex];
  if (!slide) return null;
  const en = language === 'en';
@@ -126,3 +185,5 @@ export default function AseanLiveSlide({focusMode=false,currentIndex, language, 
   {revealed&&currentIndex!==0&&<p className="asean-slide-note" lang="en">{slide.studentTask}</p>}
  </article>;
 }
+
+export default function AseanLiveSlide(props){return props.focusMode?<FocusAseanLiveSlide {...props}/>:<LegacyAseanLiveSlide {...props}/>;}

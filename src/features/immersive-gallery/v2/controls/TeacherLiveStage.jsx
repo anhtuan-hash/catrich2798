@@ -1,5 +1,5 @@
 import React,{forwardRef,useEffect,useRef} from 'react';
-import {X,Minimize2,Radio} from 'lucide-react';
+import {X,Minimize2,Radio,CalendarDays,Layers,Timer} from 'lucide-react';
 import MuseumScene from '../../v3/MuseumScene.jsx';
 import StageArt from './StageArt.jsx';
 import TeacherLiveSlideContent from './TeacherLiveSlideContent.jsx';
@@ -57,6 +57,15 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
       {isFullscreen&&!asean?<button type="button" className="adv-stage-exit-fullscreen" onClick={onExitFullscreen} aria-label={t(language,'Thoát toàn màn hình','Exit fullscreen')}><Minimize2 size={13}/> {t(language,'Thoát','Exit')}</button>:null}
       <div className="adv-slide-scroll" ref={scrollRegion} role={isPresenting?'region':undefined}
         tabIndex={isPresenting?0:undefined} aria-label={isPresenting?t(language,'Nội dung slide có thể cuộn','Scrollable slide content'):undefined}>
+      {focusMode?<header className="adv-teaching-mast">
+        <div className="adv-teaching-wedge"><Radio size={34} aria-hidden="true"/><h1>{t(language,'Màn hình giảng dạy','Teaching View')}</h1><span>{t(language,'LỚP HỌC TRỰC TIẾP','LIVE CLASS')}</span></div>
+        <div className="adv-teaching-facts">
+          <div><CalendarDays aria-hidden="true"/><div><small>{t(language,'TIẾT','PERIOD')}</small><strong>{pad(period)} / 02</strong></div></div>
+          <div><Layers aria-hidden="true"/><div><small>{t(language,'HOẠT ĐỘNG','ACTIVITY')}</small><strong>{pad(Math.min(currentIndex+1,stageCount))} / {pad(stageCount)}</strong></div></div>
+          <div><Timer aria-hidden="true"/><div><small>{t(language,'THỜI GIAN','TIME')}</small><strong>{stage?.minutes??'—'} {t(language,'phút','min')}</strong></div></div>
+        </div>
+        <div className="adv-teaching-class"><strong>{t(language,'Lớp','Class')} {assignments.find(item=>item.id===assignmentId)?.class_scope||'—'}</strong><span>{assignments.find(item=>item.id===assignmentId)?.title||'ASEAN in Three Frames'}</span>{assignments.length>1&&<label><span className="adv-sr-only">{t(language,'Chọn bài học','Select lesson')}</span><select aria-label={t(language,'Chọn bài học','Select lesson')} value={assignmentId} disabled={assignmentBusy} onChange={onAssignment}>{assignments.map(item=><option value={item.id} key={item.id}>{item.title} · {item.class_scope}</option>)}</select></label>}</div>
+      </header>:<>
       <header className="adv-live-mast">
         {focusMode?<div className="adv-teaching-label"><Radio size={24} aria-hidden="true"/><div><span>{t(language,'LỚP HỌC TRỰC TIẾP','LIVE CLASS')}</span><h1>{t(language,'Màn hình giảng dạy','Teaching View')}</h1></div></div>:<h1>{t(language,'Giảng dạy','Teacher Live')}</h1>}
         <label className="adv-live-picker">
@@ -75,6 +84,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
           <div><small>{t(language,'THỜI LƯỢNG','DURATION')}</small><strong>{stage?.minutes??'—'} {t(language,'phút','min')}</strong></div>
         </>:<><span>{t(language,'TIẾT','PERIOD')} {pad(period)} / 02</span><span>{t(language,'HOẠT ĐỘNG','ACTIVITY')} {pad(Math.min(currentIndex+1,stageCount))} / {pad(stageCount)}</span><span>{stage?.minutes?`${pad(stage.minutes)} ${t(language,'PHÚT','MIN')}`:''}</span></>}
       </div>
+      </>}
       <div className="adv-stage-body">
         {spotlight?(
           <div style={{display:'flex',flexDirection:'column',minHeight:0,flex:1,overflow:'hidden',gap:8}}>
@@ -114,7 +124,7 @@ const TeacherLiveStage=forwardRef(function TeacherLiveStage({
         <div className="adv-hub-status">{timer}{status}</div>
         {toolHub}
       </aside>:<div className={'adv-stage-bottom'+(asean?' adv-stage-bottom--asean':'')}>
-        {timer}{status}
+        {!focusMode||!readOnly?timer:null}{status}
         {!asean&&<span>{progressLabel??(respondedCount!=null?`${respondedCount} ${t(language,'phản hồi nhóm','group responses')}`:'')}</span>}
       </div>}
       {focusControls&&<div className="adv-teaching-controls">{focusControls}</div>}
